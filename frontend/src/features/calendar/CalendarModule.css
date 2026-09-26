@@ -1,13 +1,11 @@
 /* Behind a two-way mirror only lit pixels show, so the module draws text on pure black and nothing else. */
 
 .calendar {
-  --calendar-muted: rgb(255 255 255 / 0.62);
-  --calendar-faint: rgb(255 255 255 / 0.4);
-  --calendar-rule: rgb(255 255 255 / 0.16);
-
   width: 100%;
   text-align: right;
-  color: #fff;
+  color: var(--mirror-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
   animation: calendar-fade-in 900ms ease-out both;
 }
 
@@ -30,44 +28,35 @@
 }
 
 .calendar__time {
-  font-size: clamp(3.75rem, 9vmin, 9rem);
-  font-weight: 200;
+  font-size: var(--text-display);
+  font-weight: var(--weight-display);
   letter-spacing: -0.03em;
 }
 
 .calendar__period {
   margin-left: 0.35em;
-  padding-top: 0.45em;
-  font-size: clamp(1rem, 2.2vmin, 2.2rem);
-  font-weight: 400;
+  padding-top: 0.5em;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
   letter-spacing: 0.06em;
-  color: var(--calendar-muted);
 }
 
 .calendar__date {
   margin-top: 0.6rem !important;
-  font-size: clamp(1.15rem, 2.5vmin, 2.25rem);
-  font-weight: 300;
-  color: var(--calendar-muted);
+  font-size: var(--text-title);
+  font-weight: var(--weight-regular);
 }
 
 .calendar__tag {
   display: inline-block;
   margin-top: 0.5rem !important;
-  padding: 0.15em 0.55em;
-  border: 1px solid var(--calendar-rule);
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--mirror-edge);
   border-radius: 999px;
-  font-size: clamp(0.65rem, 1.1vmin, 0.9rem);
-  font-weight: 500;
-  letter-spacing: 0.12em;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--calendar-faint);
-}
-
-/* A simulated clock must never pass for the real one, so this tag is far brighter than "Sample data". */
-.calendar__tag--demo {
-  border-color: rgb(255 255 255 / 0.7);
-  color: #fff;
 }
 
 /* Agenda */
@@ -75,7 +64,7 @@
 .calendar__agenda {
   margin-top: clamp(1.5rem, 3.5vmin, 3rem);
   padding-top: clamp(0.9rem, 2vmin, 1.5rem);
-  border-top: 1px solid var(--calendar-rule);
+  border-top: 1px solid var(--mirror-rule);
 }
 
 .calendar__agenda-header {
@@ -85,17 +74,12 @@
   gap: 0.75rem;
 }
 
-.calendar__agenda-header .calendar__tag {
-  margin-top: 0 !important;
-}
-
 .calendar__heading,
 .calendar__day-label {
-  font-size: clamp(0.72rem, 1.35vmin, 1.1rem);
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--calendar-faint);
 }
 
 .calendar__day {
@@ -116,16 +100,15 @@
 }
 
 .calendar__event-title {
-  font-size: clamp(1.05rem, 2.2vmin, 1.85rem);
-  font-weight: 400;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
   line-height: 1.25;
 }
 
 .calendar__event-meta {
-  margin-top: 0.15rem !important;
-  font-size: clamp(0.8rem, 1.5vmin, 1.25rem);
-  font-weight: 300;
-  color: var(--calendar-faint);
+  margin-top: 0.2rem !important;
+  font-size: var(--text-label);
+  font-weight: var(--weight-regular);
 }
 
 .calendar__event-title,
@@ -142,23 +125,20 @@
 .calendar__event-time {
   min-width: 8ch;
   text-align: right;
-  font-size: clamp(1.05rem, 2.2vmin, 1.85rem);
-  font-weight: 300;
+  font-size: var(--text-title);
+  font-weight: var(--weight-regular);
   font-variant-numeric: tabular-nums;
-  color: var(--calendar-muted);
   white-space: nowrap;
 }
 
 .calendar__event--active .calendar__event-time {
-  font-weight: 600;
-  color: #fff;
+  font-weight: var(--weight-strong);
 }
 
 .calendar__message {
   margin-top: 0.9rem !important;
-  font-size: clamp(1rem, 2vmin, 1.6rem);
-  font-weight: 300;
-  color: var(--calendar-muted);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
 }
 
 @keyframes calendar-fade-in {

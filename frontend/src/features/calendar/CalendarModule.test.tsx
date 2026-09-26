@@ -141,13 +141,8 @@ describe('CalendarModule agenda', () => {
 })
 
 describe('CalendarModule data labeling and errors', () => {
-  it('labels fixture data as sample data', async () => {
+  it('renders fixture events without a provenance badge', async () => {
     render(<CalendarModule now={saturdayMorning} source={sourceReturning({ provenance: 'fixture' })} />)
-    expect(await screen.findByText('Sample data')).toBeInTheDocument()
-  })
-
-  it('does not label live data', async () => {
-    render(<CalendarModule now={saturdayMorning} source={sourceReturning({ provenance: 'live' })} />)
     await screen.findByText('Lunch with study group')
     expect(screen.queryByText('Sample data')).not.toBeInTheDocument()
   })
@@ -184,6 +179,5 @@ describe('CalendarModule with the demo fixture', () => {
     ])
     expect(eventMeta(container)[0]).toBe('Soothr · in 1 hr 39 min')
     expect(screen.getByText('Monday')).toBeInTheDocument()
-    expect(screen.getByText('Sample data')).toBeInTheDocument()
   })
 })
