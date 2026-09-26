@@ -152,7 +152,7 @@ depend on `/api/*`, the Vercel preview will need either the fixture sources or a
 backend URL. Decide which before the first live-data module lands.
 
 **Status:** Configured; waiting for someone with Vercel access to import the repository. See
-the root [`README.md`](../README.md#deploying-the-ui-to-vercel).
+[`frontend/README.md`](../frontend/README.md#deploying-to-vercel).
 
 ## Decided
 

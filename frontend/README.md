@@ -32,11 +32,24 @@ Append `?now=15:30` (or `?now=2026-09-26T15:30`, or any ISO instant) to start th
 that New York time. The clock keeps running from there and shows a `Demo time` tag. This is
 how to check the noon, 2 PM, 3:30 PM, and 4 PM demo scenarios.
 
-## Deployment
+## Deploying to Vercel
 
-Every push is deployed by Vercel once the repository is connected — see the root
-[`README.md`](../README.md#deploying-the-ui-to-vercel). A deploy only succeeds if lint and every
-test pass.
+The repository imports with **no settings changes** — [`vercel.json`](../vercel.json) at the
+repo root supplies install, build, and output settings.
+
+1. In Vercel, choose **Add New → Project** and import `1milktea1/GetReadyWithMirror`.
+2. Leave **Root Directory** as the repository root. Do not point it at `frontend/`: the root
+   `vercel.json` would then be ignored and tests would not run before deploys.
+3. Click **Deploy**. No environment variables are needed yet.
+
+After that, Vercel's Git integration is the pipeline:
+
+- **Every push to any branch** gets its own preview URL, linked from its pull request.
+- **Pushes to `main`** deploy to production.
+- **A deploy fails if lint or any test fails**, because the build runs `npm run verify`.
+- **Pushes that don't touch the UI are skipped** — if nothing under `frontend/`,
+  `shared/contracts/`, `fixtures/`, or `vercel.json` changed since the branch's last successful
+  deploy, Vercel doesn't rebuild. When that can't be determined, it builds.
 
 ## Layout
 
