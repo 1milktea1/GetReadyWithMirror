@@ -45,8 +45,8 @@ If the schedule does not fit, return the conflict. **Never** fabricate a feasibl
 
 ## Determinism requirement
 
-All time arithmetic here is computed in **time-zone-aware code**, not produced by Gemini
-prose. Gemini may explain a result; it may not calculate one.
+All time arithmetic here is computed in **time-zone-aware code**, not produced by Grok
+prose. Grok may explain a result; it may not calculate one.
 
 ## Change rule
 

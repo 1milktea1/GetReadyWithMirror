@@ -1,50 +1,68 @@
 # Contract: Agent Tools
 
 **Owner:** TBD
-**Status:** Proposed — not agreed, not implemented
+**Status:** Proposed — implemented behind validation, not yet agreed
 **Producer:** [`backend/src/features/assistant/`](../../../backend/src/features/assistant/README.md)
+**Types:** [`types.ts`](types.ts)
 **Permissions:** [`docs/permissions.md`](../../../docs/permissions.md)
 
-No TypeScript interfaces and no Gemini tool declarations yet. This document names the tools
-whose argument and result shapes the team must confirm **jointly** before coding.
+Grok requests these tools. The backend validates arguments and executes them. Shapes below
+match `types.ts` and still need joint confirmation before other features depend on them.
 
 ## The allowlist
 
-Only these tools may run. Gemini requests them; the backend validates arguments and executes.
+`getPreferences` is deferred and is not declared to the model.
 
-| Tool | Kind | Executed by | Args/results agreed? |
+| Tool | Kind | Executed by | Arguments |
 |---|---|---|---|
-| `expandWidget` | UI action | Assistant → UI event | TBD |
-| `collapseWidget` | UI action | Assistant → UI event | TBD |
-| `showOverview` | UI action | Assistant → UI event | TBD |
-| `getWeather` | Read | Weather feature | TBD |
-| `getUpcomingEvent` | Read | Calendar feature | TBD |
-| `getCommute` | Read | Maps feature | TBD |
-| `generatePreparationPlan` | Read/compute | Planner feature | TBD |
-| `updateTaskDuration` | Mutates plan | Planner feature | TBD |
-| `markTaskComplete` | Mutates plan | Planner feature | TBD |
-| `getPreferences` | Read (optional) | TBD | TBD |
+| `expandWidget` | UI action | Assistant emits a UI event | `{ widget }` |
+| `collapseWidget` | UI action | Assistant emits a UI event | `{ widget }` |
+| `showOverview` | UI action | Assistant emits a UI event | `{}` |
+| `getWeather` | Read | Weather `getWeather` | `{ units? }` `imperial` or `metric` |
+| `getUpcomingEvent` | Read | Calendar, not connected yet | `{}` |
+| `getCommute` | Read | Maps, not connected yet | `{}` |
+| `generatePreparationPlan` | Read/compute | Planner, not connected yet | `{ tasks: [{ name, durationMinutes }], arrivalBufferMinutes? }` |
+| `updateTaskDuration` | Mutates the plan | Planner, not connected yet | `{ taskName, durationMinutes }` |
+| `markTaskComplete` | Mutates the plan | Planner, not connected yet | `{ taskName }` |
 
-`getPreferences` is optional and may be deferred.
+`widget` is `weather`, `calendar`, `maps`, or `planner`. Durations are whole minutes from 1 to
+180. The arrival buffer is a whole number from 0 to 120. Task names are 1 to 60 characters.
+Unknown fields are rejected.
+
+A single turn may include both a UI tool and an information tool. Tool results go back to Grok
+before it speaks a factual recommendation.
+
+## What a tool returns to Grok
+
+| Situation | Result sent back | Executed? |
+|---|---|---|
+| Arguments valid and the feature is connected | That feature's public result | Yes |
+| Arguments valid and the feature is not connected | `{ ok: false, error: { status: "not-configured" } }` | Outcome `executed`; no provider call |
+| Unknown tool, bad arguments, or non-JSON arguments | `{ ok: false, error: { status: "input-invalid" } }` | No |
+
+Nothing in the error result is replaced with a guessed event, route, or forecast.
+
+## UI event this feature emits
+
+Transport is still undecided. Each event carries `action`, `target` when a widget is involved,
+`requestId`, and `timestamp`. `showOverview` has no target.
 
 ## Rules that are not negotiable
 
 - Only allowlisted tools may run. An unrecognized tool name is rejected, not improvised.
-- Tool arguments are validated before execution. Unvalidated arguments are never passed
-  through.
+- Tool arguments are validated before execution. Unvalidated arguments are never passed through.
 - Arbitrary model-generated code is never executed.
 - The assistant calls other features' **public services**, never their provider adapters.
-- Tool results return to Gemini **before** it makes factual spoken recommendations.
+- Grok's own web search stays off.
 
-## Open questions
+## Still open
 
-- Which widget names are valid targets for `expandWidget` and `collapseWidget`?
-- May a single turn carry both a UI action and an information request? The demo flow implies
-  yes — confirm how that is represented.
-- What does a tool return when its underlying feature is in an error state?
+- Joint sign-off on the argument table above.
+- Whether `updateTaskDuration` and `markTaskComplete` need confirmation before a saved plan exists. See D12 in [`docs/decisions.md`](../../../docs/decisions.md).
+- How these UI events cross to React. That envelope is integration-owned.
 
 ## Change rule
 
-Changing this contract requires notifying the other developer before merging. When
-implementation has begun, the contract doc and all consumers are updated in the **same** pull
-request. See [`docs/collaboration.md`](../../../docs/collaboration.md).
+Changing this contract requires notifying the other developer before merging. Update this
+document, `types.ts`, and the assistant validator in the same pull request. See
+[`docs/collaboration.md`](../../../docs/collaboration.md).

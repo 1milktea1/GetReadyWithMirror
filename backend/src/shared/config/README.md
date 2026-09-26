@@ -8,20 +8,20 @@ validating that required ones are present at startup, and exposing typed config 
 
 ## Secrets rule
 
-Gemini, ElevenLabs, maps, and calendar API keys **never** go into React bundles, Git, or
+Grok, ElevenLabs, maps, and calendar API keys **never** go into React bundles, Git, or
 documentation. All provider requests are made server-side; the frontend never calls a provider
 directly.
 
 ## Environment variable names
 
-`AGENTS.md` defers creating `.env.example` until later. The **names** below are recorded here
-so teammates know what to request, with **no values** and no file committed. Final names are
-TBD and should be confirmed alongside the provider decisions in
-[`docs/decisions.md`](../../../../docs/decisions.md).
+The assistant reads `backend/.env` at turn time. Commit [`backend/.env.example`](../../../.env.example)
+with names only. Real values stay in `backend/.env`, which is gitignored. A variable already set
+in the process environment is left as-is.
 
 | Purpose | Name | Decided? |
 |---|---|---|
-| Gemini API key | TBD | TBD |
+| xAI API key (Grok) | `XAI_API_KEY` | Yes, 2026-09-26 |
+| Grok model override | `XAI_MODEL` | Optional. Defaults to `grok-4.7` |
 | ElevenLabs API key | TBD | TBD |
 | Maps / directions provider key | TBD | TBD |
 | Calendar provider client credentials | TBD | TBD |

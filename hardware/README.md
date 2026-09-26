@@ -5,7 +5,7 @@
 ## The core demo needs no extra hardware
 
 Everything required for the hackathon demo runs on the laptop: the React interface, the
-backend, Gemini orchestration, and the voice flow. The laptop sends video over HDMI to a
+backend, Grok orchestration, and the voice flow. The laptop sends video over HDMI to a
 monitor mounted behind a two-way mirror, and uses its **built-in microphone and speakers** for
 voice input and output.
 
