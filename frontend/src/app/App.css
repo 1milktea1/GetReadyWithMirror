@@ -24,6 +24,7 @@
 .mirror__region--top-right {
   grid-area: top-right;
   justify-self: end;
+  width: min(34rem, 42vw);
 }
 
 .mirror__region--middle {
@@ -34,4 +35,21 @@
 .mirror__region--bottom {
   grid-area: bottom;
   justify-self: center;
+}
+
+/* Below this width a 42vw corner module gets too cramped to read, so regions stack full width. */
+@media (max-width: 52rem) {
+  .mirror {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      'top-left'
+      'top-right'
+      'middle'
+      'bottom';
+  }
+
+  .mirror__region--top-right {
+    width: min(34rem, 100%);
+  }
 }

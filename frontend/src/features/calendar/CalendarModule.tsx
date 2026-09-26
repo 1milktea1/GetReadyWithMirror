@@ -1,4 +1,5 @@
 import type { CalendarStatus } from '@contracts/calendar'
+import { Fragment } from 'react'
 import {
   formatClock,
   formatCountdown,
@@ -118,17 +119,27 @@ interface EventRowProps {
 
 function EventRow({ item, now, timeZone, showCountdown }: EventRowProps) {
   const { event, start, end, inProgress } = item
-  const meta = [
-    event.venueName,
+  const timing = [
     inProgress ? `until ${formatTimeOfDay(end, timeZone)}` : null,
     showCountdown ? formatCountdown(start, now) : null,
-  ].filter(Boolean)
+  ].filter((detail) => detail !== null)
+  const hasMeta = Boolean(event.venueName) || timing.length > 0
 
   return (
     <li className={inProgress ? 'calendar__event calendar__event--active' : 'calendar__event'}>
       <div className="calendar__event-body">
         <p className="calendar__event-title">{event.title}</p>
-        {meta.length > 0 && <p className="calendar__event-meta">{meta.join(' · ')}</p>}
+        {hasMeta && (
+          <p className="calendar__event-meta">
+            {event.venueName}
+            {timing.map((detail, index) => (
+              <Fragment key={detail}>
+                {(event.venueName || index > 0) && ' · '}
+                <span className="calendar__event-timing">{detail}</span>
+              </Fragment>
+            ))}
+          </p>
+        )}
       </div>
       <time className="calendar__event-time" dateTime={event.start}>
         {inProgress ? 'Now' : formatTimeOfDay(start, timeZone)}

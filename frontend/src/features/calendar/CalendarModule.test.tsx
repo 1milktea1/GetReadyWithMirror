@@ -49,6 +49,9 @@ function sourceReturning(overrides: Partial<CalendarResult>): CalendarSource {
 const eventTitles = (container: HTMLElement) =>
   [...container.querySelectorAll('.calendar__event-title')].map((node) => node.textContent)
 
+const eventMeta = (container: HTMLElement) =>
+  [...container.querySelectorAll('.calendar__event-meta')].map((node) => node.textContent)
+
 describe('CalendarModule clock', () => {
   it('shows the current New York time and date', () => {
     render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
@@ -88,18 +91,35 @@ describe('CalendarModule agenda', () => {
   })
 
   it('shows start times and a countdown on the next event only', async () => {
-    render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
+    const { container } = render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
     expect(await screen.findByText('12:30 PM')).toBeInTheDocument()
     expect(screen.getByText('5:00 PM')).toBeInTheDocument()
-    expect(screen.getByText('Columbia University · in 1 hr 9 min')).toBeInTheDocument()
-    expect(screen.queryAllByText(/\bin \d+ (hr|min)/)).toHaveLength(1)
+    expect(eventMeta(container)).toEqual(['Columbia University · in 1 hr 9 min'])
   })
 
   it('marks an event in progress with Now and its end time', async () => {
     const duringLunch = new Date('2026-09-26T16:45:00Z')
-    render(<CalendarModule now={duringLunch} source={sourceReturning({})} />)
+    const { container } = render(<CalendarModule now={duringLunch} source={sourceReturning({})} />)
     expect(await screen.findByText('Now')).toBeInTheDocument()
-    expect(screen.getByText('Columbia University · until 1:30 PM')).toBeInTheDocument()
+    expect(eventMeta(container)[0]).toBe('Columbia University · until 1:30 PM')
+  })
+
+  it('keeps countdowns unbreakable but leaves venue text free to wrap', async () => {
+    const { container } = render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
+    await screen.findByText('Lunch with study group')
+    const timing = [...container.querySelectorAll('.calendar__event-timing')].map(
+      (node) => node.textContent,
+    )
+    expect(timing).toEqual(['in 1 hr 9 min'])
+  })
+
+  it('omits the separator when an event has timing but no venue', async () => {
+    const venueless = { ...lunch, venueName: undefined }
+    const { container } = render(
+      <CalendarModule now={saturdayMorning} source={sourceReturning({ events: [venueless] })} />,
+    )
+    await screen.findByText('Lunch with study group')
+    expect(eventMeta(container)).toEqual(['in 1 hr 9 min'])
   })
 
   it('respects maxEvents', async () => {
@@ -158,7 +178,7 @@ describe('CalendarModule with the demo fixture', () => {
       'Department seminar',
       'Brunch',
     ])
-    expect(screen.getByText('Downtown (restaurant TBD) · in 1 hr 39 min')).toBeInTheDocument()
+    expect(eventMeta(container)[0]).toBe('Downtown (restaurant TBD) · in 1 hr 39 min')
     expect(screen.getByText('Monday')).toBeInTheDocument()
     expect(screen.getByText('Sample data')).toBeInTheDocument()
   })

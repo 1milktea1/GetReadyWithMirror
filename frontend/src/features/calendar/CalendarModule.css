@@ -5,7 +5,7 @@
   --calendar-faint: rgb(255 255 255 / 0.4);
   --calendar-rule: rgb(255 255 255 / 0.16);
 
-  width: min(34rem, 42vw);
+  width: 100%;
   text-align: right;
   color: #fff;
   animation: calendar-fade-in 900ms ease-out both;
@@ -100,9 +100,10 @@
   margin-bottom: 0.35rem !important;
 }
 
+/* minmax(0, …) lets long titles and venues wrap instead of pushing the time column past the module edge. */
 .calendar__event {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
   column-gap: clamp(0.9rem, 2vmin, 1.6rem);
   padding: clamp(0.35rem, 0.8vmin, 0.6rem) 0;
@@ -121,8 +122,20 @@
   color: var(--calendar-faint);
 }
 
+.calendar__event-title,
+.calendar__event-meta {
+  overflow-wrap: break-word;
+}
+
+/* Short and bounded, so it can safely stay on one line; venue text wraps normally. */
+.calendar__event-timing {
+  white-space: nowrap;
+}
+
+/* Wide enough for "10:30 AM" so every title shares one right edge, whether the row shows a time or "Now". */
 .calendar__event-time {
-  min-width: 5.5ch;
+  min-width: 8ch;
+  text-align: right;
   font-size: clamp(1.05rem, 2.2vmin, 1.85rem);
   font-weight: 300;
   font-variant-numeric: tabular-nums;
