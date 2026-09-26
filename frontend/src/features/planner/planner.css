@@ -42,15 +42,15 @@
 }
 
 .planner__time {
-  font-size: var(--text-display);
+  font-size: var(--text-headline);
   font-weight: var(--weight-display);
   letter-spacing: -0.03em;
 }
 
 .planner__period {
-  margin-left: 0.35em;
-  padding-top: 0.5em;
-  font-size: var(--text-title);
+  margin-left: 0.3em;
+  padding-top: 0.35em;
+  font-size: var(--text-body);
   font-weight: var(--weight-medium);
   letter-spacing: 0.06em;
 }

@@ -16,7 +16,8 @@ Provider order for each mode:
    Google's route geometry.
 2. **Transitous** (`api.transitous.org`) for subway when Google did not return one. The path
    follows the walk to the station, the trains, and the walk to the door. It is not a straight
-   line between the pins. `transitModes=SUBWAY`.
+   line between the pins. Columbia campus pins start at the 116 St–Columbia University
+   entrance so the 1 train is used (~33 min), not a 21-minute walk to the 2/3 (~54 min).
 3. **Valhalla** (`valhalla1.openstreetmap.de`) for walking, driving, and cycling when that mode
    is still missing. This road router has no live traffic and no subway schedules.
 4. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)

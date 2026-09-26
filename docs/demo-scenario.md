@@ -110,7 +110,7 @@ Until the questions below are settled by the team, the planner uses these rehear
 | Choice | Value |
 |---|---|
 | Transport | Subway / transit by default. The overview can switch to walk, drive, or rideshare. |
-| Travel time | Google Directions when `GOOGLE_MAPS_API_KEY` is set. Otherwise Transitous for subway and Valhalla for walk, drive, and cycling. The labeled fixture fills any mode those miss (subway fixture is 35 minutes and has no path). |
+| Travel time | Google Directions when `GOOGLE_MAPS_API_KEY` is set. Otherwise Transitous for subway (from the 116 St 1 train, ~33 min) and Valhalla for walk, drive, and cycling. The labeled fixture fills any mode those miss (subway fixture is 35 minutes and has no path). |
 | Arrival buffer | 10 minutes (arrive at 4:50) |
 | Leave-by | 4:15 PM |
 | Tasks | Shower 15, hair 20, get dressed 10 |

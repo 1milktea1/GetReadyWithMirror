@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { decodePolyline, mapGoogleRoute } from './googleDirectionsAdapter.ts';
 import { handleMapsRequest } from './mapsHttp.ts';
 import { getCommute } from './mapsService.ts';
-import { mapTransitRoute } from './transitAdapter.ts';
+import { mapTransitRoute, transitAccessPoint } from './transitAdapter.ts';
 import { mapValhallaRoute } from './valhallaAdapter.ts';
 
 test('the demo fixture returns a labeled transit duration for Columbia → Soothr', async () => {
@@ -154,6 +154,14 @@ test('a live Google response replaces the fixture duration', async () => {
   }
 });
 
+test('Columbia campus transit starts at the 116 St 1 train, not a 21-minute walk to the 2/3', () => {
+  const station = transitAccessPoint({ latitude: 40.8075, longitude: -73.9626 });
+  assert.equal(station.latitude, 40.807722);
+  assert.equal(station.longitude, -73.964105);
+  const elsewhere = transitAccessPoint({ latitude: 40.732269, longitude: -73.987352 });
+  assert.equal(elsewhere.latitude, 40.732269);
+});
+
 test('maps a subway itinerary onto a path instead of a straight pin line', () => {
   const route = mapTransitRoute({
     itineraries: [
@@ -185,7 +193,8 @@ test('without a Google key, subway comes from Transitous and roads from Valhalla
       fetchFn: async (input) => {
         const url = new URL(String(input));
         if (url.hostname === 'api.transitous.org') {
-          assert.equal(url.searchParams.get('transitModes'), 'SUBWAY');
+          assert.equal(url.searchParams.get('transitModes'), 'TRANSIT');
+          assert.equal(url.searchParams.get('fromPlace'), '40.807722,-73.964105');
           return Response.json({
             itineraries: [
               {

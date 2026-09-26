@@ -60,7 +60,7 @@
 }
 
 .mirror--map .planner__time {
-  font-size: clamp(2.4rem, 6vmin, 4.5rem);
+  font-size: var(--text-headline);
 }
 
 .mirror--map .mirror__region--top-right {

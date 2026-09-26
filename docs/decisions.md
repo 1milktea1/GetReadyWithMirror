@@ -69,9 +69,11 @@ Account, quotas, exact endpoints, and which transport modes matter for Columbia 
 
 **Status:** Open for the account and quota. The demo can run without a key. When
 `GOOGLE_MAPS_API_KEY` is set, the backend calls the Directions API for transit, driving,
-walking, and cycling, and driving can include traffic. Otherwise subway uses the public
-Transitous router (real train geometry, not a straight line), walking and driving use Valhalla,
-and anything still missing stays on the labeled fixture
+walking, and cycling, and driving can include traffic. A key is optional — the demo already
+has live subway times without one. Campus pins start Transitous at the 116 St–Columbia
+University 1 train so the trip is ~33 minutes (the time Google/Apple show), not a 21-minute
+walk to the 2/3. Walking and driving use Valhalla, and anything still missing stays on the
+labeled fixture
 ([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
 35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See
 [`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md).

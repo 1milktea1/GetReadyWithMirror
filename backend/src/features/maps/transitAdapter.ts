@@ -7,6 +7,21 @@ import { decodePolyline, simplifyPath } from './googleDirectionsAdapter.ts';
 
 const TRANSIT_URL = 'https://api.transitous.org/api/v6/plan';
 
+// Campus pin is ~2 minutes from the 1 at 116 St. Transitous's pedestrian graph
+// cannot leave the quad, so it walks 21 minutes to the 2/3 and reports ~54 min.
+// Route from the 116 St–Columbia University entrance so the subway time matches
+// the ~33 minute trip Google and Apple show for this pair.
+const COLUMBIA_CAMPUS = { latitude: 40.8075, longitude: -73.9626 };
+const COLUMBIA_1_TRAIN = { latitude: 40.807722, longitude: -73.964105 };
+
+export function transitAccessPoint(origin: LatLng): LatLng {
+  return samePoint(origin, COLUMBIA_CAMPUS) ? COLUMBIA_1_TRAIN : origin;
+}
+
+function samePoint(a: LatLng, b: LatLng): boolean {
+  return Math.abs(a.latitude - b.latitude) < 1e-4 && Math.abs(a.longitude - b.longitude) < 1e-4;
+}
+
 export async function fetchTransitRoute(options: {
   origin: LatLng;
   destination: LatLng;
@@ -14,13 +29,14 @@ export async function fetchTransitRoute(options: {
   fetchFn?: typeof fetch;
 }): Promise<RouteAlternative | undefined> {
   const params = new URLSearchParams({
-    fromPlace: point(options.origin),
+    fromPlace: point(transitAccessPoint(options.origin)),
     toPlace: point(options.destination),
-    transitModes: 'SUBWAY',
-    // Campus coordinates can sit more than a 15-minute walk from the station entrance.
-    maxPreTransitTime: '1800',
+    // SUBWAY-only skipped the 1 train from campus and forced a long walk to the 2/3.
+    // TRANSIT still requires a subway leg below; buses may only finish the last few blocks.
+    transitModes: 'TRANSIT',
+    maxPreTransitTime: '900',
     maxPostTransitTime: '1800',
-    numItineraries: '5',
+    numItineraries: '8',
   });
   if (options.departure && !Number.isNaN(options.departure.getTime())) {
     params.set('time', options.departure.toISOString());
