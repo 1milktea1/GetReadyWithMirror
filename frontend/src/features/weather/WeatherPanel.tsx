@@ -32,15 +32,25 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
   const settingsPanel = <WeatherSettings settings={settings} onChange={update} />;
 
   if (state.status === 'loading') {
-    return <div className="weather weather--status">Loading weather…</div>;
+    return (
+      <div className="weather weather--status" onClick={onToggle}>
+        Loading weather…
+      </div>
+    );
   }
 
   if (state.status === 'error') {
     return (
-      <div className="weather weather--status" role="alert">
+      <div className="weather weather--status" role="alert" onClick={onToggle}>
         <div className="weather-status-title">Weather unavailable</div>
         <div className="weather-status-detail">{state.error.message}</div>
-        <button className="weather-retry" onClick={retry}>
+        <button
+          className="weather-retry"
+          onClick={(event) => {
+            event.stopPropagation();
+            retry();
+          }}
+        >
           Retry
         </button>
         {/* Always reachable here, so a location that fails can be changed back. */}

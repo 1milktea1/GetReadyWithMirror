@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { App } from './App'
 
@@ -42,6 +42,33 @@ describe('overview map', () => {
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('region', { name: 'Route map' })).not.toBeInTheDocument()
     expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+  })
+
+  it('opens expanded weather in the center with only the time and date', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/planner')) {
+          return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No plan' } }) }
+        }
+        return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }) }
+      }),
+    )
+    render(<App />)
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'weather' })
+    await waitFor(() => expect(screen.queryByText('Upcoming')).not.toBeInTheDocument())
+    expect(await screen.findByText('No weather')).toBeInTheDocument()
+    expect(screen.queryByText('No plan')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
+    expect(screen.getByText(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/)).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+    expect(screen.getByText('No plan')).toBeInTheDocument()
   })
 
   it('keeps the real clock when the URL has ?now=', async () => {

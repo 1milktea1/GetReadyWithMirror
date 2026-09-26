@@ -74,9 +74,37 @@
   padding: 0.35rem 0.15rem 0.35rem 0.8rem;
 }
 
+/* Expanded weather: the panel sits in the center. Time and date stay top-right. */
+.mirror.mirror--weather {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'clock'
+    'weather';
+}
+
+.mirror--weather .mirror__region--top-right {
+  grid-area: clock;
+  justify-self: end;
+  align-self: start;
+  width: auto;
+}
+
+.mirror--weather .calendar__date {
+  white-space: nowrap;
+}
+
+.mirror__region--weather {
+  grid-area: weather;
+  justify-self: center;
+  align-self: center;
+  width: max-content;
+  max-width: min(42rem, 92vw);
+}
+
 /* Below this width a 42vw corner module gets too cramped to read, so regions stack full width. */
 @media (max-width: 52rem) {
-  .mirror:not(.mirror--map) {
+  .mirror:not(.mirror--map):not(.mirror--weather) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto 1fr;
     grid-template-areas:
@@ -85,8 +113,8 @@
       '.';
   }
 
-  .mirror:not(.mirror--map) .mirror__region--left,
-  .mirror:not(.mirror--map) .mirror__region--top-right {
+  .mirror:not(.mirror--map):not(.mirror--weather) .mirror__region--left,
+  .mirror:not(.mirror--map):not(.mirror--weather) .mirror__region--top-right {
     width: min(34rem, 100%);
   }
 }

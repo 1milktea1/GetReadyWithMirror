@@ -18,7 +18,8 @@ type ExpandedModule = 'weather' | 'planner' | 'map' | null
 
 function expandFromLocation(): ExpandedModule {
   const widget = new URLSearchParams(window.location.search).get('expand')
-  return widget === 'map' ? 'map' : null
+  if (widget === 'map' || widget === 'weather') return widget
+  return null
 }
 
 export function App() {
@@ -26,6 +27,8 @@ export function App() {
   const [expanded, setExpanded] = useState<ExpandedModule>(expandFromLocation)
   const [mode, setMode] = useState<TransportMode>('transit')
   const mapOpen = expanded === 'map'
+  const weatherOpen = expanded === 'weather'
+  const screenClass = mapOpen ? 'mirror mirror--map' : weatherOpen ? 'mirror mirror--weather' : 'mirror'
 
   useEffect(() => {
     window.mirrorCommand = (command: MirrorCommand) => publishMirrorCommand(command)
@@ -56,27 +59,31 @@ export function App() {
   }, [])
 
   return (
-    <main className={mapOpen ? 'mirror mirror--map' : 'mirror'}>
+    <main className={screenClass}>
       {mapOpen && (
         <div className="mirror__region mirror__region--map">
           <MapPanel mode={mode} onModeChange={setMode} />
         </div>
       )}
-      <div className="mirror__region mirror__region--left">
-        {!mapOpen && (
-          <WeatherPanel
-            expanded={expanded === 'weather'}
-            onToggle={() => setExpanded(expanded === 'weather' ? null : 'weather')}
+      {weatherOpen && (
+        <div className="mirror__region mirror__region--weather">
+          <WeatherPanel expanded onToggle={() => setExpanded(null)} />
+        </div>
+      )}
+      {!weatherOpen && (
+        <div className="mirror__region mirror__region--left">
+          {!mapOpen && (
+            <WeatherPanel expanded={false} onToggle={() => setExpanded('weather')} />
+          )}
+          <PlannerPanel
+            expanded={expanded === 'planner'}
+            onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
+            mode={mode}
           />
-        )}
-        <PlannerPanel
-          expanded={expanded === 'planner'}
-          onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
-          mode={mode}
-        />
-      </div>
+        </div>
+      )}
       <div className="mirror__region mirror__region--top-right">
-        <CalendarModule now={now} source={calendarSource} clockOnly={mapOpen} />
+        <CalendarModule now={now} source={calendarSource} clockOnly={mapOpen} hideAgenda={weatherOpen} />
       </div>
     </main>
   )
