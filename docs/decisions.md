@@ -97,14 +97,10 @@ it is an environment variable, a request parameter, or a UI control, and what it
 
 Every feature that reads the clock must read it through this override.
 
-**Status:** Frontend half implemented, pending team confirmation. The UI reads a `?now=` URL
-parameter (`?now=15:30`, `?now=2026-09-26T15:30`, or an ISO instant) and runs the clock from
-that time, labeled `Demo time · actual <real time>`. See
+**Status:** The mirror UI always uses the device clock. It does not honor `?now=` and does
+not show a demo-time label. Backend APIs still accept `?now=` so tests and local rehearsal
+can pin a clock without shifting the display. See
 [`frontend/src/shared/time/nowOverride.ts`](../frontend/src/shared/time/nowOverride.ts).
-
-Still open: how the override reaches the **backend** once the planner computes real deadlines.
-The frontend could forward its overridden "now" on each request, or the backend could read its
-own setting — but both must agree, or the UI and planner will disagree about the time.
 
 ### D10. Voice API placement
 

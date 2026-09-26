@@ -43,4 +43,16 @@ describe('overview map', () => {
     expect(screen.queryByRole('region', { name: 'Route map' })).not.toBeInTheDocument()
     expect(await screen.findByText('Upcoming')).toBeInTheDocument()
   })
+
+  it('keeps the real clock when the URL has ?now=', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }),
+      })),
+    )
+    window.history.replaceState(null, '', '/?now=12:00')
+    render(<App />)
+    expect(screen.queryByText(/Demo time/)).not.toBeInTheDocument()
+  })
 })

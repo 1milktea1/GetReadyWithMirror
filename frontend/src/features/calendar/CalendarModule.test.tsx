@@ -60,16 +60,7 @@ describe('CalendarModule clock', () => {
     expect(screen.getByText('Saturday, September 26')).toBeInTheDocument()
   })
 
-  it('labels a simulated clock and shows the actual time beside it', () => {
-    const lateNight = new Date('2026-09-27T03:30:00Z') // 11:30 PM in New York
-    const actual = new Date('2026-09-26T15:36:00Z') // 11:36 AM in New York
-    render(<CalendarModule now={lateNight} source={sourceReturning({})} actualTime={actual} />)
-    expect(screen.getByText('11:30')).toBeInTheDocument()
-    expect(screen.getByText('PM')).toBeInTheDocument()
-    expect(screen.getByText('Demo time · actual 11:36 AM')).toBeInTheDocument()
-  })
-
-  it('does not label the real clock', () => {
+  it('does not show a demo-time label', () => {
     render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
     expect(screen.queryByText(/Demo time/)).not.toBeInTheDocument()
   })

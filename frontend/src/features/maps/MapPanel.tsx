@@ -10,7 +10,7 @@ import './map.css'
 interface MapPanelProps {
   mode: TransportMode
   onModeChange: (mode: TransportMode) => void
-  /** Demo clock forwarded to the backend, already floored to the minute. */
+  /** Optional clock forwarded to the backend, already floored to the minute. */
   now?: string
 }
 

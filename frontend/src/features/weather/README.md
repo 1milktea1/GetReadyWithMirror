@@ -56,7 +56,7 @@ cd frontend && npm install && npm run dev   # UI on http://localhost:5173
 ```
 
 Until voice UI events exist, click the weather panel to expand it and press Escape to return
-to the overview. Add `?now=2026-09-26T14:00:00-04:00` to the URL to test a demo time.
+to the overview. The panel uses the real clock.
 
 ## Does NOT own
 

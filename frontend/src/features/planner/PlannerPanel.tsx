@@ -10,7 +10,7 @@ import './planner.css';
 interface PlannerPanelProps {
   expanded: boolean;
   onToggle: () => void;
-  /** Demo clock forwarded to the backend, already floored to the minute. */
+  /** Optional clock for tests. The overview uses the live backend clock. */
   now?: string;
   /** Selected transportation. Defaults to subway. */
   mode?: TransportMode;
