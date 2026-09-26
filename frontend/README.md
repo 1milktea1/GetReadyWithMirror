@@ -49,14 +49,20 @@ repo root supplies install, build, and output settings.
    `vercel.json` would then be ignored and tests would not run before deploys.
 3. Click **Deploy**. No environment variables are needed yet.
 
+The same deployment serves `GET /api/weather` and `GET /api/weather/locations`. Those routes
+live in [`api/weather/`](../api/weather/) and call the weather handlers directly, so the preview
+can load a live forecast without the laptop backend. Voice, Grok, and the other features still
+run on the laptop.
+
 After that, Vercel's Git integration is the pipeline:
 
 - **Every push to any branch** gets its own preview URL, linked from its pull request.
 - **Pushes to `main`** deploy to production.
 - **A deploy fails if lint or any test fails**, because the build runs `npm run verify`.
-- **Pushes that don't touch the UI are skipped** — if nothing under `frontend/`,
-  `shared/contracts/`, `fixtures/`, or `vercel.json` changed since the branch's last successful
-  deploy, Vercel doesn't rebuild. When that can't be determined, it builds.
+- **Pushes that don't touch the UI or weather API are skipped** — if nothing under `frontend/`,
+  `shared/contracts/`, `fixtures/`, `vercel.json`, `api/`, or `backend/src/features/weather/`
+  changed since the branch's last successful deploy, Vercel doesn't rebuild. When that can't be
+  determined, it builds.
 
 ## Layout
 

@@ -150,11 +150,12 @@ Vercel hosts the frontend so every push gets a preview URL teammates can open wi
 anything locally. [`vercel.json`](../vercel.json) is committed; deploys run lint and the full
 test suite before building, and skip pushes with no UI changes since the last successful deploy.
 
-This hosts the **UI only**. The Express backend is planned to run on the laptop, so once modules
-depend on `/api/*`, the Vercel preview will need either the fixture sources or a reachable
-backend URL. Decide which before the first live-data module lands.
+The preview deploys the React app and the weather read routes (`GET /api/weather` and
+`GET /api/weather/locations`) as Vercel functions in [`api/weather/`](../api/weather/). Those
+functions call the weather handlers, which call Open-Meteo. No weather API key is required.
+The rest of the backend — voice, Grok, maps, planner — stays on the laptop.
 
-**Status:** Configured; waiting for someone with Vercel access to import the repository. See
+**Status:** Weather routes deploy with the frontend. See
 [`frontend/README.md`](../frontend/README.md#deploying-to-vercel).
 
 ## Decided
