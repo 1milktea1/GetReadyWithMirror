@@ -18,8 +18,10 @@ export interface CalendarModuleProps {
   source: CalendarSource
   timeZone?: string
   maxEvents?: number
-  /** Clock only. Used when the map is open and the agenda should stay hidden. */
+  /** Clock only. Used when the map is open and the date and agenda should stay hidden. */
   clockOnly?: boolean
+  /** Time and date, without the upcoming-event list. Used on the expanded weather screen. */
+  hideAgenda?: boolean
 }
 
 const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
@@ -35,12 +37,14 @@ export function CalendarModule({
   timeZone = MIRROR_TIME_ZONE,
   maxEvents = 4,
   clockOnly = false,
+  hideAgenda = false,
 }: CalendarModuleProps) {
   const state = useCalendarEvents(source, now)
   const clock = formatClock(now, timeZone)
+  const showAgenda = !clockOnly && !hideAgenda
 
   return (
-    <section className="calendar" aria-label={clockOnly ? 'Time' : 'Calendar'}>
+    <section className="calendar" aria-label={showAgenda ? 'Calendar' : 'Time'}>
       <header className="calendar__now">
         <time className="calendar__clock" dateTime={now.toISOString()}>
           <span className="calendar__time">{clock.time}</span>
@@ -49,7 +53,7 @@ export function CalendarModule({
         {!clockOnly && <p className="calendar__date">{formatLongDate(now, timeZone)}</p>}
       </header>
 
-      {!clockOnly && (
+      {showAgenda && (
         <div className="calendar__agenda">
           <div className="calendar__agenda-header">
             <h2 className="calendar__heading">Upcoming</h2>

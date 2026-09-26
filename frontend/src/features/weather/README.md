@@ -27,10 +27,10 @@ is picked under "Location & units".
 
 ## Layout
 
-Weather lives in the **left column** of the mirror, above the getting-ready plan and leave-by.
-The calendar takes the right column, and the center stays empty so the user can see their
-reflection. Expanding weather grows the panel downward in its column; it never covers the
-center.
+On the overview, weather is the compact tile in the **left column**, above the getting-ready
+plan. Expanding it (`?expand=weather`, a click, or `expandWidget` for `weather`) opens a
+centered expanded panel. The getting-ready plan and calendar events hide. Time and date stay
+in the top right. Escape returns to the overview.
 
 ## Files
 
