@@ -3,7 +3,8 @@
 **Owner:** TBD
 **Status:** Left-side route map on the overview
 
-`MapPanel` draws `GET /api/maps` on a dark CARTO basemap (OpenStreetMap data). The browser
+`MapPanel` draws `GET /api/maps` on OpenStreetMap raster tiles, inverted so the mirror stays
+dark. CARTO's public dark tiles currently return a key watermark, so they are not used. The browser
 does not call Google or Valhalla and never sees `GOOGLE_MAPS_API_KEY`.
 
 Subway, Walk, Drive, and Rideshare are selectable. Subway is the default. The chosen mode is

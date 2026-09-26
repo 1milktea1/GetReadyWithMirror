@@ -16,6 +16,11 @@
   font: inherit;
 }
 
+/* Invert the light OSM raster so the glass stays black. Markers sit above this pane. */
+.map-panel .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.95);
+}
+
 .map-panel .leaflet-control-attribution {
   background: rgb(0 0 0 / 0.72);
   color: #fff;

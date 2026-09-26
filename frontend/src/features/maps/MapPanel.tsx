@@ -21,7 +21,9 @@ const CHOICES: readonly { mode: TransportMode; label: string }[] = [
   { mode: 'rideshare', label: 'Rideshare' },
 ]
 
-const TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+/* CARTO's public dark tiles now return a key watermark. OSM raster tiles stay
+   keyless; the tile pane is inverted in CSS so the mirror stays dark. */
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 
 export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   const { state, retry } = useMaps(buildMapsQuery(now))
@@ -36,8 +38,7 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     if (!canvas || mapRef.current) return
     const map = L.map(canvas, { zoomControl: false, attributionControl: true })
     L.tileLayer(TILES, {
-      attribution: '&copy; OpenStreetMap &copy; CARTO',
-      subdomains: 'abcd',
+      attribution: '&copy; OpenStreetMap',
       maxZoom: 19,
     }).addTo(map)
     layersRef.current = L.layerGroup().addTo(map)
