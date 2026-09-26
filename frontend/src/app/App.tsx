@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { TransportMode } from '@contracts/maps/types'
+import { RushReminders } from '../features/assistant/RushReminders'
+import { VoiceButton, type VoiceUiEvent } from '../features/assistant/VoiceButton'
 import { CalendarModule, createFixtureCalendarSource } from '../features/calendar'
 import { MapPanel } from '../features/maps/MapPanel'
 import {
@@ -27,6 +29,14 @@ function screenClass(expanded: ExpandedModule): string {
   if (expanded === 'weather') return 'mirror mirror--weather'
   if (expanded === 'calendar') return 'mirror mirror--calendar'
   return 'mirror'
+}
+
+function screenForVoice(event: VoiceUiEvent): ExpandedModule | 'overview' | null {
+  if (event.action === 'showOverview' || event.action === 'collapseWidget') return 'overview'
+  if (event.action !== 'expandWidget') return null
+  if (event.target === 'weather' || event.target === 'calendar' || event.target === 'planner') return event.target
+  if (event.target === 'maps' || event.target === 'map') return 'map'
+  return null
 }
 
 export function App() {
@@ -62,7 +72,6 @@ export function App() {
     })
   }, [])
 
-  // Until a voice or motion agent is connected, Escape returns to the overview.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setExpanded(null)
@@ -70,6 +79,14 @@ export function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  function applyVoiceEvents(events: VoiceUiEvent[]) {
+    for (const event of events) {
+      const screen = screenForVoice(event)
+      if (screen === 'overview') setExpanded(null)
+      else if (screen) setExpanded(screen)
+    }
+  }
 
   return (
     <main className={screenClass(expanded)}>
@@ -114,6 +131,10 @@ export function App() {
           hideAgenda={weatherOpen || calendarOpen}
           onActivate={calendarOpen ? undefined : () => setExpanded('calendar')}
         />
+      </div>
+      <RushReminders now={now} source={calendarSource} />
+      <div className="mirror__region mirror__region--voice">
+        <VoiceButton onEvents={applyVoiceEvents} />
       </div>
     </main>
   )

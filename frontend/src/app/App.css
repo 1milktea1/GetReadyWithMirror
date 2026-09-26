@@ -34,6 +34,14 @@
   width: min(34rem, 42vw);
 }
 
+.mirror__region--voice {
+  position: fixed;
+  z-index: 950;
+  left: 50%;
+  bottom: clamp(1rem, 3vmin, 2rem);
+  transform: translateX(-50%);
+}
+
 .mirror--map {
   padding: 0;
   grid-template-columns: minmax(0, 1fr);

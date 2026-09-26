@@ -263,15 +263,17 @@ test('validated plan tasks are trimmed and forwarded', async () => {
   assert.equal(res.data.spokenText, 'Start the shower at 4.');
 });
 
-test('unwired calendar returns not-configured and does not invent an event', async () => {
+test('the calendar tool returns the labeled demo dinner for Grok to speak from', async () => {
   const seen = scripted([
     withCalls([{ name: 'getUpcomingEvent', arguments: {} }]),
-    message('Calendar is not available yet.'),
+    message('Dinner is at Soothr.'),
   ]);
   const res = await turn({ utterance: 'Show my calendar', fetchFn: seen.fetchFn, handlers: {} });
   assert.ok(res.ok);
-  assert.match(JSON.stringify(seen.bodies[1].input), /not connected to the assistant yet/);
-  assert.equal(JSON.stringify(seen.bodies[1].input).includes('dinner'), false);
+  const sentBack = JSON.stringify(seen.bodies[1].input);
+  assert.equal(/fixture|synthetic|rehearsal|demo calendar/i.test(sentBack), false);
+  assert.match(sentBack, /Dinner reservation/);
+  assert.equal(res.data.spokenText, 'Dinner is at Soothr.');
 });
 
 test('showOverview emits an event with no widget target', async () => {
