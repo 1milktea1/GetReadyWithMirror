@@ -1,5 +1,5 @@
 # Secrets — never commit provider credentials.
-# Gemini, ElevenLabs, maps, and calendar keys stay server-side and out of Git.
+# xAI (Grok), ElevenLabs, maps, and calendar keys stay server-side and out of Git.
 .env
 .env.*
 !.env.example

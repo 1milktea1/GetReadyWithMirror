@@ -60,16 +60,7 @@ describe('CalendarModule clock', () => {
     expect(screen.getByText('Saturday, September 26')).toBeInTheDocument()
   })
 
-  it('labels a simulated clock and shows the actual time beside it', () => {
-    const lateNight = new Date('2026-09-27T03:30:00Z') // 11:30 PM in New York
-    const actual = new Date('2026-09-26T15:36:00Z') // 11:36 AM in New York
-    render(<CalendarModule now={lateNight} source={sourceReturning({})} actualTime={actual} />)
-    expect(screen.getByText('11:30')).toBeInTheDocument()
-    expect(screen.getByText('PM')).toBeInTheDocument()
-    expect(screen.getByText('Demo time · actual 11:36 AM')).toBeInTheDocument()
-  })
-
-  it('does not label the real clock', () => {
+  it('does not show a demo-time label', () => {
     render(<CalendarModule now={saturdayMorning} source={sourceReturning({})} />)
     expect(screen.queryByText(/Demo time/)).not.toBeInTheDocument()
   })
@@ -141,13 +132,8 @@ describe('CalendarModule agenda', () => {
 })
 
 describe('CalendarModule data labeling and errors', () => {
-  it('labels fixture data as sample data', async () => {
+  it('renders fixture events without a provenance badge', async () => {
     render(<CalendarModule now={saturdayMorning} source={sourceReturning({ provenance: 'fixture' })} />)
-    expect(await screen.findByText('Sample data')).toBeInTheDocument()
-  })
-
-  it('does not label live data', async () => {
-    render(<CalendarModule now={saturdayMorning} source={sourceReturning({ provenance: 'live' })} />)
     await screen.findByText('Lunch with study group')
     expect(screen.queryByText('Sample data')).not.toBeInTheDocument()
   })
@@ -170,7 +156,7 @@ describe('CalendarModule data labeling and errors', () => {
 })
 
 describe('CalendarModule with the demo fixture', () => {
-  it('shows the 5 PM dinner as next during the 12-4 PM demo window', async () => {
+  it('shows the 7 PM dinner as next during the afternoon', async () => {
     const threeTwentyOne = new Date('2026-09-26T19:21:00Z') // 3:21 PM in New York
     const { container } = render(
       <CalendarModule now={threeTwentyOne} source={createFixtureCalendarSource()} />,
@@ -182,8 +168,7 @@ describe('CalendarModule with the demo fixture', () => {
       'Department seminar',
       'Brunch',
     ])
-    expect(eventMeta(container)[0]).toBe('Downtown (restaurant TBD) · in 1 hr 39 min')
+    expect(eventMeta(container)[0]).toBe('Soothr · in 3 hr 39 min')
     expect(screen.getByText('Monday')).toBeInTheDocument()
-    expect(screen.getByText('Sample data')).toBeInTheDocument()
   })
 })

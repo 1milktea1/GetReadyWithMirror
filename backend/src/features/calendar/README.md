@@ -1,8 +1,11 @@
 # Backend Feature: Calendar
 
 **Owner:** TBD
-**Status:** Not implemented. The frontend is already built against a draft contract and is
-waiting on this feature.
+**Status:** Fixture reader only (`fixtureCalendar.ts`). The frontend still loads
+`fixtures/calendar/demo-day.json` itself. Google Calendar is not connected.
+
+`getNextTravelEvent(now)` is the public read the planner uses: the soonest event that has not
+ended and has a street address. On the demo day that is dinner at Soothr.
 **Contract:** [`shared/contracts/calendar/`](../../../../shared/contracts/calendar/README.md)
 
 ## What the frontend expects from this feature

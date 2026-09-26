@@ -1,6 +1,6 @@
 # Architecture
 
-**Status:** Proposed. Nothing in this document is implemented.
+**Status:** The assistant tool loop matches the speech pipeline below. Express composition, voice, and event transport are not implemented.
 
 Source of truth for the rules below is [`AGENTS.md`](../AGENTS.md). This document expands the
 data flow and integration boundaries.
@@ -11,23 +11,23 @@ data flow and integration boundaries.
 flowchart TD
     mic["Laptop microphone"] --> stt["ElevenLabs Scribe (speech-to-text)"]
     stt --> express["Express backend"]
-    express --> gemini["Gemini: tool selection"]
-    gemini -->|"requests named tool"| validate["Backend validation (allowlist)"]
+    express --> grok["Grok: tool selection"]
+    grok -->|"requests named tool"| validate["Backend validation (allowlist)"]
     validate -->|"rejected"| reject["Error: input-invalid"]
     validate -->|"approved"| execute["Execute against feature public service"]
     execute --> uiEvent["Typed UI event"]
     execute --> results["Tool results"]
     uiEvent --> react["React: owns expansion and fade"]
-    results --> gemini
-    gemini --> tts["ElevenLabs text-to-speech"]
+    results --> grok
+    grok --> tts["ElevenLabs text-to-speech"]
     tts --> speakers["Laptop speakers"]
 ```
 
 Two things to notice in that loop:
 
-- Gemini **requests**; the backend **validates and executes**. The model never runs anything
+- Grok **requests**; the backend **validates and executes**. The model never runs anything
   directly.
-- Tool results go **back to Gemini** before it speaks a factual recommendation. It does not
+- Tool results go **back to Grok** before it speaks a factual recommendation. It does not
   narrate a forecast it has not received.
 
 A single turn can carry both a UI action and an information request — "expand weather and
@@ -48,7 +48,7 @@ flowchart TD
         calendar["Calendar"]
         maps["Maps"]
         planner["Planner"]
-        assistant["Assistant (Gemini)"]
+        assistant["Assistant (Grok)"]
         voice["Voice (ElevenLabs)"]
     end
 
@@ -78,7 +78,7 @@ external API requests of its own**.
 
 The overview assembles results without duplicating provider logic.
 
-## Determinism: what Gemini may and may not do
+## Determinism: what Grok may and may not do
 
 | Concern | Owner |
 |---|---|
@@ -86,9 +86,9 @@ The overview assembles results without duplicating provider logic.
 | Event deadlines | Deterministic backend code |
 | Travel buffers | Deterministic backend code |
 | Schedule feasibility | Deterministic backend code |
-| Intent selection | Gemini, via a bounded tool list |
-| Response wording | Gemini |
-| Explaining a conflict | Gemini, describing a computed result |
+| Intent selection | Grok, via a bounded tool list |
+| Response wording | Grok |
+| Explaining a conflict | Grok, describing a computed result |
 
 All time arithmetic is **time-zone aware**. The system works from **relative current time**,
 never a hardcoded clock value, and reads "now" through the demo/test-time override so noon,
@@ -96,7 +96,7 @@ never a hardcoded clock value, and reads "now" through the demo/test-time overri
 
 ## Secrets
 
-Gemini, ElevenLabs, maps, and calendar keys stay **server-side**. Never in a React bundle,
+Grok, ElevenLabs, maps, and calendar keys stay **server-side**. Never in a React bundle,
 never in Git, never in documentation. The frontend reaches providers only through the backend.
 
 An `.env.example` with **names only** comes later; until then, variable names are tracked in

@@ -1,42 +1,46 @@
 # Contract: Maps Result
 
 **Owner:** TBD
-**Status:** Proposed — not agreed, not implemented
+**Status:** Proposed in [`types.ts`](types.ts) — used by the backend maps feature and the planner, not yet agreed
 **Producer:** [`backend/src/features/maps/`](../../../backend/src/features/maps/README.md)
 
-No TypeScript interfaces yet. This document describes the shape the team must agree on before
-anyone implements against it.
+[`types.ts`](types.ts) is the source of truth.
 
-## Fields to agree
+## `MapsResult`
 
-| Field | Purpose | Decided? |
+| Field | Proposed name | Notes |
 |---|---|---|
-| Normalized origin | Origin as resolved by the provider | TBD |
-| Normalized destination | Destination as resolved by the provider | TBD |
-| Route alternatives | Candidate routes to choose among | TBD |
-| Transport modes | Walking, transit, driving, rideshare | TBD |
-| Estimated durations | Per-route travel time | TBD |
-| Reported disruptions | Delays or closures reported by the provider | TBD |
-| Retrieval timestamp | When the estimate was fetched | TBD |
-| Provider / status | Which provider, and live vs fixture | TBD |
+| Origin | `origin` `{ name, address, location }` | Columbia University for the demo |
+| Destination | `destination` `{ name, address, location }` | Soothr, 204 E 13th St |
+| Alternatives | `routes[]` `{ mode, durationMinutes, summary, disruptions, path, provenance }` | Whole minutes. `path` may be empty. |
+| Recommended mode | `recommendedMode` | `transit` for the demo |
+| Retrieved at | `retrievedAt` | ISO instant |
+| Provenance | `provenance` `{ source, isFixture }` | Provenance of the recommended route. `source` is `google`, `valhalla`, `transitous`, or `fixture`. |
 
-An **exact event address is required** for accurate routing.
+`mode` is `transit`, `driving`, `walking`, `cycling`, or `rideshare`. Rideshare copies driving.
 
-## Open questions
+The demo fixture's durations are rehearsal numbers. `isFixture: true` is how the UI labels
+them. Each route carries its own provenance, so a live walk can sit next to a fixture subway.
+A pair the fixture does not cover, with no Google key, is
+`{ ok: false, error: { status: "no-data" } }`, never a made-up duration.
 
-- Which transport modes matter for the Columbia to downtown demo, and in what priority order?
-- Does the planner receive all alternatives and pick one, or does maps pick and return a
-  single recommended duration?
-- How stale may a retrieval be before it must be refetched?
+## HTTP
+
+`GET /api/maps` — optional `origin`, `destination`, and `now`.
+
+## Resolved for the demo, still open for the team
+
+- The planner asks for one mode and also receives the other routes, so it can *suggest* a
+  faster mode. It does not switch modes on its own.
+- Live results are cached in the maps process for 60 seconds. A longer freshness policy is still open.
 
 ## Consumers
 
-- Backend planner feature (travel duration for the leave-by calculation).
-- Backend assistant feature, via the `getCommute` tool.
-- Frontend maps and overview modules.
+- Backend planner (travel duration for leave-by) — implemented.
+- Frontend overview, via the plan's `leaveBy` and fixture badge — implemented.
+- Backend assistant, via `getCommute` — not yet.
 
 ## Change rule
 
-Changing this contract requires notifying the other developer before merging. When
-implementation has begun, the contract doc and all consumers are updated in the **same** pull
-request. See [`docs/collaboration.md`](../../../docs/collaboration.md).
+Changing this contract updates this document, [`types.ts`](types.ts), and the consumers in the
+same pull request.

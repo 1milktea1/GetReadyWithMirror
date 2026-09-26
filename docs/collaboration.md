@@ -15,7 +15,7 @@ Assign owners before implementation begins. `TBD` means unclaimed.
 | Calendar | TBD | Provider adapter, event, auth boundary |
 | Maps | TBD | Routing adapter, durations |
 | Planner | TBD | Scoped jointly after contracts are agreed |
-| Assistant (Gemini) | TBD | Tool registry, orchestration |
+| Assistant (Grok) | TBD | Tool registry, orchestration |
 | Voice (ElevenLabs) | TBD | Speech-to-text and text-to-speech transport |
 | Frontend app shell | TBD | Integration-owned |
 | `backend/src/app/` | TBD | **Integration-owned** |
@@ -26,7 +26,7 @@ Assign owners before implementation begins. `TBD` means unclaimed.
 
 ### One possible split
 
-Developer A takes **weather + calendar**; Developer B takes **maps + Gemini assistant**;
+Developer A takes **weather + calendar**; Developer B takes **maps + Grok assistant**;
 **planner** is scoped jointly once contracts are agreed.
 
 This is a suggestion, **not a forced assignment**. Rebalance as needed — but agree explicitly

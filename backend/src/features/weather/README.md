@@ -39,7 +39,7 @@ A normalized forecast result in the requested units — see the
 
 ## Suggestion rules
 
-Suggestions are computed by deterministic rules in this feature, **not** by Gemini. Gemini
+Suggestions are computed by deterministic rules in this feature, **not** by Grok. Grok
 only words them. Thresholds live in the
 [contract](../../../../shared/contracts/weather/README.md#suggestions); for example, rain
 probability ≥ 40% suggests an umbrella, UV ≥ 3 suggests sunscreen, and any snowfall suggests
@@ -82,7 +82,7 @@ Each state needs a useful UI fallback. See
 | `suggestions.ts` | Deterministic suggestion rules and thresholds. |
 | `units.ts` | Imperial-to-metric conversion. |
 | `weatherHttp.ts` | Framework-agnostic handlers for `GET /api/weather` and `GET /api/weather/locations`, with input validation. |
-| `devServer.ts` | **Interim** standalone server on port 3001. Delete once `weatherHttp.ts` is mounted in the integration-owned [`backend/src/app/`](../../app/README.md). |
+| `devServer.ts` | Standalone weather-only server. The composed app in [`backend/src/app/`](../../app/README.md) also mounts these handlers; prefer `npm run dev` from `backend/` when exercising the mirror. |
 | `weather.test.ts` | Rule and service tests against a fake provider response (no network). |
 
 Result types live in [`shared/contracts/weather/types.ts`](../../../../shared/contracts/weather/types.ts),
@@ -104,4 +104,4 @@ For a quick live check without the frontend, open
 
 - React navigation or widget expansion behavior.
 - Calendar data. The dinner time does not cut off the forecast.
-- Gemini calls.
+- Grok calls.

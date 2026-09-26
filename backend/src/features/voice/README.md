@@ -55,7 +55,7 @@ controls. Voice failure must not make the mirror unusable.
 ## Does NOT own
 
 - Independent assistant reasoning.
-- Its own competing tool-selection logic. Gemini alone selects tools.
+- Its own competing tool-selection logic. Grok alone selects tools.
 
 ## Open question
 

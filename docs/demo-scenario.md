@@ -11,13 +11,14 @@ hackathon demo.
 |---|---|
 | Demo can run | **Any time between 12 PM and 4 PM** |
 | Fictional user location | Columbia University |
-| Event | Dinner reservation, **5 PM** |
-| Event location | Somewhere downtown — **exact address TBD** |
+| Event | Dinner reservation, **7 PM** |
+| Event location | **Soothr, 204 E 13th St, New York, NY 10003** (East Village) |
 | Track | Live Better (strictly personal utility) |
 
-The exact sample restaurant address must be chosen before maps integration, since accurate
-routing requires a real destination. Until then it stays `TBD` — do not invent one and hardcode
-it.
+The destination is a **real address** so maps can return genuine travel estimates for
+Columbia → Soothr. The **reservation itself is synthetic** and stays so until Google Calendar is
+connected. Settled as [`decisions.md`](decisions.md) D8; route this address rather than
+re-inventing a destination per feature.
 
 ## The flow
 
@@ -28,13 +29,13 @@ may do the same later). The mirror greets them with an appropriate **"Good after
 **fades into a compact overview** showing:
 
 - Current and afternoon weather
-- The 5 PM calendar event
+- The 7 PM calendar event
 - A short getting-ready plan
 - A leave-by summary
 
 ### 2. "Expand weather and recommend what I should wear and bring."
 
-ElevenLabs transcribes. Gemini interprets. The backend retrieves weather and event context.
+ElevenLabs transcribes. Grok interprets. The backend retrieves weather and event context.
 The React weather module **expands** and displays grounded clothing and essentials
 suggestions, while ElevenLabs speaks a concise response.
 
@@ -43,17 +44,17 @@ information request. Suggestions must be based on the forecast actually retrieve
 
 ### 3. "Show my calendar." / "Go back."
 
-Gemini chooses the correct interface action. The relevant module expands, or the overview
-returns. Intent comes from Gemini's bounded tool list — **not** from React string matching the
+Grok chooses the correct interface action. The relevant module expands, or the overview
+returns. Intent comes from Grok's bounded tool list — **not** from React string matching the
 phrase.
 
 ### 4. "When do I need to leave?"
 
-The maps feature retrieves travel estimates from Columbia to the event address. A
+The maps feature retrieves travel estimates from Columbia to 204 E 13th St. A
 **deterministic backend calculation** combines event start, travel duration, and buffer into a
 leave-by time.
 
-Gemini explains the result. Gemini does not compute it.
+Grok explains the result. Grok does not compute it.
 
 ### 5. "Plan my time. I need to shower, do my hair, and get dressed."
 
@@ -62,7 +63,7 @@ timeline.
 
 ### 6. "Actually, give me 20 more minutes for my hair."
 
-Gemini identifies the update. The planner **recalculates** and explains any conflict.
+Grok identifies the update. The planner **recalculates** and explains any conflict.
 
 It must **not** silently remove tasks, and must **not** change the calendar reservation.
 
@@ -90,20 +91,36 @@ speakers, HDMI to the monitor behind the mirror. The Pico is optional.
 
 ## Test matrix to build later
 
-Fixture scenarios worth covering, all against the same 5 PM event:
+Fixture scenarios worth covering, all against the same 7 PM event:
 
 | Demo time | What it should show |
 |---|---|
 | 12 PM | Ample time; relaxed plan |
-| 2 PM | Comfortable plan |
-| 3:30 PM | Tight; buffer under pressure |
-| 4 PM | Likely **conflict** — exercises the conflict path |
+| 4 PM | Comfortable plan |
+| 5:30 PM | Tight; buffer under pressure |
+| 6 PM | Likely **conflict** — exercises the conflict path |
 
 Fixtures do not exist yet. See [`fixtures/`](../fixtures/README.md).
 
+## Defaults the planner uses
+
+Until the questions below are settled by the team, the planner uses these rehearsal values
+(also recorded in [`backend/src/features/planner/README.md`](../backend/src/features/planner/README.md)):
+
+| Choice | Value |
+|---|---|
+| Transport | Subway / transit by default. The overview can switch to walk, drive, or rideshare. |
+| Travel time | Google Directions when `GOOGLE_MAPS_API_KEY` is set. Otherwise Transitous for subway (from the 116 St 1 train, ~33 min) and Valhalla for walk, drive, and cycling. The labeled fixture fills any mode those miss (subway fixture is 35 minutes and has no path). |
+| Arrival buffer | 10 minutes (arrive at 6:50) |
+| Leave-by | 6:15 PM |
+| Tasks | Shower 15, hair 20, get dressed 10 |
+
+That routine must start at 5:30 PM, which is why 5:30 is tight and 6:00 conflicts.
+
 ## Open questions
 
-- The exact downtown restaurant address.
-- The default arrival buffer before a 5 PM reservation.
-- Which transport modes to offer for Columbia to downtown.
+- The default arrival buffer before the 7 PM reservation. Planner uses 10 minutes for now.
+- Which transport modes to offer for Columbia → Soothr. The overview offers subway (default),
+  walk, drive, and rideshare. The planner uses the selected mode's duration.
 - Assumed task durations for shower, hair, and getting dressed when the user does not say.
+  Planner uses 15, 20, and 10.

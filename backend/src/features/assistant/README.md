@@ -1,74 +1,85 @@
-# Backend Feature: Assistant (Gemini orchestration)
+# Backend Feature: Assistant (Grok orchestration)
 
 **Owner:** TBD
-**Status:** Not implemented — contract not yet agreed
+**Status:** Tool loop started — Grok requests tools; this feature validates and executes them
 **Contract:** [`shared/contracts/assistant/`](../../../../shared/contracts/assistant/README.md)
 **Permissions:** [`docs/permissions.md`](../../../../docs/permissions.md)
 
 ## Responsibility
 
-Owns Gemini orchestration, the permitted tool registry, conversation context, human-readable
-response wording, and the translation of user intent into UI actions.
+Owns Grok orchestration, the permitted tool registry, conversation context for one turn,
+human-readable response wording, and the translation of user intent into UI actions.
 
-Gemini — not ElevenLabs Agents — is the central decision-maker. The React UI must not string
-match spoken phrases; intent selection happens here through a bounded tool list.
+Grok — not ElevenLabs Agents — is the central decision-maker. The React UI must not string
+match spoken phrases. Intent selection happens here through a bounded tool list.
+
+The model is xAI's Responses API (`POST https://api.x.ai/v1/responses`), default model
+`grok-4.7`. Server-side web search is turned off. Grok cannot look up weather, routes, or
+the calendar on its own.
 
 ## The core security rule
 
-Gemini **requests** named tools. The backend **validates and executes** them.
+Grok **requests** named tools. The backend **validates and executes** them.
 
 - Only allowlisted tools may run.
 - Never execute arbitrary model-generated code.
 - Never accept unvalidated tool arguments.
+- A rejected call is not coerced into a different tool. The model receives
+  `{ ok: false, error: { status: "input-invalid" } }` and may explain that. It does not run.
 
-## Planned public inputs
+## Public service
 
-- Transcribed user utterance, from the voice feature.
-- Conversation context for the current session.
-- Current time, honoring the demo/test-time override.
+`runAssistantTurn` in [`assistantService.ts`](assistantService.ts).
 
-## Planned public outputs
+**Inputs**
 
-- Zero or more validated tool invocations, dispatched to the owning features' public services.
-- Zero or more typed UI events emitted toward React (for example an `expandWidget` request for
-  the weather module).
-- A concise, human-readable response for the voice feature to speak.
+- Transcribed utterance.
+- Optional prior user/assistant text. Tool roles in that history are dropped.
+- Current time, honoring the demo/test-time override (`now`). When omitted, the system clock is used.
 
-An action and an information request can occur in the same turn — for instance expanding the
-weather widget while fetching the forecast. Tool results must be returned to Gemini **before**
-it makes factual spoken recommendations.
+**Outputs**
 
-## Upstream dependencies
+- Spoken text, taken from Grok only after tool results have been sent back.
+- Validated tool outcomes.
+- UI events for `expandWidget`, `collapseWidget`, and `showOverview`. React owns the animation.
+  Nothing here is delivered to the browser yet; event transport is still undecided.
 
-- Gemini API. Credentials stay server-side.
-- The public services of the weather, calendar, maps, and planner features. This feature calls
-  those services; it must **not** import their provider adapters.
+An action and an information request can occur in the same turn. Weather is called through
+`getWeather` in the weather feature. Calendar, maps, and planner handlers are unwired: those
+tools return `not-configured` and do not invent an event, a route, or a schedule.
 
-## Downstream consumers
+There is no `/api/assistant` route yet. That composition belongs with `backend/src/app/`.
 
-- The voice feature, which speaks the generated response.
-- The frontend, which consumes emitted UI events.
+## Environment
+
+Put the key in `backend/.env` (gitignored). Names only belong in
+[`backend/.env.example`](../../../.env.example). A shell export of the same name wins over the file.
+
+| Name | Required | Purpose |
+|---|---|---|
+| `XAI_API_KEY` | yes, for a live turn | xAI API key |
+| `XAI_MODEL` | no | Overrides `grok-4.7` |
+
+A missing key is `not-configured`. The process still starts.
+
+## Files
+
+- [`prompt.ts`](prompt.ts) — the system instructions sent to Grok on every turn.
+- [`grokAdapter.ts`](grokAdapter.ts) — the only file that knows the xAI response shape.
+- [`tools.ts`](tools.ts) — allowlist, JSON schemas sent to Grok, argument validation.
+- [`handlers.ts`](handlers.ts) — hooks for other features' public services.
+- [`assistantService.ts`](assistantService.ts) — `runAssistantTurn`.
+- [`assistant.test.ts`](assistant.test.ts) — rejection, ordering, and the weather handoff.
 
 ## Error states
 
-- `not-configured` — no Gemini credentials present.
-- `external-provider-unavailable` — Gemini unreachable or erroring.
-- `input-invalid` — the model requested an unknown tool, or supplied arguments that failed
-  validation. Reject the call; do not coerce it into something executable.
-- Downstream tool errors propagate with their originating feature's status so the UI can show
-  an accurate fallback.
-
-## Planned future files
-
-- A route or controller, if exposed over HTTP at `/api/assistant`.
-- Gemini tool declarations and a validating dispatcher.
-- Conversation context management.
-- Feature-local tests, including rejection of non-allowlisted tool requests.
+- `not-configured` — `XAI_API_KEY` is missing, or a tool's feature is not connected.
+- `external-provider-unavailable` — Grok is unreachable or returns an error.
+- `input-invalid` — empty utterance, unknown tool, or arguments that fail validation.
+- Downstream tool errors stay in the tool result so the spoken reply can name the failure.
 
 ## Does NOT own
 
-- Directly editing the React DOM.
-- Unrestricted code execution.
-- Duplicating other features' service logic.
-- Generating JSX or manipulating browser elements. It emits typed events; React owns the
-  actual expansion and fade animation.
+- Directly editing the React DOM, generating JSX, or playing audio.
+- Calendar, maps, or planner logic. Those features will supply handlers.
+- Deciding that a schedule fits. The planner computes that; Grok only explains the result.

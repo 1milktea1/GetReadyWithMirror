@@ -5,7 +5,7 @@
 This document collects the permission rules stated in [`AGENTS.md`](../AGENTS.md) Section 3
 into one reviewable place. It covers three separate things that are easy to confuse:
 
-1. **Agent tool permissions** — what Gemini is allowed to invoke.
+1. **Agent tool permissions** — what Grok is allowed to invoke.
 2. **User confirmation** — which actions require an explicit yes.
 3. **Device and account permissions** — microphone and calendar access.
 
@@ -13,7 +13,7 @@ into one reviewable place. It covers three separate things that are easy to conf
 
 ### The core rule
 
-> Gemini **requests** named tools. The backend **validates and executes** them.
+> Grok **requests** named tools. The backend **validates and executes** them.
 
 - Only **allowlisted** tools may run.
 - Tool arguments are **validated before execution**. Never accept unvalidated arguments.
@@ -46,7 +46,7 @@ Argument and result shapes are **TBD** and must be confirmed jointly — see
 - Execute code outside the allowlist.
 - Duplicate another feature's service logic, or import another feature's provider adapter. It
   calls **public services**.
-- State a fact before receiving the tool result that supports it. Results return to Gemini
+- State a fact before receiving the tool result that supports it. Results return to Grok
   **before** it makes factual spoken recommendations.
 
 ## 2. User confirmation
@@ -82,7 +82,7 @@ development either — work against fixtures instead.
 
 ## 4. Secrets
 
-API keys for Gemini, ElevenLabs, maps, and calendar **never** appear in:
+API keys for Grok, ElevenLabs, maps, and calendar **never** appear in:
 
 - React bundles
 - Git
@@ -100,7 +100,7 @@ excludes `.env` files from the start.
 - Is a confirmation scoped to one action or to a session?
 - Where does validation live: in the assistant's dispatcher, in each feature's service, or
   both?
-- What exactly does the assistant return to Gemini when a requested tool is rejected?
+- Settled for the assistant slice: a rejected tool returns `{ ok: false, error: { status: "input-invalid" } }` to Grok and does not run. See the [assistant contract](../shared/contracts/assistant/README.md).
 - Is there a saved plan at all before SQLite is introduced, and if not, does
   `updateTaskDuration` need confirmation during the hackathon demo?
 

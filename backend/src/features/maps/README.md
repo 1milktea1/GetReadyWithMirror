@@ -1,71 +1,66 @@
 # Backend Feature: Maps
 
 **Owner:** TBD
-**Status:** Not implemented — contract not yet agreed
+**Status:** Live adapters with a labeled fixture fallback — contract proposed
 **Contract:** [`shared/contracts/maps/`](../../../../shared/contracts/maps/README.md)
 
 ## Responsibility
 
-Owns the origin/destination routing adapter and produces candidate routes, travel durations,
-and provider freshness information. This feature supplies the travel-duration input that the
-planner turns into a leave-by deadline.
+Owns origin/destination routing and the travel duration the planner turns into a leave-by
+time. The demo route is Columbia University → Soothr, 204 E 13th St.
 
-Maps supports the getting-ready experience. It is not the project's headline value and must
-not dominate the Live Better pitch.
+Provider order for each mode:
 
-## Planned public inputs
+1. **Google Directions** when `GOOGLE_MAPS_API_KEY` is set. Driving uses `departure_time`
+   when the clock is not in the past, so the duration can include traffic. Transit returns
+   Google's route geometry.
+2. **Transitous** (`api.transitous.org`) for subway when Google did not return one. The path
+   follows the walk to the station, the trains, and the walk to the door. It is not a straight
+   line between the pins. Columbia campus pins start at the 116 St–Columbia University
+   entrance so the 1 train is used (~33 min), not a 21-minute walk to the 2/3 (~54 min).
+3. **Valhalla** (`valhalla1.openstreetmap.de`) for walking, driving, and cycling when that mode
+   is still missing. This road router has no live traffic and no subway schedules.
+4. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)
+   for any mode still missing on the demo pair. Those durations are rehearsal numbers,
+   `provenance.isFixture: true`. A fixture subway has no path, so the map shows pins only.
 
-- Normalized origin (the demo user is at Columbia University).
-- Normalized destination (the event venue address; the exact sample restaurant address is TBD).
-- Departure time or arrival target.
-- Transport modes to consider.
+Rideshare is not a Directions or Valhalla mode. It copies the driving route and says so in
+`summary`. An origin/destination the fixture does not cover, with no Google key, returns
+`no-data` rather than a guessed duration.
 
-## Planned public outputs
+`MAPS_LIVE=0` skips Google and Valhalla. The test script sets it so the suite stays offline.
+`npm run dev` loads `backend/.env` when that file exists (`--env-file-if-exists`).
 
-A normalized maps result. Exact field names are TBD:
+## Public API
 
-- Normalized origin and destination as resolved by the provider.
-- Route alternatives.
-- Transport modes.
-- Estimated durations, plus any reported disruptions.
-- Retrieval timestamp.
-- Provider and status.
+`getCommute({ originAddress?, destinationAddress?, now?, live?, fetchFn? })` → `MapsResponse`
 
-Travel estimates must come from a real retrieval or a clearly labeled fixture. Never invent
-arrival estimates.
+Omitted addresses use the fixture pair (Columbia → Soothr). `now` stamps `retrievedAt`.
+Google also uses it as `departure_time` when it is not more than a minute in the past.
 
-## Upstream dependencies
+`GET /api/maps` accepts `origin`, `destination`, and `now`.
 
-- A maps/directions provider. Google Maps Routes is planned; account, quotas, and exact
-  endpoints are TBD — see [`docs/decisions.md`](../../../../docs/decisions.md).
-- The event venue address from the calendar feature's public interface. An exact address is
-  required for accurate routing.
+Default recommendation is **transit**. Without a key that is the fixture's 35 minutes.
+The fixture also includes cycling (28), driving (30), and walking (105).
 
-## Downstream consumers
+## Files
 
-- The planner feature, which combines travel duration with event start and buffer.
-- The assistant feature, via the `getCommute` tool.
-- The frontend overview and maps modules.
+| File | Role |
+|---|---|
+| `mapsService.ts` | Public `getCommute`. The only entry point other features use. |
+| `googleDirectionsAdapter.ts` | Directions API. The key never leaves this process. |
+| `transitAdapter.ts` | Public subway itineraries and their geometry. |
+| `valhallaAdapter.ts` | Public road router for walking, driving, and cycling. |
+| `fixtureAdapter.ts` | Reads and validates the fixture. |
+| `mapsHttp.ts` | `GET /api/maps`. |
+| `maps.test.ts` | Fixture, polyline, and faked Google / Valhalla responses. |
 
 ## Error states
 
-- `not-configured` — no provider credentials present.
-- `external-provider-unavailable` — provider unreachable, rate limited, or erroring.
-- `no-data` — no route found between origin and destination.
-- `input-invalid` — missing or unresolvable address.
-
-When routing is unavailable the planner must surface that the leave-by time is unknown rather
-than guessing a duration.
-
-## Planned future files
-
-- A route or controller, if exposed over HTTP at `/api/maps`.
-- Service logic for selecting among route alternatives.
-- A provider adapter isolating the directions API.
-- Feature-local tests.
+- `no-data` — no fixture route for that pair, and live routing is not configured or returned nothing.
+- `input-invalid` — empty address or a bad `now`.
+- A provider failure on the demo pair falls through to the next source instead of failing the request.
 
 ## Does NOT own
 
-- Outfit suggestions.
-- Calendar editing.
-- Deciding the entire getting-ready routine.
+- Leave-by math, outfit suggestions, or calendar editing.

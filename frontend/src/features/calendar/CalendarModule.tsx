@@ -16,13 +16,10 @@ import './CalendarModule.css'
 export interface CalendarModuleProps {
   now: Date
   source: CalendarSource
-  /**
-   * The real device time, passed only while the demo-time override is active.
-   * The module then labels the clock as simulated and shows this alongside it.
-   */
-  actualTime?: Date
   timeZone?: string
   maxEvents?: number
+  /** Clock only. Used when the map is open and the agenda should stay hidden. */
+  clockOnly?: boolean
 }
 
 const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
@@ -35,37 +32,31 @@ const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
 export function CalendarModule({
   now,
   source,
-  actualTime,
   timeZone = MIRROR_TIME_ZONE,
   maxEvents = 4,
+  clockOnly = false,
 }: CalendarModuleProps) {
   const state = useCalendarEvents(source, now)
   const clock = formatClock(now, timeZone)
 
   return (
-    <section className="calendar" aria-label="Calendar">
+    <section className="calendar" aria-label={clockOnly ? 'Time' : 'Calendar'}>
       <header className="calendar__now">
         <time className="calendar__clock" dateTime={now.toISOString()}>
           <span className="calendar__time">{clock.time}</span>
           <span className="calendar__period">{clock.period}</span>
         </time>
-        <p className="calendar__date">{formatLongDate(now, timeZone)}</p>
-        {actualTime && (
-          <p className="calendar__tag calendar__tag--demo">
-            Demo time · actual {formatTimeOfDay(actualTime, timeZone)}
-          </p>
-        )}
+        {!clockOnly && <p className="calendar__date">{formatLongDate(now, timeZone)}</p>}
       </header>
 
-      <div className="calendar__agenda">
-        <div className="calendar__agenda-header">
-          <h2 className="calendar__heading">Upcoming</h2>
-          {state.phase === 'ready' && state.result.provenance === 'fixture' && (
-            <span className="calendar__tag">Sample data</span>
-          )}
+      {!clockOnly && (
+        <div className="calendar__agenda">
+          <div className="calendar__agenda-header">
+            <h2 className="calendar__heading">Upcoming</h2>
+          </div>
+          <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
         </div>
-        <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
-      </div>
+      )}
     </section>
   )
 }

@@ -1,0 +1,267 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+
+import { decodePolyline, mapGoogleRoute } from './googleDirectionsAdapter.ts';
+import { handleMapsRequest } from './mapsHttp.ts';
+import { getCommute } from './mapsService.ts';
+import { mapTransitRoute, transitAccessPoint } from './transitAdapter.ts';
+import { mapValhallaRoute } from './valhallaAdapter.ts';
+
+test('the demo fixture returns a labeled transit duration for Columbia → Soothr', async () => {
+  const result = await getCommute({ now: new Date('2026-09-26T16:00:00.000Z') });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.data.provenance.isFixture, true);
+  assert.equal(result.data.provenance.source, 'fixture');
+  assert.equal(result.data.recommendedMode, 'transit');
+  assert.equal(result.data.destination.name, 'Soothr');
+  const transit = result.data.routes.find((route) => route.mode === 'transit');
+  assert.ok(transit);
+  assert.equal(transit.durationMinutes, 35);
+  assert.equal(result.data.retrievedAt, '2026-09-26T16:00:00.000Z');
+});
+
+test('address punctuation and case still match the fixture', async () => {
+  const result = await getCommute({ destinationAddress: '204 e 13th st, new york, ny 10003' });
+  assert.equal(result.ok, true);
+});
+
+test('an address the fixture does not cover is no-data, not a guessed duration', async () => {
+  const result = await getCommute({ destinationAddress: '1 Infinite Loop, Cupertino, CA' });
+  assert.deepEqual(result.ok ? null : result.error.status, 'no-data');
+});
+
+test('maps HTTP rejects a bad clock and serves the fixture by default', async () => {
+  assert.equal((await handleMapsRequest(new URLSearchParams('now=bogus'))).status, 400);
+  const ok = await handleMapsRequest(new URLSearchParams());
+  assert.equal(ok.status, 200);
+  assert.equal(ok.body.ok, true);
+});
+
+test('planner scenario assumptions use this fixture\'s transit duration', async () => {
+  const path = fileURLToPath(new URL('../../../../fixtures/planner/demo-scenarios.json', import.meta.url));
+  const scenarios = JSON.parse(readFileSync(path, 'utf8')) as { assumptions: { travelMinutes: number } };
+  const commute = await getCommute();
+  assert.equal(commute.ok, true);
+  if (!commute.ok) return;
+  const transit = commute.data.routes.find((route) => route.mode === 'transit');
+  assert.equal(transit?.durationMinutes, scenarios.assumptions.travelMinutes);
+});
+
+test('offline demo still offers subway, walk, drive, and rideshare', async () => {
+  const result = await getCommute({ live: false });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(
+    result.data.routes.map((route) => route.mode).sort(),
+    ['cycling', 'driving', 'rideshare', 'transit', 'walking'],
+  );
+  const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+  const driving = result.data.routes.find((route) => route.mode === 'driving');
+  assert.equal(rideshare?.durationMinutes, driving?.durationMinutes);
+  assert.equal(rideshare?.provenance.isFixture, true);
+  assert.equal(result.data.origin.location.latitude, 40.8075);
+  assert.equal(result.data.destination.location.latitude, 40.732269);
+});
+
+test('decodes a Google overview polyline', () => {
+  const path = decodePolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+  assert.equal(path.length, 3);
+  assert.ok(Math.abs(path[0]!.latitude - 38.5) < 1e-6);
+  assert.ok(Math.abs(path[0]!.longitude - -120.2) < 1e-6);
+  assert.ok(Math.abs(path[1]!.latitude - 40.7) < 1e-6);
+  assert.ok(Math.abs(path[1]!.longitude - -120.95) < 1e-6);
+  assert.ok(Math.abs(path[2]!.latitude - 43.252) < 1e-6);
+  assert.ok(Math.abs(path[2]!.longitude - -126.453) < 1e-6);
+});
+
+test('maps a Google directions body onto a live route', () => {
+  const route = mapGoogleRoute(
+    {
+      status: 'OK',
+      routes: [
+        {
+          overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+          warnings: ['Trip may take longer'],
+          legs: [{ duration: { value: 22 * 60 } }],
+        },
+      ],
+    },
+    'transit',
+  );
+  assert.equal(route?.durationMinutes, 22);
+  assert.equal(route?.provenance.source, 'google');
+  assert.equal(route?.provenance.isFixture, false);
+  assert.equal(route?.path.length, 3);
+  assert.deepEqual(route?.disruptions, ['Trip may take longer']);
+  assert.equal(mapGoogleRoute({ status: 'ZERO_RESULTS', routes: [] }, 'transit'), undefined);
+});
+
+test('maps a Valhalla trip and decodes its polyline at precision 6', () => {
+  const route = mapValhallaRoute(
+    {
+      trip: {
+        status: 0,
+        summary: { time: 112.2 * 60 },
+        legs: [{ shape: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' }],
+      },
+    },
+    'walking',
+  );
+  assert.equal(route?.durationMinutes, 112);
+  assert.equal(route?.provenance.source, 'valhalla');
+  assert.equal(route?.provenance.isFixture, false);
+  assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-6);
+  assert.ok(route && Math.abs(route.path[0]!.longitude - -12.02) < 1e-6);
+  assert.equal(mapValhallaRoute({ trip: { status: 442, summary: { time: 60 } } }, 'walking'), undefined);
+});
+
+test('a live Google response replaces the fixture duration', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  process.env.GOOGLE_MAPS_API_KEY = 'test-key';
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const mode = new URL(String(input)).searchParams.get('mode');
+        const minutes = mode === 'transit' ? 22 : mode === 'walking' ? 48 : mode === 'bicycling' ? 16 : 18;
+        return Response.json({
+          status: 'OK',
+          routes: [
+            {
+              overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+              warnings: [],
+              legs: [{ duration: { value: minutes * 60 } }],
+            },
+          ],
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+    assert.equal(transit?.durationMinutes, 22);
+    assert.equal(transit?.provenance.source, 'google');
+    assert.equal(rideshare?.durationMinutes, 18);
+    assert.equal(rideshare?.summary, 'Rideshare follows the driving route');
+    assert.equal(rideshare?.provenance.isFixture, false);
+    assert.equal(result.data.provenance.source, 'google');
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+test('Columbia campus transit starts at the 116 St 1 train, not a 21-minute walk to the 2/3', () => {
+  const station = transitAccessPoint({ latitude: 40.8075, longitude: -73.9626 });
+  assert.equal(station.latitude, 40.807722);
+  assert.equal(station.longitude, -73.964105);
+  const elsewhere = transitAccessPoint({ latitude: 40.732269, longitude: -73.987352 });
+  assert.equal(elsewhere.latitude, 40.732269);
+});
+
+test('maps a subway itinerary onto a path instead of a straight pin line', () => {
+  const route = mapTransitRoute({
+    itineraries: [
+      {
+        duration: 54 * 60,
+        legs: [
+          { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U' } },
+          { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
+          { mode: 'SUBWAY', routeShortName: 'L', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+        ],
+      },
+    ],
+  });
+  assert.equal(route?.mode, 'transit');
+  assert.equal(route?.durationMinutes, 54);
+  assert.equal(route?.summary, 'Subway 1 · L');
+  assert.equal(route?.provenance.source, 'transitous');
+  assert.ok(route && route.path.length >= 3);
+  assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-4);
+  assert.equal(mapTransitRoute({ itineraries: [{ duration: 60, legs: [{ mode: 'BUS', routeShortName: 'M4' }] }] }), undefined);
+});
+
+test('without a Google key, subway comes from Transitous and roads from Valhalla', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  delete process.env.GOOGLE_MAPS_API_KEY;
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const url = new URL(String(input));
+        if (url.hostname === 'api.transitous.org') {
+          assert.equal(url.searchParams.get('transitModes'), 'TRANSIT');
+          assert.equal(url.searchParams.get('fromPlace'), '40.807722,-73.964105');
+          return Response.json({
+            itineraries: [
+              {
+                duration: 54 * 60,
+                legs: [
+                  { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+                  { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
+                ],
+              },
+            ],
+          });
+        }
+        assert.equal(url.hostname, 'valhalla1.openstreetmap.de');
+        const costing = (JSON.parse(url.searchParams.get('json') ?? '{}') as { costing?: string }).costing;
+        const minutes = costing === 'pedestrian' ? 112 : costing === 'bicycle' ? 43 : 19;
+        return Response.json({
+          trip: {
+            status: 0,
+            summary: { time: minutes * 60 },
+            legs: [{ shape: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' }],
+          },
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    const walking = result.data.routes.find((route) => route.mode === 'walking');
+    const driving = result.data.routes.find((route) => route.mode === 'driving');
+    const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+    assert.equal(transit?.durationMinutes, 54);
+    assert.equal(transit?.provenance.source, 'transitous');
+    assert.equal(transit?.provenance.isFixture, false);
+    assert.ok(transit && transit.path.length >= 3);
+    assert.equal(walking?.durationMinutes, 112);
+    assert.equal(walking?.provenance.source, 'valhalla');
+    assert.equal(driving?.durationMinutes, 19);
+    assert.equal(rideshare?.durationMinutes, 19);
+    assert.equal(rideshare?.summary, 'Rideshare follows the driving route');
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+test('a failed live lookup keeps the labeled fixture for the demo pair', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  process.env.GOOGLE_MAPS_API_KEY = 'test-key';
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const url = String(input);
+        if (url.includes('googleapis')) return Response.json({ status: 'REQUEST_DENIED', routes: [] });
+        return Response.json({ error: 'no route' });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    assert.equal(transit?.durationMinutes, 35);
+    assert.equal(transit?.provenance.isFixture, true);
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+function restoreKey(previous: string | undefined): void {
+  if (previous === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
+  else process.env.GOOGLE_MAPS_API_KEY = previous;
+}

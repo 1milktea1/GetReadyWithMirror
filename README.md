@@ -3,9 +3,8 @@ agentic smart mirror that optimizes everyday life
 
 ---
 
-**Status: repository scaffold only.** No application code, dependencies, endpoints, or
-working features exist yet. This repository currently contains the agreed folder structure and
-Markdown placeholders so two developers can claim features and start work in parallel.
+**Status:** Weather (Open-Meteo) and the Grok assistant tool loop are implemented. Voice,
+calendar, maps, planner, and Express composition are not wired yet.
 
 Read [`AGENTS.md`](AGENTS.md) before changing anything.
 
@@ -16,19 +15,17 @@ utility)** track. It helps one person get ready for an upcoming event by combini
 calendar, the weather, preparation tasks, and a travel-derived **leave-by deadline** into a
 single personalized plan.
 
-The headline value is the **intelligent preparation planner**: Gemini connects weather and
+The headline value is the **intelligent preparation planner**: Grok connects weather and
 event information to user-described tasks against a real deadline. Transportation supports
 that experience rather than being the point of the project.
 
-## Planned stack
-
-Nothing below is installed or implemented yet.
+## Stack
 
 | Layer | Choice |
 |---|---|
 | Frontend | React + TypeScript (Vite), black-background mirror UI |
-| Backend | Node.js + Express + TypeScript, on the laptop |
-| AI controller | Gemini — intent interpretation, constrained tool selection, response wording |
+| Backend | Node.js + Express + TypeScript, on the laptop. No npm dependencies yet; tests run on Node's type stripping. |
+| AI controller | Grok (`grok-4.7`) via the xAI Responses API — intent, constrained tool selection, response wording. Key: `XAI_API_KEY`, server-side only. |
 | Voice | ElevenLabs Scribe for speech-to-text, ElevenLabs for text-to-speech |
 | External data | Weather provider, Google Calendar (planned), Google Maps Routes (planned) |
 | State | Local app state initially; no database yet |
@@ -36,7 +33,7 @@ Nothing below is installed or implemented yet.
 
 ## Physical setup
 
-A laptop hosts the interface, backend, Gemini orchestration, and voice flow, and sends video
+A laptop hosts the interface, backend, Grok orchestration, and voice flow, and sends video
 over HDMI to a monitor behind a two-way mirror. The laptop's **built-in microphone and
 speakers** handle voice. A Raspberry Pi Pico is an **optional** USB-serial accessory for a
 button or indicator; it does not host the app, and the core demo requires no additional
@@ -65,6 +62,6 @@ documented interface, and other features depend only on its public interface.
 | [`docs/architecture.md`](docs/architecture.md) | Data flow, speech pipeline, integration boundaries |
 | [`docs/collaboration.md`](docs/collaboration.md) | Ownership, branching, merge rules |
 | [`docs/api-contracts.md`](docs/api-contracts.md) | Index to feature contracts and the event envelope |
-| [`docs/demo-scenario.md`](docs/demo-scenario.md) | The Columbia to downtown 5 PM dinner flow |
+| [`docs/demo-scenario.md`](docs/demo-scenario.md) | The Columbia → Soothr 7 PM dinner flow |
 | [`docs/permissions.md`](docs/permissions.md) | Tool allowlist and confirmation-required actions |
 | [`docs/decisions.md`](docs/decisions.md) | Open decisions the team still owes |

@@ -13,9 +13,9 @@ region of the mirror.
   that have already ended are hidden.
 - The **next** event shows a countdown (`in 1 hr 9 min`); an event **under way** shows `Now`
   and its end time (`until 1:30 PM`).
-- **Labels anything not real.** Fixture data shows a `Sample data` tag. A simulated clock shows
-  a bright `Demo time · actual 11:36 AM` tag with the real time, so neither can be mistaken for
-  live conditions. With no `?now=` in the URL, the clock is always the device's real time.
+- The clock is always the device's real New York time, including when the map is open.
+  Fixture *events* carry no on-screen tag; the weather module's `Sample data — not live`
+  badge covers provenance for the mirror as a whole.
 - **Fallbacks** for loading, nothing scheduled, not connected, not set up, and provider
   unavailable — never blank space and never invented events.
 
@@ -38,21 +38,7 @@ Shared pieces it depends on:
   `CalendarEvent` and `CalendarResult` shapes.
 - [`fixtures/calendar/demo-day.json`](../../../../fixtures/calendar/demo-day.json) — the synthetic
   agenda.
-- [`frontend/src/shared/time/`](../../shared/time/) — New York time math, formatting, and the
-  `?now=` override.
-
-## Rehearsing different times
-
-Add `?now=` to the URL to start the whole mirror at another time. The clock keeps ticking from
-there, and a `Demo time · actual …` tag shows the real time. Remove `?now=` to return to the
-real clock.
-
-| URL | Shows |
-|---|---|
-| `/?now=12:45` | Lunch in progress (`Now`), office hours next |
-| `/?now=15:30` | The 5 PM dinner next, with a countdown |
-| `/?now=23:30` | Today finished; agenda starts with Tomorrow |
-| `/?now=2026-12-15T17:00` | A specific New York date and time |
+- [`frontend/src/shared/time/`](../../shared/time/) — New York time math and formatting.
 
 ## Going live with Google Calendar
 
@@ -67,8 +53,7 @@ The frontend never calls Google directly: credentials must stay server-side. The
 3. **Swap one line** in [`frontend/src/app/App.tsx`](../../app/App.tsx):
    `createFixtureCalendarSource()` becomes the HTTP source.
 
-`CalendarModule` and its tests need no changes. The `Sample data` tag disappears automatically
-because live results carry `provenance: 'live'`.
+`CalendarModule` and its tests need no changes.
 
 Deciding the OAuth flow, scopes, and which calendars to read is open — see
 [`docs/decisions.md`](../../../../docs/decisions.md) D6.

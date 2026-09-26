@@ -1,7 +1,10 @@
 # Backend Shared: Utils
 
 **Owner:** Integration owner (TBD)
-**Status:** Not implemented
+**Status:** `zonedTime.ts` converts a wall clock in an IANA zone to an instant. Calendar
+fixture materialization and the planner both need it, which is why it lives here rather than
+inside one feature (decisions D11, for this code only). Leave-by and feasibility stay in the
+planner.
 
 Future home of small, genuinely cross-feature helpers.
 
@@ -20,7 +23,7 @@ weather, and calendar features, so they are a plausible shared concern. Where th
 finally lives is TBD — the planner feature is the alternative home.
 
 Whatever the location, deadlines and feasibility are computed deterministically in code, never
-by Gemini prose.
+by Grok prose.
 
 ## Planned future files
 

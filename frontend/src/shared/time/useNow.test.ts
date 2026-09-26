@@ -26,12 +26,11 @@ describe('useNow', () => {
     openAt('/')
   })
 
-  it('uses the device clock when there is no override', () => {
+  it('uses the device clock', () => {
     openAt('/')
     const { result } = renderHook(() => useNow())
     expect(result.current.now.getTime()).toBe(deviceTime.getTime())
     expect(clockText(result.current.now)).toBe('11:36 AM')
-    expect(result.current.isOverridden).toBe(false)
   })
 
   it('keeps following the device clock as time passes', () => {
@@ -43,24 +42,9 @@ describe('useNow', () => {
     expect(clockText(result.current.now)).toBe('11:41 AM')
   })
 
-  it('ignores an unparseable override and uses the device clock', () => {
-    openAt('/?now=banana')
-    const { result } = renderHook(() => useNow())
-    expect(clockText(result.current.now)).toBe('11:36 AM')
-    expect(result.current.isOverridden).toBe(false)
-  })
-
-  it('shows the override time while still reporting the actual device time', () => {
+  it('ignores a ?now= query and keeps the device clock', () => {
     openAt('/?now=23:30')
     const { result } = renderHook(() => useNow())
-    expect(clockText(result.current.now)).toBe('11:30 PM')
-    expect(clockText(result.current.actualNow)).toBe('11:36 AM')
-    expect(result.current.isOverridden).toBe(true)
-
-    act(() => {
-      vi.advanceTimersByTime(60_000)
-    })
-    expect(clockText(result.current.now)).toBe('11:31 PM')
-    expect(clockText(result.current.actualNow)).toBe('11:37 AM')
+    expect(clockText(result.current.now)).toBe('11:36 AM')
   })
 })

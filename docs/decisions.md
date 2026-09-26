@@ -41,7 +41,7 @@ share a channel is itself undecided.
 The ten tools are named; their signatures are not. Confirm **jointly** — the assistant owner
 cannot decide these alone, since other features execute them.
 
-**Status:** Open. See [`permissions.md`](permissions.md).
+**Status:** Proposed shapes are implemented in [`shared/contracts/assistant/`](../shared/contracts/assistant/README.md) as of 2026-09-26. Not agreed. Confirm jointly before other features depend on them.
 
 ## Providers and accounts
 
@@ -64,16 +64,37 @@ is configured — and configuring it must not block other work.
 
 ### D7. Google Maps Routes access
 
-Account, quotas, exact endpoints, and which transport modes matter for Columbia to downtown.
+Account, quotas, exact endpoints, and which transport modes matter for Columbia → Soothr
+(204 E 13th St), roughly 6 miles down Manhattan.
 
-**Status:** Open.
+**Status:** Open for the account and quota. The demo can run without a key. When
+`GOOGLE_MAPS_API_KEY` is set, the backend calls the Directions API for transit, driving,
+walking, and cycling, and driving can include traffic. A key is optional — the demo already
+has live subway times without one. Campus pins start Transitous at the 116 St–Columbia
+University 1 train so the trip is ~33 minutes (the time Google/Apple show), not a 21-minute
+walk to the 2/3. Walking and driving use Valhalla, and anything still missing stays on the
+labeled fixture
+([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
+35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See
+[`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md).
 
 ### D8. The exact demo restaurant address
 
-Accurate routing needs a real downtown address. Currently `TBD` everywhere by design — do not
-hardcode a placeholder.
+Accurate routing needs a real downtown address.
 
-**Status:** Open. See [`demo-scenario.md`](demo-scenario.md).
+**Status:** Decided 2026-09-26. **Soothr, 204 E 13th St, New York, NY 10003** (East Village) is
+the 7 PM reservation venue. It is in
+[`fixtures/calendar/demo-day.json`](../fixtures/calendar/demo-day.json) as the dinner event's
+`venueName` and `venueAddress`, so maps can route Columbia → Soothr. The **address is real; the
+reservation is not** — the event stays synthetic until Google Calendar is connected.
+
+### D17. Assistant model
+
+Grok via the xAI Responses API replaces Gemini as the decision-maker. Default model `grok-4.7`.
+Optional override `XAI_MODEL`. Key `XAI_API_KEY`, server-side only. The adapter turns server-side
+web search off so facts come from allowlisted tools.
+
+**Status:** Decided 2026-09-26 on `feature/agent`.
 
 ## Design and scope
 
@@ -84,14 +105,10 @@ it is an environment variable, a request parameter, or a UI control, and what it
 
 Every feature that reads the clock must read it through this override.
 
-**Status:** Frontend half implemented, pending team confirmation. The UI reads a `?now=` URL
-parameter (`?now=15:30`, `?now=2026-09-26T15:30`, or an ISO instant) and runs the clock from
-that time, labeled `Demo time · actual <real time>`. See
+**Status:** The mirror UI always uses the device clock. It does not honor `?now=` and does
+not show a demo-time label. Backend APIs still accept `?now=` so tests and local rehearsal
+can pin a clock without shifting the display. See
 [`frontend/src/shared/time/nowOverride.ts`](../frontend/src/shared/time/nowOverride.ts).
-
-Still open: how the override reaches the **backend** once the planner computes real deadlines.
-The frontend could forward its overridden "now" on each request, or the backend could read its
-own setting — but both must agree, or the UI and planner will disagree about the time.
 
 ### D10. Voice API placement
 
@@ -105,10 +122,10 @@ A dedicated backend namespace, or integrated session endpoints. Document whichev
 time-zone-aware arithmetic, which argues for shared — but shared code is also the most common
 merge-conflict source between two concurrent developers.
 
-**Status:** Frontend settled, backend open. Display-time utilities (New York clock, formatting,
-day labels, daylight-saving-safe conversion) live in
-[`frontend/src/shared/time/`](../frontend/src/shared/time/). The backend location for
-scheduling arithmetic is still undecided.
+**Status:** Display time stays in [`frontend/src/shared/time/`](../frontend/src/shared/time/).
+Wall-clock conversion that both the calendar fixture and the planner need lives in
+[`backend/src/shared/utils/zonedTime.ts`](../backend/src/shared/utils/zonedTime.ts). Leave-by
+and feasibility stay in the planner. Not a final ruling on every future helper.
 
 ### D12. Confirmation mechanism
 
@@ -164,3 +181,7 @@ Move entries here with the date and who agreed.
 
 - **D5. Weather provider** — Open-Meteo; imperial and Columbia by default, both changeable.
   2026-09-26, carolynl950.
+- **D8. Demo restaurant address** — Soothr, 204 E 13th St, New York, NY 10003. 2026-09-26.
+- **D17. Assistant model** — Grok via the xAI Responses API, not Gemini. Default model
+  `grok-4.7` (`XAI_MODEL` overrides). Key name `XAI_API_KEY`, server-side only. Server-side
+  web search is off; only the allowlisted tools run. 2026-09-26, on `feature/agent`.

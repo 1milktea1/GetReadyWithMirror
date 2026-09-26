@@ -1,19 +1,15 @@
-/* Tokens are scoped to the module so it does not depend on, or leak into, the app shell. */
+/* Sizes, weights and colours come from the shared mirror scale in app/global.css. */
 .weather {
   --mirror-bg: #000;
-  --mirror-text: #fff;
-  --mirror-muted: #a3a3a3;
-  --mirror-dim: #5c5c5c;
-  --mirror-rule: #262626;
-  --text-body: clamp(18px, 1.5vw, 28px);
-  --text-small: clamp(14px, 1.1vw, 20px);
+  /* Strokes only. All text in this module is pure white for mirror legibility. */
+  --mirror-dim: rgb(255 255 255 / 0.32);
 
   display: flex;
   flex-direction: column;
   gap: 1.2em;
   color: var(--mirror-text);
   font-size: var(--text-body);
-  font-weight: 300;
+  font-weight: var(--weight-regular);
   animation: weather-fade-in 600ms ease-out;
 }
 
@@ -36,25 +32,24 @@
 }
 
 .weather-place {
-  font-size: var(--text-small);
-  color: var(--mirror-muted);
-  letter-spacing: 0.04em;
-  margin-bottom: 0.4em;
-}
-.weather-muted {
-  color: var(--mirror-muted);
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  margin-bottom: 0.5em;
 }
 
 .weather-now {
   display: flex;
   align-items: center;
   gap: 0.15em;
-  font-size: clamp(64px, 7vw, 140px);
+  /* Matches the calendar clock, so the two top corners read as one display. */
+  font-size: var(--text-display);
   line-height: 1;
 }
 
 .weather-temp {
-  font-weight: 100;
+  font-weight: var(--weight-display);
   letter-spacing: -0.02em;
 }
 
@@ -64,6 +59,7 @@
 
 .weather-line {
   margin-top: 0.35em;
+  font-size: var(--text-title);
 }
 
 .weather-suggestions {
@@ -72,7 +68,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6em;
+  gap: 0.7em;
   border-top: 1px solid var(--mirror-rule);
   padding-top: 1em;
 }
@@ -83,12 +79,12 @@
 }
 
 .weather-suggestion-item {
-  font-weight: 400;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
 }
 
 .weather-suggestion-reason {
-  color: var(--mirror-muted);
-  font-size: var(--text-small);
+  font-size: var(--text-label);
 }
 
 /* Expanded details: grid-rows transition animates height without measuring it. */
@@ -113,7 +109,7 @@
 .weather-hourly {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-small);
+  font-size: var(--text-label);
   border-top: 1px solid var(--mirror-rule);
 }
 
@@ -130,30 +126,35 @@
 .weather-footer {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.6em 1em;
   margin-top: 1em;
-  font-size: var(--text-small);
-  color: var(--mirror-dim);
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
 }
 
 .weather-badge {
-  border: 1px solid var(--mirror-dim);
-  color: var(--mirror-muted);
-  padding: 0.1em 0.5em;
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
+  padding: 0.2em 0.6em;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  font-weight: var(--weight-strong);
 }
 
 .weather--status {
   cursor: default;
-  color: var(--mirror-muted);
   gap: 0.4em;
 }
 
 .weather-status-title {
-  color: var(--mirror-text);
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
 }
 
 .weather-status-detail {
-  font-size: var(--text-small);
+  font-size: var(--text-label);
 }
 
 .weather-retry {
@@ -161,9 +162,11 @@
   margin-top: 0.6em;
   background: none;
   color: var(--mirror-text);
-  border: 1px solid var(--mirror-muted);
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
   padding: 0.4em 1.2em;
   font: inherit;
+  font-weight: var(--weight-medium);
   cursor: pointer;
 }
 
@@ -175,7 +178,7 @@
   margin-top: 1.2em;
   padding-top: 1em;
   border-top: 1px solid var(--mirror-rule);
-  font-size: var(--text-small);
+  font-size: var(--text-label);
 }
 
 .weather-settings-row {
@@ -191,8 +194,9 @@
 }
 
 .weather-settings-label {
-  color: var(--mirror-muted);
   min-width: 5em;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
 }
 
 .weather-segmented {
@@ -203,7 +207,7 @@
 .weather-results button,
 .weather-link {
   background: none;
-  color: var(--mirror-muted);
+  color: var(--mirror-text);
   font: inherit;
   cursor: pointer;
 }
@@ -211,6 +215,7 @@
 .weather-segmented button {
   border: 1px solid var(--mirror-dim);
   padding: 0.3em 1em;
+  font-weight: var(--weight-medium);
 }
 
 .weather-segmented button + button {
@@ -221,6 +226,7 @@
   color: var(--mirror-bg);
   background: var(--mirror-text);
   border-color: var(--mirror-text);
+  font-weight: var(--weight-strong);
 }
 
 .weather-input {
@@ -237,6 +243,7 @@
   border-bottom-color: var(--mirror-text);
 }
 
+/* The one exception to all-white text: a placeholder must not look like a typed value. */
 .weather-input::placeholder {
   color: var(--mirror-dim);
 }
@@ -255,22 +262,20 @@
   padding: 0.4em 0;
 }
 
+/* All text is white, so hover has to be shown by a rule rather than by brightening. */
 .weather-results button:hover,
-.weather-results button:focus-visible,
-.weather-link:hover {
-  color: var(--mirror-text);
+.weather-results button:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .weather-link {
   align-self: flex-start;
   border: none;
   padding: 0;
+  font-weight: var(--weight-medium);
   text-decoration: underline;
   text-underline-offset: 0.2em;
-}
-
-.weather-settings-message {
-  color: var(--mirror-muted);
 }
 
 @keyframes weather-fade-in {

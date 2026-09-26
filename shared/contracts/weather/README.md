@@ -46,9 +46,9 @@ numeric weather codes stay inside the provider adapter.
 
 ## Suggestions
 
-Suggestions are produced by **deterministic rules** in the weather feature, not by Gemini.
-Gemini may word them for speech; it may not invent new ones. Each suggestion carries the reading
-that triggered it, so the UI and Gemini can explain it without guessing.
+Suggestions are produced by **deterministic rules** in the weather feature, not by Grok.
+Grok may word them for speech; it may not invent new ones. Each suggestion carries the reading
+that triggered it, so the UI and Grok can explain it without guessing.
 
 | Rule (anywhere in the window) | `item` |
 |---|---|
