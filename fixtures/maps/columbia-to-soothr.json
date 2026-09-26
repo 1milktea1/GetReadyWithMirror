@@ -1,0 +1,18 @@
+{
+  "description": "SYNTHETIC travel durations for Columbia University to Soothr, 204 E 13th St. Rehearsal numbers for the offline demo, not a live route.",
+  "origin": {
+    "name": "Columbia University",
+    "address": "Columbia University, New York, NY 10027"
+  },
+  "destination": {
+    "name": "Soothr",
+    "address": "204 E 13th St, New York, NY 10003"
+  },
+  "recommendedMode": "transit",
+  "routes": [
+    { "mode": "transit", "durationMinutes": 35, "summary": "Rehearsal estimate — not a live route" },
+    { "mode": "cycling", "durationMinutes": 28, "summary": "Rehearsal estimate — not a live route" },
+    { "mode": "driving", "durationMinutes": 30, "summary": "Rehearsal estimate — not a live route" },
+    { "mode": "walking", "durationMinutes": 105, "summary": "Rehearsal estimate — not a live route" }
+  ]
+}

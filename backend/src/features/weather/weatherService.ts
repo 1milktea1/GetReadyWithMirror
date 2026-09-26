@@ -11,6 +11,15 @@ import type {
   WeatherResponse,
 } from '../../../../shared/contracts/weather/types.ts';
 
+function endOfLocalEvening(now: Date, timeZone: string): Date {
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone }).format(now);
+  const offset = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+    .formatToParts(now)
+    .find((part) => part.type === 'timeZoneName')!
+    .value.replace('GMT', '');
+  return new Date(`${date}T23:00:00${offset || 'Z'}`);
+}
+
 export const COLUMBIA: WeatherLocation = {
   name: 'Columbia University',
   latitude: 40.8075,
@@ -36,7 +45,11 @@ export async function getWeather(options: GetWeatherOptions = {}): Promise<Weath
   const now = options.now ?? new Date();
   // The event is a fixed moment (the demo dinner is in New York), whichever location's weather
   // is shown; hourly times are still displayed in the forecast location's time zone.
-  const windowEnd = options.windowEnd ?? getUpcomingEventStart(now, COLUMBIA.timeZone).start;
+  const eventStart = getUpcomingEventStart(now, COLUMBIA.timeZone).start;
+  // After the dinner has started, keep forecasting the rest of the local day so a question
+  // such as "will it snow" still has hours to answer from.
+  const windowEnd =
+    options.windowEnd ?? (eventStart.getTime() > now.getTime() ? eventStart : endOfLocalEvening(now, location.timeZone));
 
   if (windowEnd.getTime() <= now.getTime()) {
     return {

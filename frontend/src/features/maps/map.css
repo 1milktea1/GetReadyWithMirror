@@ -1,0 +1,39 @@
+.commute {
+  width: min(36rem, 88vw);
+  color: var(--mirror-text);
+  font-size: var(--text-body);
+  text-align: left;
+}
+
+.commute p,
+.commute h2,
+.commute ul {
+  margin: 0;
+}
+
+.commute__label {
+  font-size: var(--text-micro);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.commute__title {
+  margin-top: 0.6rem;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+}
+
+.commute__address,
+.commute__leave {
+  margin-top: 0.4rem;
+}
+
+.commute__routes {
+  margin-top: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.commute__routes li + li {
+  margin-top: 0.35rem;
+}

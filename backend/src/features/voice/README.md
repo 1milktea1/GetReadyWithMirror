@@ -1,7 +1,7 @@
 # Backend Feature: Voice (ElevenLabs)
 
 **Owner:** TBD
-**Status:** Not implemented — contract not yet agreed
+**Status:** Push-to-talk path is wired. `POST /api/voice/transcribe` and `POST /api/voice/speak` call ElevenLabs. Grok still chooses tools through `POST /api/assistant`. Wake phrase and a Pico button are not implemented.
 
 ## Responsibility
 

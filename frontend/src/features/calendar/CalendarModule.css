@@ -9,6 +9,10 @@
   animation: calendar-fade-in 900ms ease-out both;
 }
 
+.calendar--agenda {
+  text-align: left;
+}
+
 :where(.calendar p, .calendar h2, .calendar h3, .calendar ol) {
   margin: 0;
   padding: 0;

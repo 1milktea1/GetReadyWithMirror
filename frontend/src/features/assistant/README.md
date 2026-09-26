@@ -1,7 +1,7 @@
 # Frontend Feature: Assistant (voice UI and status)
 
 **Owner:** TBD
-**Status:** Not implemented
+**Status:** “Hey Mirror” starts a turn without a tap. Saying it alone starts recording until the user goes quiet; saying a request in the same breath sends that request on. The on-screen button still works as a fallback.
 
 Owns the on-screen push-to-talk control, the microphone and listening indicators, and the
 visible loading, speaking, and error states for the voice session.

@@ -2,6 +2,8 @@
 // Other features are reached only through handlers or their public services — never their adapters.
 
 import type { AssistantResponse, ToolOutcome, UiEvent, ValidatedToolCall } from '../../../../shared/contracts/assistant/types.ts';
+import { getUpcomingEvents } from '../calendar/fixtureEvents.ts';
+import { getSampleCommute } from '../maps/sampleCommute.ts';
 import { getWeather } from '../weather/weatherService.ts';
 import { loadAssistantEnv } from './envFile.ts';
 import { createResponse, ProviderError } from './grokAdapter.ts';
@@ -238,8 +240,35 @@ export async function runAssistantTurn(options: RunAssistantTurnOptions): Promis
   return { ok: false, error: { status: 'external-provider-unavailable', message: 'Grok did not finish the turn.' } };
 }
 
+function eventsForSpeech(result: ReturnType<typeof getUpcomingEvents>) {
+  const { events, timeZone } = result.data;
+  return {
+    ok: true as const,
+    data: {
+      timeZone,
+      events: events.map(({ title, start, end, venueName, venueAddress }) => ({ title, start, end, venueName, venueAddress })),
+    },
+  };
+}
+
+function commuteForSpeech(result: ReturnType<typeof getSampleCommute>) {
+  const { origin, destination, recommendedMode, durationMinutes, routes } = result.data;
+  return {
+    ok: true as const,
+    data: {
+      origin,
+      destination,
+      recommendedMode,
+      durationMinutes,
+      routes: routes.map(({ mode, durationMinutes: minutes }) => ({ mode, durationMinutes: minutes })),
+    },
+  };
+}
+
 function defaultHandlers(weatherFetch?: typeof fetch): AssistantHandlers {
   return {
     getWeather: (args, ctx) => getWeather({ units: args.units, now: ctx.now, fetchFn: weatherFetch }),
+    getUpcomingEvent: (ctx) => Promise.resolve(eventsForSpeech(getUpcomingEvents(ctx.now))),
+    getCommute: () => Promise.resolve(commuteForSpeech(getSampleCommute())),
   };
 }

@@ -23,6 +23,8 @@ export interface CalendarModuleProps {
   actualTime?: Date
   timeZone?: string
   maxEvents?: number
+  /** clock keeps the time and date. agenda keeps the event list. full is the overview corner. */
+  part?: 'full' | 'clock' | 'agenda'
 }
 
 const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
@@ -38,12 +40,14 @@ export function CalendarModule({
   actualTime,
   timeZone = MIRROR_TIME_ZONE,
   maxEvents = 4,
+  part = 'full',
 }: CalendarModuleProps) {
   const state = useCalendarEvents(source, now)
   const clock = formatClock(now, timeZone)
 
   return (
-    <section className="calendar" aria-label="Calendar">
+    <section className={`calendar${part === 'agenda' ? ' calendar--agenda' : ''}`} aria-label={part === 'clock' ? 'Time' : 'Calendar'}>
+      {part !== 'agenda' && (
       <header className="calendar__now">
         <time className="calendar__clock" dateTime={now.toISOString()}>
           <span className="calendar__time">{clock.time}</span>
@@ -54,13 +58,16 @@ export function CalendarModule({
           <p className="calendar__tag">Demo time · actual {formatTimeOfDay(actualTime, timeZone)}</p>
         )}
       </header>
+      )}
 
+      {part !== 'clock' && (
       <div className="calendar__agenda">
         <div className="calendar__agenda-header">
           <h2 className="calendar__heading">Upcoming</h2>
         </div>
         <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
       </div>
+      )}
     </section>
   )
 }

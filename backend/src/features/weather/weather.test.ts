@@ -158,8 +158,19 @@ test('overridden "now" uses that hour, not the provider\'s real-time current blo
   assert.equal(res.data.current.temperature, 68);
 });
 
-test('getWeather rejects a window that has already ended', async () => {
+test('after the dinner, the forecast continues through 11 PM', async () => {
   const res = await getWeather({ now: new Date('2026-09-26T17:30:00-04:00'), fetchFn: fakeFetch() });
+  assert.ok(res.ok);
+  assert.equal(res.data.window.end, '2026-09-26T23:00:00-04:00');
+  assert.equal(res.data.hourly.length, 7);
+});
+
+test('getWeather rejects an explicit window that has already ended', async () => {
+  const res = await getWeather({
+    now: new Date('2026-09-26T17:30:00-04:00'),
+    windowEnd: new Date('2026-09-26T17:00:00-04:00'),
+    fetchFn: fakeFetch(),
+  });
   assert.deepEqual(res.ok ? null : res.error.status, 'input-invalid');
 });
 
