@@ -4,32 +4,42 @@
 **Status:** Proposed by owner — awaiting consumer sign-off, not implemented
 **Producer:** [`backend/src/features/weather/`](../../../backend/src/features/weather/README.md)
 
-No TypeScript interfaces yet. This document describes the shape the team must agree on before
-anyone implements against it. Field names below are the owner's proposal; consumers (assistant,
-planner) confirm them before implementation.
+TypeScript types: [`types.ts`](types.ts), imported by the backend weather feature and the
+frontend weather module. Field names are the owner's proposal; consumers (assistant, planner)
+confirm them before depending on them.
 
 ## Conventions
 
-- **Units: imperial.** °F, mph, inches. Unit is part of the field name (`temperatureF`,
-  `windMph`, `precipitationIn`) so nothing is ambiguous.
-- **Time zone: `America/New_York`.** All timestamps are ISO 8601 with an explicit offset.
-- **Location: Columbia University only** for now (fixed coordinates). The event venue is out
-  of scope until its address is decided (D8 in [`docs/decisions.md`](../../../docs/decisions.md)).
+- **Units: selectable, imperial by default.** The caller asks for `imperial` (°F, mph, inches)
+  or `metric` (°C, km/h, mm, cm of snow). Every numeric field is in the unit system named by
+  the result's `units` block; field names carry no unit suffix.
+- **Location: Columbia University by default** (hardcoded for now; device detection may come
+  later). A place search overrides it. A location is `{ name, latitude, longitude, timeZone }`.
+- **Time zone: the location's.** All timestamps are ISO 8601 with an explicit offset in the
+  forecast location's time zone.
 
 ## Fields to agree
 
 | Field | Proposed name | Purpose | Decided? |
 |---|---|---|---|
-| Location | `location` `{ name, latitude, longitude }` | Which place the forecast describes | Proposed |
+| Location | `location` `{ name, latitude, longitude, timeZone }` | Which place the forecast describes | Proposed |
+| Units | `units` `{ system, temperature, windSpeed, precipitation, snowfall }` | Which unit system every number is in, with display symbols | Proposed |
 | Forecast timestamp | `retrievedAt` | When the data was fetched from the provider | Proposed |
 | Time zone | `timeZone` | Explicit zone for all timestamps | Proposed |
 | Window | `window` `{ start, end }` | The period the hourly outlook and summary cover | Proposed |
-| Current conditions | `current` `{ temperatureF, feelsLikeF, condition, precipitationProbability, uvIndex, windMph }` | Conditions right now | Proposed |
-| Hourly outlook | `hourly[]` — same fields as `current`, plus `time`, `precipitationIn`, `snowfallIn` | Hour-by-hour across the window | Proposed |
-| Precipitation summary | `summary.maxPrecipitationProbability`, `summary.totalPrecipitationIn`, `summary.totalSnowfallIn` | Rain/snow likelihood and amount across the window | Proposed |
-| Temperature summary | `summary.highF`, `summary.lowF`, `summary.minFeelsLikeF`, `summary.maxUvIndex` | Range and feels-like across the window | Proposed |
-| Suggestions | `suggestions[]` `{ item, reason, trigger: { metric, value, time } }` | What to wear or bring, and why | Proposed |
+| Current conditions | `current` `{ temperature, feelsLike, condition, precipitationProbability, uvIndex, windSpeed }` | Conditions right now | Proposed |
+| Hourly outlook | `hourly[]` — same fields as `current`, plus `time`, `precipitation`, `snowfall` | Hour-by-hour across the window | Proposed |
+| Precipitation summary | `summary.maxPrecipitationProbability`, `summary.totalPrecipitation`, `summary.totalSnowfall` | Rain/snow likelihood and amount across the window | Proposed |
+| Temperature summary | `summary.high`, `summary.low`, `summary.minFeelsLike`, `summary.maxUvIndex` | Range and feels-like across the window | Proposed |
+| Suggestions | `suggestions[]` `{ item, reason, trigger: { metric, value, time } }` | What to wear or bring, and why, phrased in the result's units | Proposed |
 | Provenance / status | `provenance` `{ source, isFixture }` | `open-meteo` live data, or a labeled fixture | Proposed |
+
+## HTTP
+
+| Request | Returns |
+|---|---|
+| `GET /api/weather` — optional `units`, `now`, and `lat`/`lon`/`name`/`tz` (all four or none) | `{ ok: true, data: WeatherResult }` or `{ ok: false, error }` |
+| `GET /api/weather/locations?q=<place>` | Up to five `WeatherLocation`s, or an error |
 
 `condition` is a short normalized label (for example `clear`, `rain`, `snow`). The provider's
 numeric weather codes stay inside the provider adapter.
@@ -50,16 +60,18 @@ that triggered it, so the UI and Gemini can explain it without guessing.
 | Minimum feels-like < 32°F | `heavy-coat` (replaces `jacket`) |
 | Wind ≥ 20 mph | `windbreaker` |
 
-Thresholds are the owner's starting values and may be tuned; changing them does not change the
-contract shape.
+Rules always evaluate imperial readings, whatever units the caller asked for, so the thresholds
+above exist in one place only. Thresholds are the owner's starting values and may be tuned;
+changing them does not change the contract shape.
 
 ## Resolved questions
 
-- **Units:** imperial only.
-- **Location:** Columbia University only for now.
-- **Event window:** from "now" (honoring the demo/test-time override) to the event start.
-  Weather obtains the event start from the calendar feature's public interface. Until that
-  exists, it uses an interim stand-in — see the
+- **Units:** imperial by default; metric on request.
+- **Location:** Columbia University by default; any searchable place on request.
+- **Event window:** from "now" (honoring the demo/test-time override) to the event start. The
+  event start is a fixed moment, independent of which location's weather is shown. Weather
+  obtains it from the calendar feature's public interface. Until that exists, it uses an
+  interim stand-in — see the
   [backend weather README](../../../backend/src/features/weather/README.md#interim-calendar-stand-in).
 - **Fixture flag:** `provenance.isFixture: true`, which the UI must render as a visible label.
 
