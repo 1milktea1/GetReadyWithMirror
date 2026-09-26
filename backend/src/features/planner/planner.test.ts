@@ -294,3 +294,46 @@ test('leave-by uses a live Google duration for the selected mode', async () => {
     else process.env.GOOGLE_MAPS_API_KEY = previous;
   }
 });
+
+test('leave-by uses a live subway itinerary instead of the 35 minute fixture', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  delete process.env.GOOGLE_MAPS_API_KEY;
+  try {
+    const result = await generatePreparationPlan({
+      now: at('12:00'),
+      live: true,
+      fetchFn: async (input) => {
+        const url = String(input);
+        if (url.includes('transitous')) {
+          return Response.json({
+            itineraries: [
+              {
+                duration: 54 * 60,
+                legs: [
+                  { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
+                ],
+              },
+            ],
+          });
+        }
+        return Response.json({
+          trip: {
+            status: 0,
+            summary: { time: 19 * 60 },
+            legs: [{ shape: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' }],
+          },
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.data.leaveBy.transportMode, 'transit');
+    assert.equal(result.data.leaveBy.travelMinutes, 54);
+    assert.equal(result.data.leaveBy.at, at('15:56').toISOString());
+    assert.equal(result.data.provenance.maps, 'transitous');
+    assert.equal(result.data.provenance.isFixture, false);
+  } finally {
+    if (previous === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
+    else process.env.GOOGLE_MAPS_API_KEY = previous;
+  }
+});

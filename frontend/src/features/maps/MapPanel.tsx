@@ -1,7 +1,7 @@
 // Left-side route map. Draws the backend path; it does not estimate travel time.
 
 import { useEffect, useRef } from 'react'
-import type { LatLng, MapsResult, RouteAlternative, TransportMode } from '@contracts/maps/types'
+import type { LatLng, RouteAlternative, TransportMode } from '@contracts/maps/types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { buildMapsQuery, useMaps } from './useMaps'
@@ -58,17 +58,15 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     if (!map || !layers || !data) return
     layers.clearLayers()
     const selected = data.routes.find((item) => item.mode === mode)
-    const line = pathFor(data, selected)
-    const dashed = !selected || selected.path.length < 2
-    L.polyline(line, {
-      color: '#fff',
-      weight: 3,
-      opacity: 0.95,
-      dashArray: dashed ? '7 9' : undefined,
-    }).addTo(layers)
-    L.circleMarker(line[0]!, markerStyle(false)).addTo(layers)
-    L.circleMarker(line[line.length - 1]!, markerStyle(true)).addTo(layers)
-    map.fitBounds(L.latLngBounds(line), { padding: [36, 36] })
+    const line = selected && selected.path.length >= 2 ? selected.path.map(toPair) : null
+    if (line) {
+      L.polyline(line, { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
+    }
+    const origin = toPair(data.origin.location)
+    const destination = toPair(data.destination.location)
+    L.circleMarker(origin, markerStyle(false)).addTo(layers)
+    L.circleMarker(destination, markerStyle(true)).addTo(layers)
+    map.fitBounds(L.latLngBounds(line ?? [origin, destination]), { padding: [36, 36] })
     const frame = requestAnimationFrame(() => map.invalidateSize())
     return () => cancelAnimationFrame(frame)
   }, [data, mode])
@@ -109,17 +107,9 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
           </p>
         )}
         {badge && <div className="map-panel__badge">{badge}</div>}
-        {route && route.path.length < 2 && state.status === 'ok' && (
-          <p className="map-panel__note">Straight line between the pins — not a road path.</p>
-        )}
       </div>
     </section>
   )
-}
-
-function pathFor(data: MapsResult, route: RouteAlternative | undefined): L.LatLngExpression[] {
-  if (route && route.path.length >= 2) return route.path.map(toPair)
-  return [toPair(data.origin.location), toPair(data.destination.location)]
 }
 
 function toPair(point: LatLng): L.LatLngExpression {
@@ -141,5 +131,6 @@ function provenanceLabel(route: RouteAlternative | undefined): string | undefine
   if (route.provenance.isFixture) return 'Sample route — not live'
   if (route.provenance.source === 'google') return 'Live directions'
   if (route.provenance.source === 'valhalla') return 'Live road route'
+  if (route.provenance.source === 'transitous') return 'Live subway'
   return undefined
 }

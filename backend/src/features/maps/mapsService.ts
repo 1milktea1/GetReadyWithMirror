@@ -1,12 +1,13 @@
 // Maps public service. Other features call getCommute(); nothing imports an adapter except this file.
 //
-// Order: Google Directions when GOOGLE_MAPS_API_KEY is set, then the public Valhalla
-// road router for walking / driving / cycling, then the labeled fixture for any mode
-// still missing (subway, when there is no key). A pair the fixture does not cover is
-// never given a fixture duration.
+// Order: Google Directions when GOOGLE_MAPS_API_KEY is set (traffic-aware driving and
+// transit when the key allows it), then Transitous for subway and Valhalla for walking /
+// driving / cycling, then the labeled fixture for any mode still missing. A pair the
+// fixture does not cover is never given a fixture duration.
 
 import { loadMapsFixture, sameAddress, type FixtureRoute } from './fixtureAdapter.ts';
 import { fetchGoogleRoute, googleMapsApiKey } from './googleDirectionsAdapter.ts';
+import { fetchTransitRoute } from './transitAdapter.ts';
 import { fetchValhallaRoute } from './valhallaAdapter.ts';
 import type {
   LatLng,
@@ -100,6 +101,16 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
     }
   }
 
+  if (live && !routes.has('transit') && located(origin.location) && located(destination.location)) {
+    const transit = await fetchTransitRoute({
+      origin: origin.location,
+      destination: destination.location,
+      departure: options.now,
+      fetchFn: options.fetchFn,
+    });
+    if (transit) routes.set('transit', transit);
+  }
+
   if (live && demoPair) {
     const missing = (['walking', 'driving', 'cycling'] as const).filter((mode) => !routes.has(mode));
     const fetched = await Promise.all(
@@ -170,6 +181,10 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
 
 function point(location: LatLng): string {
   return `${location.latitude},${location.longitude}`;
+}
+
+function located(location: LatLng): boolean {
+  return Number.isFinite(location.latitude) && Number.isFinite(location.longitude) && (location.latitude !== 0 || location.longitude !== 0);
 }
 
 function placeFromAddress(address: string): MapPlace {

@@ -11,13 +11,17 @@ time. The demo route is Columbia University → Soothr, 204 E 13th St.
 
 Provider order for each mode:
 
-1. **Google Directions** when `GOOGLE_MAPS_API_KEY` is set (transit, driving, walking, cycling).
-2. **Valhalla** (`valhalla1.openstreetmap.de`) for walking, driving, and cycling when that mode
-   is still missing. This is a public road router. It has no subway schedules. The Project
-   OSRM demo server is not used: it returns the car route for every profile.
-3. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)
+1. **Google Directions** when `GOOGLE_MAPS_API_KEY` is set. Driving uses `departure_time`
+   when the clock is not in the past, so the duration can include traffic. Transit returns
+   Google's route geometry.
+2. **Transitous** (`api.transitous.org`) for subway when Google did not return one. The path
+   follows the walk to the station, the trains, and the walk to the door. It is not a straight
+   line between the pins. `transitModes=SUBWAY`.
+3. **Valhalla** (`valhalla1.openstreetmap.de`) for walking, driving, and cycling when that mode
+   is still missing. This road router has no live traffic and no subway schedules.
+4. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)
    for any mode still missing on the demo pair. Those durations are rehearsal numbers,
-   `provenance.isFixture: true`. Subway stays on this fixture until a Google key is present.
+   `provenance.isFixture: true`. A fixture subway has no path, so the map shows pins only.
 
 Rideshare is not a Directions or Valhalla mode. It copies the driving route and says so in
 `summary`. An origin/destination the fixture does not cover, with no Google key, returns
@@ -44,6 +48,7 @@ The fixture also includes cycling (28), driving (30), and walking (105).
 |---|---|
 | `mapsService.ts` | Public `getCommute`. The only entry point other features use. |
 | `googleDirectionsAdapter.ts` | Directions API. The key never leaves this process. |
+| `transitAdapter.ts` | Public subway itineraries and their geometry. |
 | `valhallaAdapter.ts` | Public road router for walking, driving, and cycling. |
 | `fixtureAdapter.ts` | Reads and validates the fixture. |
 | `mapsHttp.ts` | `GET /api/maps`. |

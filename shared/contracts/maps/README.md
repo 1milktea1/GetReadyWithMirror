@@ -15,7 +15,7 @@
 | Alternatives | `routes[]` `{ mode, durationMinutes, summary, disruptions, path, provenance }` | Whole minutes. `path` may be empty. |
 | Recommended mode | `recommendedMode` | `transit` for the demo |
 | Retrieved at | `retrievedAt` | ISO instant |
-| Provenance | `provenance` `{ source, isFixture }` | Provenance of the recommended route. `source` is `google`, `valhalla`, or `fixture`. |
+| Provenance | `provenance` `{ source, isFixture }` | Provenance of the recommended route. `source` is `google`, `valhalla`, `transitous`, or `fixture`. |
 
 `mode` is `transit`, `driving`, `walking`, `cycling`, or `rideshare`. Rideshare copies driving.
 

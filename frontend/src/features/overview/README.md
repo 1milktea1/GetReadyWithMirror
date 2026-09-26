@@ -1,9 +1,13 @@
 # Frontend Feature: Overview
 
 **Owner:** TBD
-**Status:** Composed in [`App.tsx`](../../app/App.tsx): route map on the left, weather over the
-map, calendar top-right, getting-ready plan on the right, leave-by reminder fixed at the
-bottom-right corner. There is no separate overview component yet.
+**Status:** Composed in [`App.tsx`](../../app/App.tsx): weather top-left, clock and calendar
+top-right, getting-ready plan in the center, leave-by reminder at the bottom-right. The map
+is not on this screen.
+
+Voice and motion agents expand it by calling `window.mirrorCommand({ action: 'expandWidget', widget: 'map' })`.
+That hides weather, the calendar agenda, and the plan, and leaves the clock over the map.
+`{ action: 'showOverview' }` or Escape returns here. See [`mirrorCommands.ts`](mirrorCommands.ts).
 
 The compact default view the mirror fades into after the greeting. Assembles current and
 afternoon weather, the upcoming calendar event, a short getting-ready plan, and a leave-by

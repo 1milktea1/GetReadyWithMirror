@@ -4,7 +4,7 @@
 
 export type TransportMode = 'transit' | 'driving' | 'walking' | 'cycling' | 'rideshare';
 
-export type RouteSource = 'google' | 'valhalla' | 'fixture';
+export type RouteSource = 'google' | 'valhalla' | 'transitous' | 'fixture';
 
 export interface LatLng {
   latitude: number;
