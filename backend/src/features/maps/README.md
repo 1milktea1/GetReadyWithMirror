@@ -12,17 +12,18 @@ time. The demo route is Columbia University → Soothr, 204 E 13th St.
 Provider order for each mode:
 
 1. **Google Directions** when `GOOGLE_MAPS_API_KEY` is set (transit, driving, walking, cycling).
-2. **OSRM** (`router.project-osrm.org`) for walking, driving, and cycling when that mode is
-   still missing. This is a public road router. It has no subway schedules.
+2. **Valhalla** (`valhalla1.openstreetmap.de`) for walking, driving, and cycling when that mode
+   is still missing. This is a public road router. It has no subway schedules. The Project
+   OSRM demo server is not used: it returns the car route for every profile.
 3. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)
    for any mode still missing on the demo pair. Those durations are rehearsal numbers,
    `provenance.isFixture: true`. Subway stays on this fixture until a Google key is present.
 
-Rideshare is not a Directions or OSRM mode. It copies the driving route and says so in
+Rideshare is not a Directions or Valhalla mode. It copies the driving route and says so in
 `summary`. An origin/destination the fixture does not cover, with no Google key, returns
 `no-data` rather than a guessed duration.
 
-`MAPS_LIVE=0` skips Google and OSRM. The test script sets it so the suite stays offline.
+`MAPS_LIVE=0` skips Google and Valhalla. The test script sets it so the suite stays offline.
 `npm run dev` loads `backend/.env` when that file exists (`--env-file-if-exists`).
 
 ## Public API
@@ -43,10 +44,10 @@ The fixture also includes cycling (28), driving (30), and walking (105).
 |---|---|
 | `mapsService.ts` | Public `getCommute`. The only entry point other features use. |
 | `googleDirectionsAdapter.ts` | Directions API. The key never leaves this process. |
-| `osrmAdapter.ts` | Public road router for walking, driving, and cycling. |
+| `valhallaAdapter.ts` | Public road router for walking, driving, and cycling. |
 | `fixtureAdapter.ts` | Reads and validates the fixture. |
 | `mapsHttp.ts` | `GET /api/maps`. |
-| `maps.test.ts` | Fixture, polyline, and faked Google / OSRM responses. |
+| `maps.test.ts` | Fixture, polyline, and faked Google / Valhalla responses. |
 
 ## Error states
 

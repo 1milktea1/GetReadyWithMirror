@@ -1,13 +1,13 @@
 // Maps public service. Other features call getCommute(); nothing imports an adapter except this file.
 //
-// Order: Google Directions when GOOGLE_MAPS_API_KEY is set, then the public OSRM
+// Order: Google Directions when GOOGLE_MAPS_API_KEY is set, then the public Valhalla
 // road router for walking / driving / cycling, then the labeled fixture for any mode
 // still missing (subway, when there is no key). A pair the fixture does not cover is
 // never given a fixture duration.
 
 import { loadMapsFixture, sameAddress, type FixtureRoute } from './fixtureAdapter.ts';
 import { fetchGoogleRoute, googleMapsApiKey } from './googleDirectionsAdapter.ts';
-import { fetchOsrmRoute } from './osrmAdapter.ts';
+import { fetchValhallaRoute } from './valhallaAdapter.ts';
 import type {
   LatLng,
   MapPlace,
@@ -104,7 +104,7 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
     const missing = (['walking', 'driving', 'cycling'] as const).filter((mode) => !routes.has(mode));
     const fetched = await Promise.all(
       missing.map((mode) =>
-        fetchOsrmRoute({
+        fetchValhallaRoute({
           origin: origin.location,
           destination: destination.location,
           mode,

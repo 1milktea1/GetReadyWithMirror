@@ -69,7 +69,7 @@ function mapsResult(walkingLive: boolean): MapsResult {
             ]
           : [],
         provenance: walkingLive
-          ? { source: 'osrm', isFixture: false }
+          ? { source: 'valhalla', isFixture: false }
           : { source: 'fixture', isFixture: true },
       },
       {

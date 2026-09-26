@@ -69,7 +69,7 @@ Account, quotas, exact endpoints, and which transport modes matter for Columbia 
 
 **Status:** Open for the account and quota. The demo can run without a key. When
 `GOOGLE_MAPS_API_KEY` is set, the backend calls the Directions API for transit, driving,
-walking, and cycling. Otherwise walking, driving, and cycling use the public OSRM road
+walking, and cycling. Otherwise walking, driving, and cycling use the public Valhalla road
 router, and subway stays on the labeled fixture
 ([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
 35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See

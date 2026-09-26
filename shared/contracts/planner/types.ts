@@ -87,7 +87,7 @@ export interface PreparationPlan {
   summary: string;
   conflict: ScheduleConflict | null;
   /** `isFixture` is true when the travel duration used for leave-by is a rehearsal number. */
-  provenance: { calendar: 'fixture' | 'live'; maps: 'fixture' | 'google' | 'osrm'; isFixture: boolean };
+  provenance: { calendar: 'fixture' | 'live'; maps: 'fixture' | 'google' | 'valhalla'; isFixture: boolean };
 }
 
 export type PlannerErrorStatus = 'input-invalid' | 'no-data';

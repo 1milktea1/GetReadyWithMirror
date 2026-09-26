@@ -15,8 +15,9 @@ export function googleMapsApiKey(): string | undefined {
   return key ? key : undefined;
 }
 
-/** Google encoded polyline → coordinates. */
-export function decodePolyline(encoded: string): LatLng[] {
+/** Encoded polyline → coordinates. Google uses precision 5; Valhalla uses 6. */
+export function decodePolyline(encoded: string, precision = 5): LatLng[] {
+  const factor = 10 ** precision;
   let index = 0;
   let latitude = 0;
   let longitude = 0;
@@ -37,7 +38,7 @@ export function decodePolyline(encoded: string): LatLng[] {
   while (index < encoded.length) {
     latitude += next();
     longitude += next();
-    path.push({ latitude: latitude / 1e5, longitude: longitude / 1e5 });
+    path.push({ latitude: latitude / factor, longitude: longitude / factor });
   }
   return path;
 }

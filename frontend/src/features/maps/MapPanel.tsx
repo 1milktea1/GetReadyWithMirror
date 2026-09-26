@@ -139,6 +139,6 @@ function provenanceLabel(route: RouteAlternative | undefined): string | undefine
   if (!route) return undefined
   if (route.provenance.isFixture) return 'Sample route — not live'
   if (route.provenance.source === 'google') return 'Live directions'
-  if (route.provenance.source === 'osrm') return 'Live road route'
+  if (route.provenance.source === 'valhalla') return 'Live road route'
   return undefined
 }

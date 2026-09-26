@@ -110,7 +110,7 @@ Until the questions below are settled by the team, the planner uses these rehear
 | Choice | Value |
 |---|---|
 | Transport | Subway / transit by default. The overview can switch to walk, drive, or rideshare. |
-| Travel time | Live Google duration when `GOOGLE_MAPS_API_KEY` is set. Otherwise OSRM for walk, drive, and cycling, and the labeled fixture for subway (35 minutes) and any mode the live routers miss. |
+| Travel time | Live Google duration when `GOOGLE_MAPS_API_KEY` is set. Otherwise Valhalla for walk, drive, and cycling, and the labeled fixture for subway (35 minutes) and any mode the live routers miss. |
 | Arrival buffer | 10 minutes (arrive at 4:50) |
 | Leave-by | 4:15 PM |
 | Tasks | Shower 15, hair 20, get dressed 10 |

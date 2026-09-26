@@ -39,7 +39,7 @@ export interface BuildPlanInput {
   /** Other modes for the same trip, used only to phrase a switch the user could accept. */
   alternateRoutes?: readonly AlternateRoute[];
   calendarProvenance?: 'fixture' | 'live';
-  mapsProvenance?: 'fixture' | 'google' | 'osrm';
+  mapsProvenance?: 'fixture' | 'google' | 'valhalla';
 }
 
 const MODE_LABEL: Record<TransportMode, string> = {
