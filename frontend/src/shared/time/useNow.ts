@@ -3,8 +3,11 @@ import { parseNowOverride } from './nowOverride'
 import { MIRROR_TIME_ZONE } from './zonedTime'
 
 export interface MirrorClock {
+  /** The time the mirror displays: the device clock, or the `?now=` override. */
   now: Date
-  /** True when `?now=` shifted the clock; the UI should say so. */
+  /** The device clock, always. Differs from `now` only while overridden. */
+  actualNow: Date
+  /** True when `?now=` shifted the clock; the UI must say so. */
   isOverridden: boolean
 }
 
@@ -15,20 +18,29 @@ function readOffsetMs(): number {
   return override ? override.getTime() - realNow.getTime() : 0
 }
 
+function read(offsetMs: number): MirrorClock {
+  const actualMs = Date.now()
+  return {
+    now: new Date(actualMs + offsetMs),
+    actualNow: new Date(actualMs),
+    isOverridden: offsetMs !== 0,
+  }
+}
+
 /**
- * Current time for the whole mirror, ticking every `tickMs`.
+ * Current time for the whole mirror, from the device clock, ticking every `tickMs`.
  *
  * An override starts the clock at the requested time and lets it keep running,
  * so countdowns and "next event" transitions can be rehearsed at any hour.
  */
 export function useNow(tickMs = 1000): MirrorClock {
   const [offsetMs] = useState(readOffsetMs)
-  const [now, setNow] = useState(() => new Date(Date.now() + offsetMs))
+  const [clock, setClock] = useState(() => read(offsetMs))
 
   useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date(Date.now() + offsetMs)), tickMs)
+    const id = window.setInterval(() => setClock(read(offsetMs)), tickMs)
     return () => window.clearInterval(id)
   }, [offsetMs, tickMs])
 
-  return { now, isOverridden: offsetMs !== 0 }
+  return clock
 }

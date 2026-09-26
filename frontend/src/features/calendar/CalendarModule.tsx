@@ -16,8 +16,11 @@ import './CalendarModule.css'
 export interface CalendarModuleProps {
   now: Date
   source: CalendarSource
-  /** Set when the demo/test-time override is active, so the clock is labeled. */
-  timeIsSimulated?: boolean
+  /**
+   * The real device time, passed only while the demo-time override is active.
+   * The module then labels the clock as simulated and shows this alongside it.
+   */
+  actualTime?: Date
   timeZone?: string
   maxEvents?: number
 }
@@ -32,7 +35,7 @@ const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
 export function CalendarModule({
   now,
   source,
-  timeIsSimulated = false,
+  actualTime,
   timeZone = MIRROR_TIME_ZONE,
   maxEvents = 4,
 }: CalendarModuleProps) {
@@ -47,7 +50,11 @@ export function CalendarModule({
           <span className="calendar__period">{clock.period}</span>
         </time>
         <p className="calendar__date">{formatLongDate(now, timeZone)}</p>
-        {timeIsSimulated && <p className="calendar__tag">Demo time</p>}
+        {actualTime && (
+          <p className="calendar__tag calendar__tag--demo">
+            Demo time · actual {formatTimeOfDay(actualTime, timeZone)}
+          </p>
+        )}
       </header>
 
       <div className="calendar__agenda">
