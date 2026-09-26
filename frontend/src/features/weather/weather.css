@@ -1,0 +1,291 @@
+/* Tokens are scoped to the module so it does not depend on, or leak into, the app shell. */
+.weather {
+  --mirror-bg: #000;
+  --mirror-text: #fff;
+  --mirror-muted: #a3a3a3;
+  --mirror-dim: #5c5c5c;
+  --mirror-rule: #262626;
+  --text-body: clamp(18px, 1.5vw, 28px);
+  --text-small: clamp(14px, 1.1vw, 20px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+  color: var(--mirror-text);
+  font-size: var(--text-body);
+  font-weight: 300;
+  animation: weather-fade-in 600ms ease-out;
+}
+
+.weather,
+.weather * {
+  box-sizing: border-box;
+}
+
+.weather-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2em;
+  cursor: pointer;
+  outline: none;
+}
+
+.weather-toggle:focus-visible {
+  outline: 1px solid var(--mirror-dim);
+  outline-offset: 12px;
+}
+
+.weather-place {
+  font-size: var(--text-small);
+  color: var(--mirror-muted);
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4em;
+}
+.weather-muted {
+  color: var(--mirror-muted);
+}
+
+.weather-now {
+  display: flex;
+  align-items: center;
+  gap: 0.15em;
+  font-size: clamp(64px, 7vw, 140px);
+  line-height: 1;
+}
+
+.weather-temp {
+  font-weight: 100;
+  letter-spacing: -0.02em;
+}
+
+.weather-icon {
+  flex: none;
+}
+
+.weather-line {
+  margin-top: 0.35em;
+}
+
+.weather-suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  border-top: 1px solid var(--mirror-rule);
+  padding-top: 1em;
+}
+
+.weather-suggestion {
+  display: flex;
+  flex-direction: column;
+}
+
+.weather-suggestion-item {
+  font-weight: 400;
+}
+
+.weather-suggestion-reason {
+  color: var(--mirror-muted);
+  font-size: var(--text-small);
+}
+
+/* Expanded details: grid-rows transition animates height without measuring it. */
+.weather-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 450ms ease,
+    opacity 450ms ease;
+}
+
+.weather--expanded .weather-details {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.weather-details-inner {
+  overflow: hidden;
+}
+
+.weather-hourly {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-small);
+  border-top: 1px solid var(--mirror-rule);
+}
+
+.weather-hourly td {
+  padding: 0.5em 0.6em 0.5em 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.weather-hourly td:first-child {
+  width: 4.5em;
+}
+
+.weather-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em 1em;
+  margin-top: 1em;
+  font-size: var(--text-small);
+  color: var(--mirror-dim);
+}
+
+.weather-badge {
+  border: 1px solid var(--mirror-dim);
+  color: var(--mirror-muted);
+  padding: 0.1em 0.5em;
+}
+
+.weather--status {
+  cursor: default;
+  color: var(--mirror-muted);
+  gap: 0.4em;
+}
+
+.weather-status-title {
+  color: var(--mirror-text);
+}
+
+.weather-status-detail {
+  font-size: var(--text-small);
+}
+
+.weather-retry {
+  align-self: flex-start;
+  margin-top: 0.6em;
+  background: none;
+  color: var(--mirror-text);
+  border: 1px solid var(--mirror-muted);
+  padding: 0.4em 1.2em;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Settings: location search and units. */
+.weather-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  margin-top: 1.2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--mirror-rule);
+  font-size: var(--text-small);
+}
+
+.weather-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.weather-settings-row--stack {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+}
+
+.weather-settings-label {
+  color: var(--mirror-muted);
+  min-width: 5em;
+}
+
+.weather-segmented {
+  display: flex;
+}
+
+.weather-segmented button,
+.weather-results button,
+.weather-link {
+  background: none;
+  color: var(--mirror-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.weather-segmented button {
+  border: 1px solid var(--mirror-dim);
+  padding: 0.3em 1em;
+}
+
+.weather-segmented button + button {
+  border-left: none;
+}
+
+.weather-segmented button[aria-pressed='true'] {
+  color: var(--mirror-bg);
+  background: var(--mirror-text);
+  border-color: var(--mirror-text);
+}
+
+.weather-input {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--mirror-dim);
+  color: var(--mirror-text);
+  font: inherit;
+  padding: 0.4em 0;
+  outline: none;
+}
+
+.weather-input:focus {
+  border-bottom-color: var(--mirror-text);
+}
+
+.weather-input::placeholder {
+  color: var(--mirror-dim);
+}
+
+.weather-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.weather-results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  padding: 0.4em 0;
+}
+
+.weather-results button:hover,
+.weather-results button:focus-visible,
+.weather-link:hover {
+  color: var(--mirror-text);
+}
+
+.weather-link {
+  align-self: flex-start;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.weather-settings-message {
+  color: var(--mirror-muted);
+}
+
+@keyframes weather-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .weather,
+  .weather-details {
+    animation: none;
+    transition: none;
+  }
+}

@@ -21,6 +21,8 @@ export default defineConfig({
     fs: {
       allow: ['..'],
     },
+    // Backend runs on the same laptop; the browser never calls providers directly.
+    proxy: { '/api': 'http://localhost:3001' },
   },
   test: {
     environment: 'jsdom',

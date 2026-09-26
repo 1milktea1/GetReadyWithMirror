@@ -1,0 +1,12 @@
+{
+  "name": "getreadywithmirror-backend",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "dev:weather": "node --watch src/features/weather/devServer.ts",
+    "test": "node --test \"src/**/*.test.ts\""
+  }
+}

@@ -11,7 +11,7 @@ Assign owners before implementation begins. `TBD` means unclaimed.
 
 | Area | Owner | Notes |
 |---|---|---|
-| Weather | TBD | Provider adapter, normalized forecast |
+| Weather | carolynl950 | Backend and frontend; provider adapter, normalized forecast, suggestions |
 | Calendar | TBD | Provider adapter, event, auth boundary |
 | Maps | TBD | Routing adapter, durations |
 | Planner | TBD | Scoped jointly after contracts are agreed |
