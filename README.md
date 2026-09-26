@@ -3,9 +3,9 @@ agentic smart mirror that optimizes everyday life
 
 ---
 
-**Status: early build.** The mirror UI runs with a working **calendar module** (New York clock,
-date, and upcoming events from synthetic data) in the top-right corner. Other modules, the
-backend, voice, and live data are not started.
+**Status: repository scaffold only.** No application code, dependencies, endpoints, or
+working features exist yet. This repository currently contains the agreed folder structure and
+Markdown placeholders so two developers can claim features and start work in parallel.
 
 Read [`AGENTS.md`](AGENTS.md) before changing anything.
 
@@ -20,13 +20,13 @@ The headline value is the **intelligent preparation planner**: Gemini connects w
 event information to user-described tasks against a real deadline. Transportation supports
 that experience rather than being the point of the project.
 
-## Stack
+## Planned stack
 
-Only the frontend is set up so far; the rest is planned.
+Nothing below is installed or implemented yet.
 
 | Layer | Choice |
 |---|---|
-| Frontend | React + TypeScript (Vite), black-background mirror UI — **set up**, hosted on Vercel |
+| Frontend | React + TypeScript (Vite), black-background mirror UI |
 | Backend | Node.js + Express + TypeScript, on the laptop |
 | AI controller | Gemini — intent interpretation, constrained tool selection, response wording |
 | Voice | ElevenLabs Scribe for speech-to-text, ElevenLabs for text-to-speech |
@@ -46,8 +46,7 @@ hardware.
 
 ```text
 ├── AGENTS.md      # Project context and coding-agent instructions — read this first
-├── frontend/      # React interface — calendar module implemented
-├── vercel.json    # Vercel build settings for the frontend
+├── frontend/      # React interface (planned)
 ├── backend/       # Express server, feature-first (planned)
 ├── shared/        # Cross-feature contracts
 ├── hardware/      # Optional Pico accessory
