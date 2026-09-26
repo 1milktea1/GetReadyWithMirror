@@ -4,7 +4,10 @@
 **Status:** Implemented with synthetic fixture data. Not yet connected to Google Calendar.
 
 Shows the current New York time and date, then up to four upcoming events, in the top-right
-region of the mirror.
+region of the mirror. Clicking the event list, `?expand=calendar`, or `expandWidget` for
+`calendar` opens those events in the center. Time and date stay top-right; weather and the
+getting-ready plan hide. Escape returns to the overview. The expanded list shows up to twelve
+events.
 
 ## What it does
 
