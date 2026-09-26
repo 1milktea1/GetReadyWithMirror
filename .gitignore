@@ -11,6 +11,11 @@ node_modules/
 dist/
 build/
 *.tsbuildinfo
+coverage/
+*.local
+
+# Vercel CLI project link
+.vercel/
 
 # Logs
 *.log
