@@ -1,8 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "installCommand": "npm ci --prefix frontend",
+  "installCommand": "npm ci --prefix frontend && npm ci --prefix backend",
   "buildCommand": "npm run --prefix frontend verify",
   "outputDirectory": "frontend/dist",
-  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- frontend shared/contracts fixtures vercel.json"
+  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- frontend shared/contracts fixtures vercel.json api backend",
+  "functions": {
+    "api/**/*.ts": {
+      "includeFiles": "fixtures/**"
+    }
+  }
 }

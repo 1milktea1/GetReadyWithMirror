@@ -15,9 +15,14 @@ npm test          # offline; the suite forces TZ=Asia/Tokyo
 npm run dev       # http://localhost:3001 — /health, /api/weather, /api/maps, /api/planner
 ```
 
-The frontend dev server proxies `/api` to port 3001. Rehearse the dinner demo with
+The frontend dev server proxies `/api` to port 3001. On Vercel the same paths are
+[`api/planner.ts`](../api/planner.ts) and [`api/maps.ts`](../api/maps.ts) — they call these
+handlers, not a second copy of the schedule. Rehearse the dinner demo with
 `/api/planner?now=2026-09-26T16:00:00-04:00` (4 PM New York during daylight time). `12:00`,
 `14:00`, and `15:30` are the other clocks in [`docs/demo-scenario.md`](../docs/demo-scenario.md).
+
+Optional Vercel project env vars (never `NEXT_PUBLIC_` / never in the React app):
+`GOOGLE_MAPS_API_KEY` for Directions, `MAPS_LIVE=0` to force the fixture.
 
 ## Layout
 

@@ -2,8 +2,7 @@
 // Durations are rehearsal numbers. This adapter never invents a route for an address
 // the fixture does not cover, and it never calls a live maps provider.
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import rawFixture from '../../../../fixtures/maps/columbia-to-soothr.json' with { type: 'json' };
 import type { LatLng, MapPlace, TransportMode } from '../../../../shared/contracts/maps/types.ts';
 
 export interface FixtureRoute {
@@ -62,8 +61,7 @@ let cached: MapsFixture | undefined;
 /** The Columbia → Soothr rehearsal routes. Cached after the first read. */
 export function loadMapsFixture(): MapsFixture {
   if (cached) return cached;
-  const path = fileURLToPath(new URL('../../../../fixtures/maps/columbia-to-soothr.json', import.meta.url));
-  const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  const raw: unknown = rawFixture;
   if (!raw || typeof raw !== 'object') throw new Error('Maps fixture is not an object.');
   const fixture = raw as Partial<MapsFixture>;
   if (!isPlace(fixture.origin) || !isPlace(fixture.destination) || !isMode(fixture.recommendedMode)) {

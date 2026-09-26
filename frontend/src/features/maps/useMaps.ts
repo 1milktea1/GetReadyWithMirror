@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { MapsError, MapsResponse, MapsResult } from '@contracts/maps/types'
+import { shouldUseLocalApiFallback } from '../../shared/api/readJson'
+import { generateLocalMaps } from './localMaps'
 
 export type MapsState =
   | { status: 'loading' }
@@ -12,7 +14,7 @@ export function buildMapsQuery(now?: string): string {
   return params.toString()
 }
 
-/** Loads `/api/maps`. Routing stays on the server; the browser never sees a maps key. */
+/** Loads `/api/maps`, or the labeled fixture commute when Vercel has no API. */
 export function useMaps(query: string): { state: MapsState; retry: () => void } {
   const [state, setState] = useState<MapsState>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
@@ -22,15 +24,17 @@ export function useMaps(query: string): { state: MapsState; retry: () => void } 
     const load = async () => {
       try {
         const res = await fetch(`/api/maps?${query}`, { signal: controller.signal })
-        const body = (await res.json()) as MapsResponse
-        setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error })
+        if (!shouldUseLocalApiFallback(res)) {
+          const body = (await res.json()) as MapsResponse
+          setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error })
+          return
+        }
       } catch {
         if (controller.signal.aborted) return
-        setState({
-          status: 'error',
-          error: { status: 'no-data', message: 'Could not reach the mirror backend.' },
-        })
       }
+      if (controller.signal.aborted) return
+      const body = generateLocalMaps()
+      setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error })
     }
     void load()
     return () => controller.abort()

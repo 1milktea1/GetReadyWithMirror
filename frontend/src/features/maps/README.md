@@ -5,7 +5,9 @@
 
 `MapPanel` draws `GET /api/maps` on OpenStreetMap raster tiles, inverted so the mirror stays
 dark. CARTO's public dark tiles currently return a key watermark, so they are not used. The browser
-does not call Google, Transitous, or Valhalla and never sees `GOOGLE_MAPS_API_KEY`.
+does not call Google, Transitous, or Valhalla and never sees `GOOGLE_MAPS_API_KEY`. On Vercel
+that URL is a serverless function; if it returns HTML, the panel uses the labeled fixture
+durations so the mode buttons still populate.
 
 The overview shows the map only after `expandWidget` for `map` (voice agent or physical motion
 agent) or `?expand=map`. Weather and the calendar agenda hide. The clock stays top-right.

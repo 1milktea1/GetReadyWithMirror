@@ -43,8 +43,9 @@ hardware.
 
 ```text
 ├── AGENTS.md      # Project context and coding-agent instructions — read this first
-├── frontend/      # React interface (planned)
-├── backend/       # Express server, feature-first (planned)
+├── frontend/      # React interface
+├── backend/       # Express server, feature-first
+├── api/           # Vercel serverless wrappers for /api/planner, /api/maps, /api/weather
 ├── shared/        # Cross-feature contracts
 ├── hardware/      # Optional Pico accessory
 ├── fixtures/      # Synthetic, visibly labeled demo scenarios

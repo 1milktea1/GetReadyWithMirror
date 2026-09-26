@@ -2,8 +2,7 @@
 // Calendar exists. Places wall-clock times from fixtures/calendar/demo-day.json onto
 // the New York day of `now`, matching the frontend fixture source.
 
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import rawFixture from '../../../../fixtures/calendar/demo-day.json' with { type: 'json' };
 import type { CalendarEvent, CalendarResult } from '../../../../shared/contracts/calendar/index.ts';
 import { addDays, zonedDate, zonedTimeToUtc } from '../../shared/utils/zonedTime.ts';
 
@@ -40,8 +39,7 @@ let cached: CalendarFixture | undefined;
 
 function loadFixture(): CalendarFixture {
   if (cached) return cached;
-  const path = fileURLToPath(new URL('../../../../fixtures/calendar/demo-day.json', import.meta.url));
-  const raw: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  const raw: unknown = rawFixture;
   if (!raw || typeof raw !== 'object') throw new Error('Calendar fixture is not an object.');
   const fixture = raw as Partial<CalendarFixture>;
   if (typeof fixture.timeZone !== 'string' || !Array.isArray(fixture.events) || !fixture.events.every(isFixtureEvent)) {

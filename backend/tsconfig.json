@@ -8,7 +8,8 @@
     "allowImportingTsExtensions": true,
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src", "../shared/contracts"]
+  "include": ["src", "../shared/contracts", "../fixtures", "../api"]
 }

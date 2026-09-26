@@ -75,8 +75,10 @@ University 1 train so the trip is ~33 minutes (the time Google/Apple show), not 
 walk to the 2/3. Walking and driving use Valhalla, and anything still missing stays on the
 labeled fixture
 ([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
-35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See
-[`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md).
+35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. The same
+key name works as a Vercel project env var for preview/production functions. See
+[`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md) and
+[`api/README.md`](../api/README.md).
 
 ### D8. The exact demo restaurant address
 

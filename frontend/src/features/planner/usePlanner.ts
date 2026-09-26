@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { PlannerError, PlannerResponse, PreparationPlan } from '@contracts/planner/types';
+import { shouldUseLocalApiFallback } from '../../shared/api/readJson';
+import { generateLocalPlan } from './localPlan';
 
 export type PlannerState =
   | { status: 'loading' }
@@ -20,7 +22,7 @@ export function buildPlannerQuery(options: {
   return params.toString();
 }
 
-/** Loads `/api/planner`. The backend owns the schedule; this hook only fetches it. */
+/** Loads `/api/planner`, or the labeled fixture plan when Vercel has no API. */
 export function usePlanner(query: string): { state: PlannerState; retry: () => void } {
   const [state, setState] = useState<PlannerState>({ status: 'loading' });
   const [attempt, setAttempt] = useState(0);
@@ -30,15 +32,17 @@ export function usePlanner(query: string): { state: PlannerState; retry: () => v
     const load = async () => {
       try {
         const res = await fetch(`/api/planner?${query}`, { signal: controller.signal });
-        const body = (await res.json()) as PlannerResponse;
-        setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error });
+        if (!shouldUseLocalApiFallback(res)) {
+          const body = (await res.json()) as PlannerResponse;
+          setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error });
+          return;
+        }
       } catch {
         if (controller.signal.aborted) return;
-        setState({
-          status: 'error',
-          error: { status: 'no-data', message: 'Could not reach the mirror backend.' },
-        });
       }
+      if (controller.signal.aborted) return;
+      const body = await generateLocalPlan(new URLSearchParams(query));
+      setState(body.ok ? { status: 'ok', data: body.data } : { status: 'error', error: body.error });
     };
     void load();
     return () => controller.abort();

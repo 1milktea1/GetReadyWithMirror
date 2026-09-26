@@ -15,9 +15,11 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Weather and the getting-ready plan call `/api`, which Vite proxies to `http://localhost:3001`.
-Start the backend first (`npm run dev` from `backend/`). Without it, those two panels show an
-unavailable state; the calendar still renders from its fixture.
+Weather and the getting-ready plan call `/api`. Locally Vite proxies that to
+`http://localhost:3001`. Start the backend first (`npm run dev` from `backend/`). On Vercel,
+`/api/planner` and `/api/maps` are serverless functions that call the same handlers. If those
+routes are missing, the planner falls back to the labeled Columbia → Soothr fixture so leave-by
+still shows.
 
 | Command | What it does |
 |---|---|
@@ -42,16 +44,34 @@ repo root supplies install, build, and output settings.
 1. In Vercel, choose **Add New → Project** and import `1milktea1/GetReadyWithMirror`.
 2. Leave **Root Directory** as the repository root. Do not point it at `frontend/`: the root
    `vercel.json` would then be ignored and tests would not run before deploys.
-3. Click **Deploy**. No environment variables are needed yet.
+3. Click **Deploy**. No environment variables are required. Optional, server-side only:
+
+| Name | Effect |
+|---|---|
+| `GOOGLE_MAPS_API_KEY` | Google Directions instead of Transitous/Valhalla/fixture |
+| `MAPS_LIVE` | Set to `0` to force the labeled fixture |
+
+4. Open the preview URL (production is `https://grwm-navy.vercel.app`). The left-column
+   leave-by time and shower / hair / dressed windows should load without a laptop Express
+   process. Confirm the API with:
+
+   ```bash
+   curl -sS https://grwm-navy.vercel.app/api/planner | head
+   ```
+
+   That body should be JSON (`{"ok":true,...}` or a documented error). If Vercel still
+   serves `index.html` for `/api/*`, the UI uses the labeled Columbia → Soothr fixture
+   so leave-by still appears.
 
 After that, Vercel's Git integration is the pipeline:
 
 - **Every push to any branch** gets its own preview URL, linked from its pull request.
 - **Pushes to `main`** deploy to production.
 - **A deploy fails if lint or any test fails**, because the build runs `npm run verify`.
-- **Pushes that don't touch the UI are skipped** — if nothing under `frontend/`,
-  `shared/contracts/`, `fixtures/`, or `vercel.json` changed since the branch's last successful
-  deploy, Vercel doesn't rebuild. When that can't be determined, it builds.
+- **Pushes that don't touch the UI or API are skipped** — if nothing under `frontend/`,
+  `shared/contracts/`, `fixtures/`, `api/`, `backend/`, or `vercel.json` changed since the
+  branch's last successful deploy, Vercel doesn't rebuild. When that can't be determined, it
+  builds.
 
 ## Layout
 
