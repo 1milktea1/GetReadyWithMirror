@@ -6,9 +6,9 @@
     "node": ">=23.6"
   },
   "scripts": {
-    "dev": "node --watch src/app/server.ts",
+    "dev": "node --env-file-if-exists=.env --watch src/app/server.ts",
     "dev:weather": "node --watch src/features/weather/devServer.ts",
-    "test": "TZ=Asia/Tokyo node --test \"src/**/*.test.ts\""
+    "test": "MAPS_LIVE=0 TZ=Asia/Tokyo node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "express": "^5.2.1"

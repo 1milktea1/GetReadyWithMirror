@@ -4,30 +4,49 @@
 
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { MapPlace, RouteAlternative, TransportMode } from '../../../../shared/contracts/maps/types.ts';
+import type { LatLng, MapPlace, TransportMode } from '../../../../shared/contracts/maps/types.ts';
+
+export interface FixtureRoute {
+  mode: TransportMode;
+  durationMinutes: number;
+  summary: string;
+  disruptions: string[];
+}
 
 export interface MapsFixture {
   origin: MapPlace;
   destination: MapPlace;
   recommendedMode: TransportMode;
-  routes: RouteAlternative[];
+  routes: FixtureRoute[];
 }
 
-const MODES: readonly TransportMode[] = ['transit', 'driving', 'walking', 'cycling'];
+const MODES: readonly TransportMode[] = ['transit', 'driving', 'walking', 'cycling', 'rideshare'];
 
 function isMode(value: unknown): value is TransportMode {
   return typeof value === 'string' && (MODES as readonly string[]).includes(value);
 }
 
+function isLatLng(value: unknown): value is LatLng {
+  if (!value || typeof value !== 'object') return false;
+  const point = value as LatLng;
+  return Number.isFinite(point.latitude) && Number.isFinite(point.longitude);
+}
+
 function isPlace(value: unknown): value is MapPlace {
   if (!value || typeof value !== 'object') return false;
   const place = value as MapPlace;
-  return typeof place.name === 'string' && place.name.length > 0 && typeof place.address === 'string' && place.address.length > 0;
+  return (
+    typeof place.name === 'string' &&
+    place.name.length > 0 &&
+    typeof place.address === 'string' &&
+    place.address.length > 0 &&
+    isLatLng(place.location)
+  );
 }
 
-function isRoute(value: unknown): value is RouteAlternative {
+function isRoute(value: unknown): value is FixtureRoute {
   if (!value || typeof value !== 'object') return false;
-  const route = value as RouteAlternative;
+  const route = value as FixtureRoute;
   return (
     isMode(route.mode) &&
     Number.isInteger(route.durationMinutes) &&

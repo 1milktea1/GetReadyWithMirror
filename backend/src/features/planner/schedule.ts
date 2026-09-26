@@ -39,14 +39,15 @@ export interface BuildPlanInput {
   /** Other modes for the same trip, used only to phrase a switch the user could accept. */
   alternateRoutes?: readonly AlternateRoute[];
   calendarProvenance?: 'fixture' | 'live';
-  mapsProvenance?: 'fixture' | 'live';
+  mapsProvenance?: 'fixture' | 'google' | 'osrm';
 }
 
 const MODE_LABEL: Record<TransportMode, string> = {
-  transit: 'Transit',
+  transit: 'Subway',
   driving: 'Driving',
   walking: 'Walking',
   cycling: 'Cycling',
+  rideshare: 'Rideshare',
 };
 
 function pressureFor(slackMinutes: number): PlanPressure {
@@ -245,6 +246,6 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
                 input.alternateRoutes ?? [],
               ),
         },
-    provenance: { calendar, maps, isFixture: calendar === 'fixture' || maps === 'fixture' },
+    provenance: { calendar, maps, isFixture: maps === 'fixture' },
   };
 }

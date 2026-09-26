@@ -36,7 +36,7 @@ moving when another feature or provider is not ready.
 fixtures/
 ├── weather/    # Synthetic forecast scenarios
 ├── calendar/   # demo-day.json — synthetic agenda including the 5 PM dinner at Soothr
-├── maps/       # columbia-to-soothr.json — rehearsal durations, not a live route
+├── maps/       # columbia-to-soothr.json — rehearsal durations and pin coordinates; live routers fill modes they can
 └── planner/    # demo-scenarios.json — noon, 2 PM, 3:30 PM, 4 PM, and a hair conflict
 ```
 

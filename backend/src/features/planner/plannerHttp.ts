@@ -1,6 +1,6 @@
 // GET /api/planner
 //   now     — optional ISO 8601 demo/test-time override
-//   mode    — optional transit (default) | driving | walking | cycling
+//   mode    — optional transit (default) | walking | driving | cycling | rideshare
 //   buffer  — optional arrival buffer in minutes (default 10)
 //   tasks   — optional id:minutes list, comma-separated, replacing the default routine
 //   done    — optional comma-separated task ids to mark complete
@@ -27,7 +27,7 @@ const invalid = (message: string): HttpResult<{ ok: false; error: PlannerError }
   body: { ok: false, error: { status: 'input-invalid', message } },
 });
 
-export function handlePlannerRequest(query: URLSearchParams): HttpResult<PlannerResponse> {
+export async function handlePlannerRequest(query: URLSearchParams): Promise<HttpResult<PlannerResponse>> {
   const nowParam = query.get('now');
   let now: Date | undefined;
   if (nowParam) {
@@ -37,7 +37,7 @@ export function handlePlannerRequest(query: URLSearchParams): HttpResult<Planner
 
   const modeParam = query.get('mode');
   if (modeParam && !isTransportMode(modeParam)) {
-    return invalid('mode must be "transit", "driving", "walking", or "cycling".');
+    return invalid('mode must be "transit", "walking", "driving", "cycling", or "rideshare".');
   }
 
   const bufferParam = query.get('buffer');
@@ -63,7 +63,7 @@ export function handlePlannerRequest(query: URLSearchParams): HttpResult<Planner
     tasks = marked;
   }
 
-  const result = generatePreparationPlan({
+  const result = await generatePreparationPlan({
     now,
     mode: modeParam && isTransportMode(modeParam) ? modeParam : undefined,
     arrivalBufferMinutes,

@@ -109,8 +109,8 @@ Until the questions below are settled by the team, the planner uses these rehear
 
 | Choice | Value |
 |---|---|
-| Transport | Transit, 35 minutes, from the labeled maps fixture |
-| Other modes in the fixture | Cycling 28, driving 30, walking 105 — suggestions only |
+| Transport | Subway / transit by default. The overview can switch to walk, drive, or rideshare. |
+| Travel time | Live Google duration when `GOOGLE_MAPS_API_KEY` is set. Otherwise OSRM for walk, drive, and cycling, and the labeled fixture for subway (35 minutes) and any mode the live routers miss. |
 | Arrival buffer | 10 minutes (arrive at 4:50) |
 | Leave-by | 4:15 PM |
 | Tasks | Shower 15, hair 20, get dressed 10 |
@@ -120,7 +120,7 @@ That routine must start at 3:30 PM, which is why 3:30 is tight and 4:00 conflict
 ## Open questions
 
 - The default arrival buffer before the 5 PM reservation. Planner uses 10 minutes for now.
-- Which transport modes to offer for Columbia → Soothr. Planner defaults to transit and only
-  suggests another fixture mode when it would help.
+- Which transport modes to offer for Columbia → Soothr. The overview offers subway (default),
+  walk, drive, and rideshare. The planner uses the selected mode's duration.
 - Assumed task durations for shower, hair, and getting dressed when the user does not say.
   Planner uses 15, 20, and 10.

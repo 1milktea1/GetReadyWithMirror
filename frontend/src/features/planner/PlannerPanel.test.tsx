@@ -80,8 +80,10 @@ describe('PlannerPanel', () => {
   it('shows leave-by and the getting-ready timeline from the backend plan', async () => {
     mockPlan(plan());
     render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" />);
-    expect(await screen.findByText('4:15')).toBeInTheDocument();
-    expect(screen.getByText('PM')).toBeInTheDocument();
+    expect(await screen.findAllByText('4:15')).toHaveLength(2);
+    expect(screen.getAllByText('PM')).toHaveLength(2);
+    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('Subway');
+    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('35 min');
     expect(screen.getByText('Shower')).toBeInTheDocument();
     expect(screen.getByText('Hair')).toBeInTheDocument();
     expect(screen.getByText('Get dressed')).toBeInTheDocument();
@@ -115,7 +117,7 @@ describe('PlannerPanel', () => {
     );
     render(<PlannerPanel expanded onToggle={() => {}} />);
     expect(await screen.findByText('30 minutes short of finishing before you need to leave for Soothr.')).toBeInTheDocument();
-    expect(screen.getByText('Leave by · conflict')).toBeInTheDocument();
+    expect(screen.getAllByText('Leave by · conflict')).toHaveLength(2);
     expect(screen.getByText('Shower')).toBeInTheDocument();
     expect(screen.getByText('Shorten Hair from 20 to 5 minutes — saves 15, still 15 short.')).toBeInTheDocument();
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument();
@@ -130,5 +132,28 @@ describe('PlannerPanel', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Give hair 20 more minutes' }));
     const urls = fetchMock.mock.calls.map((call) => String(call[0]));
     expect(urls.some((url) => url.includes('tasks=shower%3A15%2Chair%3A40%2Cdressed%3A10') || url.includes('tasks=shower:15,hair:40,dressed:10'))).toBe(true);
+  });
+
+  it('asks the planner for the selected transportation mode', async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => ({
+      json: async () => ({
+        ok: true,
+        data: plan({
+          leaveBy: {
+            at: '2026-09-26T19:05:00.000Z',
+            travelMinutes: 105,
+            transportMode: 'walking',
+            arrivalBufferMinutes: 10,
+            arriveBy: '2026-09-26T20:50:00.000Z',
+          },
+        }),
+      }),
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" mode="walking" />);
+    expect(await screen.findByLabelText('Leave by reminder')).toHaveTextContent('Walk');
+    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('3:05');
+    const urls = fetchMock.mock.calls.map((call) => String(call[0]));
+    expect(urls.some((url) => url.includes('mode=walking'))).toBe(true);
   });
 });

@@ -1,53 +1,63 @@
 /*
- * Screen regions for the mirror. Unfilled regions stay pure black so the
- * glass reads as a plain mirror everywhere except where a module is drawn.
+ * Screen regions for the mirror. The route map fills the left side. Weather sits
+ * on that map. Calendar and the getting-ready plan stay on the right. Unfilled
+ * space stays pure black.
  */
 .mirror {
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.85fr);
+  grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
-    'top-left top-right'
-    'middle middle'
-    'bottom bottom';
-  padding: clamp(1.5rem, 4.5vmin, 4.5rem);
+    'map calendar'
+    'map planner';
+  padding: clamp(1rem, 2.5vmin, 2rem);
+  gap: clamp(0.75rem, 2vmin, 1.5rem);
   background: #000;
 }
 
-.mirror__region--top-left {
-  grid-area: top-left;
-  justify-self: start;
+.mirror__region--map {
+  grid-area: map;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mirror__weather {
+  position: absolute;
+  z-index: 800;
+  top: 0;
+  left: 0;
+  max-width: min(26rem, 92%);
+  padding: 0.7rem 0.9rem 0.85rem 0.15rem;
+  background: #000;
 }
 
 .mirror__region--top-right {
-  grid-area: top-right;
+  grid-area: calendar;
   justify-self: end;
-  width: min(34rem, 42vw);
+  width: min(34rem, 100%);
 }
 
 .mirror__region--middle {
-  grid-area: middle;
-  place-self: center;
-  width: min(48rem, 100%);
+  grid-area: planner;
+  align-self: end;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
-.mirror__region--bottom {
-  grid-area: bottom;
-  justify-self: center;
-}
-
-/* Below this width a 42vw corner module gets too cramped to read, so regions stack full width. */
+/* Below this width a side-by-side map gets too cramped, so the map sits on top. */
 @media (max-width: 52rem) {
   .mirror {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: minmax(14rem, 40vh) auto minmax(0, 1fr);
     grid-template-areas:
-      'top-left'
-      'top-right'
-      'middle'
-      'bottom';
+      'map'
+      'calendar'
+      'planner';
+    overflow: auto;
   }
 
   .mirror__region--top-right {

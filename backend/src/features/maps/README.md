@@ -1,7 +1,7 @@
 # Backend Feature: Maps
 
 **Owner:** TBD
-**Status:** Fixture-backed for the demo route — contract proposed, live Google Maps not connected
+**Status:** Live adapters with a labeled fixture fallback — contract proposed
 **Contract:** [`shared/contracts/maps/`](../../../../shared/contracts/maps/README.md)
 
 ## Responsibility
@@ -9,39 +9,50 @@
 Owns origin/destination routing and the travel duration the planner turns into a leave-by
 time. The demo route is Columbia University → Soothr, 204 E 13th St.
 
-Live Google Maps is not configured (decisions D7). Until it is, this feature serves
-[`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json).
-Those durations are **rehearsal numbers**, labeled `provenance.isFixture: true`. They are not
-a measured route. An origin or destination the fixture does not cover returns `no-data`
-rather than a guessed duration.
+Provider order for each mode:
+
+1. **Google Directions** when `GOOGLE_MAPS_API_KEY` is set (transit, driving, walking, cycling).
+2. **OSRM** (`router.project-osrm.org`) for walking, driving, and cycling when that mode is
+   still missing. This is a public road router. It has no subway schedules.
+3. **Fixture** [`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json)
+   for any mode still missing on the demo pair. Those durations are rehearsal numbers,
+   `provenance.isFixture: true`. Subway stays on this fixture until a Google key is present.
+
+Rideshare is not a Directions or OSRM mode. It copies the driving route and says so in
+`summary`. An origin/destination the fixture does not cover, with no Google key, returns
+`no-data` rather than a guessed duration.
+
+`MAPS_LIVE=0` skips Google and OSRM. The test script sets it so the suite stays offline.
+`npm run dev` loads `backend/.env` when that file exists (`--env-file-if-exists`).
 
 ## Public API
 
-`getCommute({ originAddress?, destinationAddress?, now? })` → `MapsResponse`
+`getCommute({ originAddress?, destinationAddress?, now?, live?, fetchFn? })` → `MapsResponse`
 
-Omitted addresses use the fixture pair (Columbia → Soothr). `now` only stamps `retrievedAt`;
-it does not change the durations.
+Omitted addresses use the fixture pair (Columbia → Soothr). `now` stamps `retrievedAt`.
+Google also uses it as `departure_time` when it is not more than a minute in the past.
 
 `GET /api/maps` accepts `origin`, `destination`, and `now`.
 
-Default recommendation is **transit, 35 minutes**. The fixture also includes cycling (28),
-driving (30), and walking (105) so a conflict can suggest another mode without inventing one.
+Default recommendation is **transit**. Without a key that is the fixture's 35 minutes.
+The fixture also includes cycling (28), driving (30), and walking (105).
 
 ## Files
 
 | File | Role |
 |---|---|
 | `mapsService.ts` | Public `getCommute`. The only entry point other features use. |
-| `fixtureAdapter.ts` | Reads and validates the fixture. Nothing else knows the file shape. |
+| `googleDirectionsAdapter.ts` | Directions API. The key never leaves this process. |
+| `osrmAdapter.ts` | Public road router for walking, driving, and cycling. |
+| `fixtureAdapter.ts` | Reads and validates the fixture. |
 | `mapsHttp.ts` | `GET /api/maps`. |
-| `maps.test.ts` | Fixture duration, address match, and the no-data path. |
+| `maps.test.ts` | Fixture, polyline, and faked Google / OSRM responses. |
 
 ## Error states
 
-- `no-data` — no fixture route for that pair, and live routing is not configured.
+- `no-data` — no fixture route for that pair, and live routing is not configured or returned nothing.
 - `input-invalid` — empty address or a bad `now`.
-- `not-configured` / `external-provider-unavailable` — reserved for a future live provider.
-  The fixture path does not use them.
+- A provider failure on the demo pair falls through to the next source instead of failing the request.
 
 ## Does NOT own
 

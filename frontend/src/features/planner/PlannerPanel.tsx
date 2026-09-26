@@ -12,19 +12,22 @@ interface PlannerPanelProps {
   onToggle: () => void;
   /** Demo clock forwarded to the backend, already floored to the minute. */
   now?: string;
+  /** Selected transportation. Defaults to subway. */
+  mode?: TransportMode;
 }
 
 const MODE_LABEL: Record<TransportMode, string> = {
-  transit: 'Transit',
-  driving: 'Driving',
-  walking: 'Walking',
+  transit: 'Subway',
+  walking: 'Walk',
+  driving: 'Drive',
+  rideshare: 'Rideshare',
   cycling: 'Cycling',
 };
 
-export function PlannerPanel({ expanded, onToggle, now }: PlannerPanelProps) {
+export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: PlannerPanelProps) {
   const [tasks, setTasks] = useState<string | undefined>();
   const [done, setDone] = useState<string[]>([]);
-  const { state, retry } = usePlanner(buildPlannerQuery({ now, tasks, done }));
+  const { state, retry } = usePlanner(buildPlannerQuery({ now, tasks, done, mode }));
 
   if (state.status === 'loading') {
     return <section className="planner planner--status">Loading your plan…</section>;
@@ -83,6 +86,17 @@ export function PlannerPanel({ expanded, onToggle, now }: PlannerPanelProps) {
           ))}
         </ol>
         {data.provenance.isFixture && <div className="planner__badge">Sample route — not live</div>}
+      </div>
+
+      <div className="leave-by" role="status" aria-label="Leave by reminder">
+        <div className="leave-by__label">{data.feasible ? 'Leave by' : 'Leave by · conflict'}</div>
+        <div className="leave-by__clock">
+          <span className="leave-by__time">{leave.time}</span>
+          <span className="leave-by__period">{leave.period}</span>
+        </div>
+        <div className="leave-by__meta">
+          {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min
+        </div>
       </div>
 
       <div className="planner__details" aria-hidden={!expanded} inert={!expanded}>

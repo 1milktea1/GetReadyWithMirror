@@ -6,9 +6,15 @@ export type PlannerState =
   | { status: 'ok'; data: PreparationPlan }
   | { status: 'error'; error: PlannerError };
 
-export function buildPlannerQuery(options: { now?: string; tasks?: string; done?: string[] }): string {
+export function buildPlannerQuery(options: {
+  now?: string;
+  tasks?: string;
+  done?: string[];
+  mode?: string;
+}): string {
   const params = new URLSearchParams();
   if (options.now) params.set('now', options.now);
+  if (options.mode) params.set('mode', options.mode);
   if (options.tasks) params.set('tasks', options.tasks);
   if (options.done && options.done.length > 0) params.set('done', options.done.join(','));
   return params.toString();

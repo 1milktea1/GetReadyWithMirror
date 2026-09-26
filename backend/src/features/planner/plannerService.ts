@@ -15,9 +15,12 @@ export interface GeneratePlanOptions {
   arrivalBufferMinutes?: number;
   /** Replaces the default shower / hair / dressed list when provided. */
   tasks?: readonly PreparationTask[];
+  /** Forwarded to maps. Tests set this so a fake router can supply the duration. */
+  live?: boolean;
+  fetchFn?: typeof fetch;
 }
 
-export function generatePreparationPlan(options: GeneratePlanOptions = {}): PlannerResponse {
+export async function generatePreparationPlan(options: GeneratePlanOptions = {}): Promise<PlannerResponse> {
   const now = options.now ?? new Date();
   const mode = options.mode ?? DEFAULT_TRANSPORT_MODE;
   const buffer = options.arrivalBufferMinutes ?? DEFAULT_ARRIVAL_BUFFER_MINUTES;
@@ -32,7 +35,12 @@ export function generatePreparationPlan(options: GeneratePlanOptions = {}): Plan
     return { ok: false, error: { status: 'no-data', message: 'The next event has no address to route to.' } };
   }
 
-  const maps = getCommute({ destinationAddress: calendar.event.venueAddress, now });
+  const maps = await getCommute({
+    destinationAddress: calendar.event.venueAddress,
+    now,
+    live: options.live,
+    fetchFn: options.fetchFn,
+  });
   if (!maps.ok) {
     const status = maps.error.status === 'input-invalid' ? 'input-invalid' : 'no-data';
     return { ok: false, error: { status, message: maps.error.message } };
@@ -62,7 +70,7 @@ export function generatePreparationPlan(options: GeneratePlanOptions = {}): Plan
       tasks,
       alternateRoutes: maps.data.routes,
       calendarProvenance: calendar.provenance,
-      mapsProvenance: maps.data.provenance.source,
+      mapsProvenance: route.provenance.source,
     }),
   };
 }

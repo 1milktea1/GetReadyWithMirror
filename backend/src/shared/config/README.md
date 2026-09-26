@@ -14,16 +14,16 @@ directly.
 
 ## Environment variable names
 
-`AGENTS.md` defers creating `.env.example` until later. The **names** below are recorded here
-so teammates know what to request, with **no values** and no file committed. Final names are
-TBD and should be confirmed alongside the provider decisions in
+Names below are recorded so teammates know what to request. Values stay out of Git.
+[`backend/.env.example`](../../../.env.example) lists the maps key with an empty value.
+Other names are still TBD and should be confirmed alongside the provider decisions in
 [`docs/decisions.md`](../../../../docs/decisions.md).
 
 | Purpose | Name | Decided? |
 |---|---|---|
 | Gemini API key | TBD | TBD |
 | ElevenLabs API key | TBD | TBD |
-| Maps / directions provider key | TBD | TBD |
+| Maps / directions provider key | `GOOGLE_MAPS_API_KEY` | Name in use. Optional. See `backend/.env.example`. |
 | Calendar provider client credentials | TBD | TBD |
 | Server port | TBD | TBD |
 | Demo/test time override | TBD | TBD |

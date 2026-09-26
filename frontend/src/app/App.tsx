@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import type { TransportMode } from '@contracts/maps/types'
 import { CalendarModule, createFixtureCalendarSource } from '../features/calendar'
+import { MapPanel } from '../features/maps/MapPanel'
 import { PlannerPanel } from '../features/planner/PlannerPanel'
 import { WeatherPanel } from '../features/weather/WeatherPanel'
 import { useNow } from '../shared/time/useNow'
@@ -17,6 +19,7 @@ type ExpandedModule = 'weather' | 'planner' | null
 export function App() {
   const { now, actualNow, isOverridden } = useNow()
   const [expanded, setExpanded] = useState<ExpandedModule>(null)
+  const [mode, setMode] = useState<TransportMode>('transit')
 
   // Until typed UI events exist, clicking a module toggles it and Escape returns to the overview.
   useEffect(() => {
@@ -35,12 +38,15 @@ export function App() {
 
   return (
     <main className="mirror">
-      <div className="mirror__region mirror__region--top-left">
-        <WeatherPanel
-          expanded={expanded === 'weather'}
-          onToggle={() => setExpanded(expanded === 'weather' ? null : 'weather')}
-          now={weatherNow}
-        />
+      <div className="mirror__region mirror__region--map">
+        <MapPanel mode={mode} onModeChange={setMode} now={plannerNow} />
+        <div className="mirror__weather">
+          <WeatherPanel
+            expanded={expanded === 'weather'}
+            onToggle={() => setExpanded(expanded === 'weather' ? null : 'weather')}
+            now={weatherNow}
+          />
+        </div>
       </div>
       <div className="mirror__region mirror__region--top-right">
         <CalendarModule
@@ -54,6 +60,7 @@ export function App() {
           expanded={expanded === 'planner'}
           onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
           now={plannerNow}
+          mode={mode}
         />
       </div>
     </main>

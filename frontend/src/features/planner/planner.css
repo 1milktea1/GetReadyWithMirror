@@ -164,6 +164,47 @@
   font-size: var(--text-title);
 }
 
+.leave-by {
+  position: fixed;
+  right: clamp(1rem, 3vmin, 2.25rem);
+  bottom: clamp(1rem, 3vmin, 2.25rem);
+  z-index: 1000;
+  min-width: 8.5rem;
+  padding: 0.65rem 0.9rem 0.75rem;
+  background: #000;
+  border: 1px solid var(--mirror-edge);
+  text-align: left;
+  pointer-events: none;
+}
+
+.leave-by__label,
+.leave-by__meta {
+  font-size: var(--text-micro);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.leave-by__clock {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35em;
+  margin: 0.15em 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.leave-by__time {
+  font-size: var(--text-title);
+  font-weight: var(--weight-display);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.leave-by__period {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+}
+
 @keyframes planner-fade-in {
   from {
     opacity: 0;

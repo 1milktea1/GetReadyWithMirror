@@ -21,7 +21,7 @@ for the demo. They are rehearsal choices, not a closed team decision.
 | Choice | Value | Why |
 |---|---|---|
 | Transport | `transit` | The demo user is at Columbia; a car is not assumed |
-| Travel time | 35 min, from the maps fixture | Leaves at 4:15 PM for a 5:00 PM dinner |
+| Travel time | Selected mode's duration from maps | Fixture subway is 35 min, so leave-by is 4:15 PM. A live duration moves leave-by. |
 | Arrival buffer | 10 min | Arrive at 4:50 rather than walking in at 5:00 |
 | Tasks, in order | Shower 15, hair 20, get dressed 10 | 45 minutes, so the routine must start at 3:30 PM |
 

@@ -88,7 +88,7 @@ function planFromScenario(file: ScenarioFile, scenario: ScenarioFile['scenarios'
   return { plan: buildPlan(input), leaveBy: zonedTimeToUtc(wall(file.assumptions.leaveByTime), file.timeZone) };
 }
 
-test('demo scenarios: noon, 2 PM, 3:30 PM, 4 PM, and a hair conflict', () => {
+test('demo scenarios: noon, 2 PM, 3:30 PM, 4 PM, and a hair conflict', async () => {
   const file = loadScenarios();
   for (const scenario of file.scenarios) {
     const { plan, leaveBy } = planFromScenario(file, scenario);
@@ -112,7 +112,7 @@ test('demo scenarios: noon, 2 PM, 3:30 PM, 4 PM, and a hair conflict', () => {
   }
 });
 
-test('a feasible plan is just-in-time and ends at leave-by', () => {
+test('a feasible plan is just-in-time and ends at leave-by', async () => {
   const file = loadScenarios();
   const noon = file.scenarios.find((scenario) => scenario.id === 'noon');
   assert.ok(noon);
@@ -130,8 +130,8 @@ test('a feasible plan is just-in-time and ends at leave-by', () => {
   assert.equal(plan.tasks.some((task) => task.overruns), false);
 });
 
-test('a 4 PM conflict keeps every task and does not move dinner', () => {
-  const result = generatePreparationPlan({ now: at('16:00') });
+test('a 4 PM conflict keeps every task and does not move dinner', async () => {
+  const result = await generatePreparationPlan({ now: at('16:00') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.status, 'schedule-conflict');
@@ -148,8 +148,8 @@ test('a 4 PM conflict keeps every task and does not move dinner', () => {
   assert.equal(result.data.provenance.isFixture, true);
 });
 
-test('3:30 PM with the default routine is tight but feasible', () => {
-  const result = generatePreparationPlan({ now: at('15:30') });
+test('3:30 PM with the default routine is tight but feasible', async () => {
+  const result = await generatePreparationPlan({ now: at('15:30') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.pressure, 'tight');
@@ -158,7 +158,7 @@ test('3:30 PM with the default routine is tight but feasible', () => {
   assert.equal(result.data.tasks[0].start, at('15:30').toISOString());
 });
 
-test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', () => {
+test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', async () => {
   const tasks = updateTaskDuration(DEFAULT_TASKS, 'hair', 40);
   assert.ok(tasks);
   assert.equal(tasks.length, DEFAULT_TASKS.length);
@@ -166,7 +166,7 @@ test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', (
     tasks.map((task) => task.id),
     DEFAULT_TASKS.map((task) => task.id),
   );
-  const result = generatePreparationPlan({ now: at('15:30'), tasks });
+  const result = await generatePreparationPlan({ now: at('15:30'), tasks });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.feasible, false);
@@ -177,13 +177,13 @@ test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', (
   assert.equal(result.data.event.id, 'fixture-dinner');
 });
 
-test('marking tasks done does not remove them', () => {
+test('marking tasks done does not remove them', async () => {
   const showerDone = markTaskComplete(DEFAULT_TASKS, 'shower');
   assert.ok(showerDone);
   assert.equal(showerDone.length, 3);
   assert.equal(showerDone[0].completed, true);
   assert.equal(showerDone[0].durationMinutes, 15);
-  const result = generatePreparationPlan({ now: at('16:00'), tasks: showerDone });
+  const result = await generatePreparationPlan({ now: at('16:00'), tasks: showerDone });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.tasks[0].completed, true);
@@ -191,9 +191,9 @@ test('marking tasks done does not remove them', () => {
   assert.equal(result.data.conflict?.shortfallMinutes, 15);
 });
 
-test('task order is the caller\'s order', () => {
+test('task order is the caller\'s order', async () => {
   const reversed = [...DEFAULT_TASKS].reverse();
-  const result = generatePreparationPlan({ now: at('12:00'), tasks: reversed });
+  const result = await generatePreparationPlan({ now: at('12:00'), tasks: reversed });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.deepEqual(
@@ -202,43 +202,95 @@ test('task order is the caller\'s order', () => {
   );
 });
 
-test('unknown task edits are rejected and do not change the list', () => {
+test('unknown task edits are rejected and do not change the list', async () => {
   assert.equal(updateTaskDuration(DEFAULT_TASKS, 'nails', 10), null);
   assert.equal(updateTaskDuration(DEFAULT_TASKS, 'hair', 0), null);
   assert.equal(markTaskComplete(DEFAULT_TASKS, 'nails'), null);
 });
 
-test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored', () => {
-  const conflict = handlePlannerRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
+test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored', async () => {
+  const conflict = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
   assert.equal(conflict.status, 200);
   assert.equal(conflict.body.ok, true);
   if (!conflict.body.ok) return;
   assert.equal(conflict.body.data.status, 'schedule-conflict');
   assert.equal(conflict.body.data.pressure, 'conflict');
 
-  const noon = handlePlannerRequest(new URLSearchParams('now=2026-09-26T12:00:00-04:00'));
+  const noon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T12:00:00-04:00'));
   assert.equal(noon.status, 200);
   if (!noon.body.ok) return;
   assert.equal(noon.body.data.pressure, 'relaxed');
   assert.equal(noon.body.data.leaveBy.at, at('16:15').toISOString());
 
-  assert.equal(handlePlannerRequest(new URLSearchParams('now=bogus')).status, 400);
-  assert.equal(handlePlannerRequest(new URLSearchParams('buffer=-5')).status, 400);
-  assert.equal(handlePlannerRequest(new URLSearchParams('mode=flying')).status, 400);
-  assert.equal(handlePlannerRequest(new URLSearchParams('tasks=hair:0')).status, 400);
-  assert.equal(handlePlannerRequest(new URLSearchParams('done=nails')).status, 400);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('now=bogus'))).status, 400);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('buffer=-5'))).status, 400);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('mode=flying'))).status, 400);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('tasks=hair:0'))).status, 400);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('done=nails'))).status, 400);
 
-  const hair = handlePlannerRequest(new URLSearchParams('now=2026-09-26T15:30:00-04:00&tasks=shower:15,hair:40,dressed:10'));
+  const hair = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T15:30:00-04:00&tasks=shower:15,hair:40,dressed:10'));
   assert.equal(hair.status, 200);
   if (!hair.body.ok) return;
   assert.equal(hair.body.data.conflict?.shortfallMinutes, 20);
 });
 
-test('after dinner has ended the planner reports no-data instead of inventing an event', () => {
-  const result = generatePreparationPlan({ now: at('19:00') });
+test('after dinner has ended the planner reports no-data instead of inventing an event', async () => {
+  const result = await generatePreparationPlan({ now: at('19:00') });
   assert.deepEqual(result.ok ? null : result.error, {
     status: 'no-data',
     message: 'No upcoming event with an address to travel to.',
   });
-  assert.equal(handlePlannerRequest(new URLSearchParams('now=2026-09-26T19:00:00-04:00')).status, 404);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('now=2026-09-26T19:00:00-04:00'))).status, 404);
+});
+
+test('walking uses that mode\'s duration for leave-by', async () => {
+  const result = await generatePreparationPlan({ now: at('12:00'), mode: 'walking' });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.data.leaveBy.transportMode, 'walking');
+  assert.equal(result.data.leaveBy.travelMinutes, 105);
+  assert.equal(result.data.leaveBy.at, at('15:05').toISOString());
+});
+
+test('rideshare leave-by uses the driving duration', async () => {
+  const result = await generatePreparationPlan({ now: at('12:00'), mode: 'rideshare' });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.data.leaveBy.travelMinutes, 30);
+  assert.equal(result.data.leaveBy.at, at('16:20').toISOString());
+});
+
+test('leave-by uses a live Google duration for the selected mode', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  process.env.GOOGLE_MAPS_API_KEY = 'test-key';
+  try {
+    const result = await generatePreparationPlan({
+      now: at('12:00'),
+      live: true,
+      fetchFn: async (input) => {
+        const mode = new URL(String(input)).searchParams.get('mode');
+        const minutes = mode === 'transit' ? 22 : 18;
+        return Response.json({
+          status: 'OK',
+          routes: [
+            {
+              overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+              warnings: [],
+              legs: [{ duration: { value: minutes * 60 } }],
+            },
+          ],
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.data.leaveBy.transportMode, 'transit');
+    assert.equal(result.data.leaveBy.travelMinutes, 22);
+    assert.equal(result.data.leaveBy.at, at('16:28').toISOString());
+    assert.equal(result.data.provenance.maps, 'google');
+    assert.equal(result.data.provenance.isFixture, false);
+  } finally {
+    if (previous === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
+    else process.env.GOOGLE_MAPS_API_KEY = previous;
+  }
 });

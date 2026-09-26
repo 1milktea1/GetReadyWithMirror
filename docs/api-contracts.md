@@ -1,7 +1,8 @@
 # API Contracts
 
 **Status:** Index. Weather, calendar, maps, and planner have proposed TypeScript shapes.
-Maps and planner are implemented against fixtures. Nothing here is team-agreed yet (D2).
+Maps and planner are implemented. Maps prefers Google Directions, then OSRM for road modes,
+then a labeled fixture. Nothing here is team-agreed yet (D2).
 
 ## Contract index
 

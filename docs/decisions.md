@@ -67,10 +67,13 @@ is configured — and configuring it must not block other work.
 Account, quotas, exact endpoints, and which transport modes matter for Columbia → Soothr
 (204 E 13th St), roughly 6 miles down Manhattan.
 
-**Status:** Open. The planner demo does not call Google Maps. It uses a labeled fixture
+**Status:** Open for the account and quota. The demo can run without a key. When
+`GOOGLE_MAPS_API_KEY` is set, the backend calls the Directions API for transit, driving,
+walking, and cycling. Otherwise walking, driving, and cycling use the public OSRM road
+router, and subway stays on the labeled fixture
 ([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
-35 minutes, plus cycling, driving, and walking as suggestion-only alternatives. Live account,
-quota, and endpoints are still unset.
+35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See
+[`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md).
 
 ### D8. The exact demo restaurant address
 

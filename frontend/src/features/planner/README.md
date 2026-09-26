@@ -3,9 +3,11 @@
 **Owner:** TBD
 **Status:** Overview tile implemented. It renders `GET /api/planner` and does not compute leave-by.
 
-The compact tile shows the leave-by time and each task window. Click to expand conflict
-adjustments, mark a task done, or give hair 20 more minutes. Those controls call the backend
-again; they do not edit the schedule in the browser. A fixture plan shows `Sample route — not live`.
+The compact tile shows the leave-by time and each task window. The same leave-by stays in a
+fixed corner reminder. Click to expand conflict adjustments, mark a task done, or give hair
+20 more minutes. Those controls call the backend again; they do not edit the schedule in the
+browser. The overview's transportation choice is sent as `mode`. A fixture duration shows
+`Sample route — not live`.
 
 Must render **schedule conflicts** clearly. When the tasks do not fit, the user sees the
 conflict and the suggested adjustments — not a quietly compressed plan.

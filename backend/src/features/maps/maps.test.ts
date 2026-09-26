@@ -3,11 +3,13 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { decodePolyline, mapGoogleRoute } from './googleDirectionsAdapter.ts';
 import { handleMapsRequest } from './mapsHttp.ts';
 import { getCommute } from './mapsService.ts';
+import { mapOsrmRoute } from './osrmAdapter.ts';
 
-test('the demo fixture returns a labeled transit duration for Columbia → Soothr', () => {
-  const result = getCommute({ now: new Date('2026-09-26T16:00:00.000Z') });
+test('the demo fixture returns a labeled transit duration for Columbia → Soothr', async () => {
+  const result = await getCommute({ now: new Date('2026-09-26T16:00:00.000Z') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.provenance.isFixture, true);
@@ -20,29 +22,198 @@ test('the demo fixture returns a labeled transit duration for Columbia → Sooth
   assert.equal(result.data.retrievedAt, '2026-09-26T16:00:00.000Z');
 });
 
-test('address punctuation and case still match the fixture', () => {
-  const result = getCommute({ destinationAddress: '204 e 13th st, new york, ny 10003' });
+test('address punctuation and case still match the fixture', async () => {
+  const result = await getCommute({ destinationAddress: '204 e 13th st, new york, ny 10003' });
   assert.equal(result.ok, true);
 });
 
-test('an address the fixture does not cover is no-data, not a guessed duration', () => {
-  const result = getCommute({ destinationAddress: '1 Infinite Loop, Cupertino, CA' });
+test('an address the fixture does not cover is no-data, not a guessed duration', async () => {
+  const result = await getCommute({ destinationAddress: '1 Infinite Loop, Cupertino, CA' });
   assert.deepEqual(result.ok ? null : result.error.status, 'no-data');
 });
 
-test('maps HTTP rejects a bad clock and serves the fixture by default', () => {
-  assert.equal(handleMapsRequest(new URLSearchParams('now=bogus')).status, 400);
-  const ok = handleMapsRequest(new URLSearchParams());
+test('maps HTTP rejects a bad clock and serves the fixture by default', async () => {
+  assert.equal((await handleMapsRequest(new URLSearchParams('now=bogus'))).status, 400);
+  const ok = await handleMapsRequest(new URLSearchParams());
   assert.equal(ok.status, 200);
   assert.equal(ok.body.ok, true);
 });
 
-test('planner scenario assumptions use this fixture\'s transit duration', () => {
+test('planner scenario assumptions use this fixture\'s transit duration', async () => {
   const path = fileURLToPath(new URL('../../../../fixtures/planner/demo-scenarios.json', import.meta.url));
   const scenarios = JSON.parse(readFileSync(path, 'utf8')) as { assumptions: { travelMinutes: number } };
-  const commute = getCommute();
+  const commute = await getCommute();
   assert.equal(commute.ok, true);
   if (!commute.ok) return;
   const transit = commute.data.routes.find((route) => route.mode === 'transit');
   assert.equal(transit?.durationMinutes, scenarios.assumptions.travelMinutes);
 });
+
+test('offline demo still offers subway, walk, drive, and rideshare', async () => {
+  const result = await getCommute({ live: false });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.deepEqual(
+    result.data.routes.map((route) => route.mode).sort(),
+    ['cycling', 'driving', 'rideshare', 'transit', 'walking'],
+  );
+  const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+  const driving = result.data.routes.find((route) => route.mode === 'driving');
+  assert.equal(rideshare?.durationMinutes, driving?.durationMinutes);
+  assert.equal(rideshare?.provenance.isFixture, true);
+  assert.equal(result.data.origin.location.latitude, 40.8075);
+  assert.equal(result.data.destination.location.latitude, 40.732269);
+});
+
+test('decodes a Google overview polyline', () => {
+  const path = decodePolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+  assert.equal(path.length, 3);
+  assert.ok(Math.abs(path[0]!.latitude - 38.5) < 1e-6);
+  assert.ok(Math.abs(path[0]!.longitude - -120.2) < 1e-6);
+  assert.ok(Math.abs(path[1]!.latitude - 40.7) < 1e-6);
+  assert.ok(Math.abs(path[1]!.longitude - -120.95) < 1e-6);
+  assert.ok(Math.abs(path[2]!.latitude - 43.252) < 1e-6);
+  assert.ok(Math.abs(path[2]!.longitude - -126.453) < 1e-6);
+});
+
+test('maps a Google directions body onto a live route', () => {
+  const route = mapGoogleRoute(
+    {
+      status: 'OK',
+      routes: [
+        {
+          overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+          warnings: ['Trip may take longer'],
+          legs: [{ duration: { value: 22 * 60 } }],
+        },
+      ],
+    },
+    'transit',
+  );
+  assert.equal(route?.durationMinutes, 22);
+  assert.equal(route?.provenance.source, 'google');
+  assert.equal(route?.provenance.isFixture, false);
+  assert.equal(route?.path.length, 3);
+  assert.deepEqual(route?.disruptions, ['Trip may take longer']);
+  assert.equal(mapGoogleRoute({ status: 'ZERO_RESULTS', routes: [] }, 'transit'), undefined);
+});
+
+test('maps an OSRM body and keeps longitude, latitude order', () => {
+  const route = mapOsrmRoute(
+    {
+      code: 'Ok',
+      routes: [
+        {
+          duration: 12.4 * 60,
+          geometry: { coordinates: [[-73.9626, 40.8075], [-73.987352, 40.732269]] },
+        },
+      ],
+    },
+    'walking',
+  );
+  assert.equal(route?.durationMinutes, 12);
+  assert.equal(route?.provenance.source, 'osrm');
+  assert.deepEqual(route?.path[0], { latitude: 40.8075, longitude: -73.9626 });
+  assert.equal(mapOsrmRoute({ code: 'NoRoute', routes: [] }, 'walking'), undefined);
+});
+
+test('a live Google response replaces the fixture duration', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  process.env.GOOGLE_MAPS_API_KEY = 'test-key';
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const mode = new URL(String(input)).searchParams.get('mode');
+        const minutes = mode === 'transit' ? 22 : mode === 'walking' ? 48 : mode === 'bicycling' ? 16 : 18;
+        return Response.json({
+          status: 'OK',
+          routes: [
+            {
+              overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+              warnings: [],
+              legs: [{ duration: { value: minutes * 60 } }],
+            },
+          ],
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+    assert.equal(transit?.durationMinutes, 22);
+    assert.equal(transit?.provenance.source, 'google');
+    assert.equal(rideshare?.durationMinutes, 18);
+    assert.equal(rideshare?.summary, 'Rideshare follows the driving route');
+    assert.equal(rideshare?.provenance.isFixture, false);
+    assert.equal(result.data.provenance.source, 'google');
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+test('without a Google key, road modes can come from OSRM and subway stays a fixture', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  delete process.env.GOOGLE_MAPS_API_KEY;
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const url = String(input);
+        assert.match(url, /router\.project-osrm\.org/);
+        const minutes = url.includes('/walking/') ? 40 : url.includes('/cycling/') ? 20 : 12;
+        return Response.json({
+          code: 'Ok',
+          routes: [
+            {
+              duration: minutes * 60,
+              geometry: { coordinates: [[-73.9626, 40.8075], [-73.987352, 40.732269]] },
+            },
+          ],
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    const walking = result.data.routes.find((route) => route.mode === 'walking');
+    const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
+    assert.equal(transit?.durationMinutes, 35);
+    assert.equal(transit?.provenance.isFixture, true);
+    assert.equal(walking?.durationMinutes, 40);
+    assert.equal(walking?.provenance.source, 'osrm');
+    assert.equal(walking?.path.length, 2);
+    assert.equal(rideshare?.durationMinutes, 12);
+    assert.equal(rideshare?.provenance.isFixture, false);
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+test('a failed live lookup keeps the labeled fixture for the demo pair', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  process.env.GOOGLE_MAPS_API_KEY = 'test-key';
+  try {
+    const result = await getCommute({
+      live: true,
+      fetchFn: async (input) => {
+        const url = String(input);
+        if (url.includes('googleapis')) return Response.json({ status: 'REQUEST_DENIED', routes: [] });
+        return Response.json({ code: 'NoRoute', routes: [] });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    const transit = result.data.routes.find((route) => route.mode === 'transit');
+    assert.equal(transit?.durationMinutes, 35);
+    assert.equal(transit?.provenance.isFixture, true);
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+function restoreKey(previous: string | undefined): void {
+  if (previous === undefined) delete process.env.GOOGLE_MAPS_API_KEY;
+  else process.env.GOOGLE_MAPS_API_KEY = previous;
+}

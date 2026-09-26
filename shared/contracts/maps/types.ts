@@ -2,11 +2,19 @@
 // Type-only: imported by the backend maps feature and, later, the frontend maps module.
 // Live provider response shapes stay inside the maps adapter and never appear here.
 
-export type TransportMode = 'transit' | 'driving' | 'walking' | 'cycling';
+export type TransportMode = 'transit' | 'driving' | 'walking' | 'cycling' | 'rideshare';
+
+export type RouteSource = 'google' | 'osrm' | 'fixture';
+
+export interface LatLng {
+  latitude: number;
+  longitude: number;
+}
 
 export interface MapPlace {
   name: string;
   address: string;
+  location: LatLng;
 }
 
 export interface RouteAlternative {
@@ -15,17 +23,21 @@ export interface RouteAlternative {
   durationMinutes: number;
   summary: string;
   disruptions: string[];
+  /** Road or transit path to draw. Empty when only the places are known. */
+  path: LatLng[];
+  provenance: { source: RouteSource; isFixture: boolean };
 }
 
 export interface MapsResult {
   origin: MapPlace;
   destination: MapPlace;
   routes: RouteAlternative[];
-  /** Mode used when the caller does not choose one. */
+  /** Mode used when the caller does not choose one. Subway / transit for the demo. */
   recommendedMode: TransportMode;
   /** ISO 8601 instant the result was produced. */
   retrievedAt: string;
-  provenance: { source: 'fixture' | 'live'; isFixture: boolean };
+  /** Provenance of the recommended route. Each route also carries its own. */
+  provenance: { source: RouteSource; isFixture: boolean };
 }
 
 export type MapsErrorStatus =

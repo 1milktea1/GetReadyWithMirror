@@ -1,17 +1,17 @@
 # Frontend Feature: Maps
 
 **Owner:** TBD
-**Status:** Not implemented
+**Status:** Left-side route map on the overview
 
-Renders travel options and the leave-by summary. Supports the getting-ready experience rather
-than dominating it, so the compact view should stay concise.
+`MapPanel` draws `GET /api/maps` on a dark CARTO basemap (OpenStreetMap data). The browser
+does not call Google or OSRM and never sees `GOOGLE_MAPS_API_KEY`.
 
-Travel estimates must be labeled with their provenance and retrieval time. Never display an
-invented arrival estimate.
+Subway, Walk, Drive, and Rideshare are selectable. Subway is the default. The chosen mode is
+owned by the overview and passed to the planner, so leave-by uses that mode's duration.
 
-## Planned future files
-
-Compact leave-by summary and an expanded route/travel-options view.
+Each route is labeled from its own provenance: `Sample route — not live`, `Live directions`,
+or `Live road route`. A fixture route with no path is a dashed line between the two pins,
+called out as not a road path.
 
 ## Does NOT own
 
