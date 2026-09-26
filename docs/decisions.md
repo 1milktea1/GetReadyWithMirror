@@ -51,7 +51,8 @@ Which provider, which account, what quota. Units (imperial, metric, or both) als
 the demo is in New York City.
 
 **Status:** Decided 2026-09-26 by carolynl950 (weather owner). Open-Meteo, no API key or
-account; imperial units; location fixed to Columbia University for now. See
+account. Imperial by default with a metric option. Location hardcoded to Columbia University
+by default, changeable by search. See
 [`shared/contracts/weather/`](../shared/contracts/weather/README.md).
 
 ### D6. Google Calendar access
@@ -133,4 +134,5 @@ The core demo must work without it either way.
 
 Move entries here with the date and who agreed.
 
-- **D5. Weather provider** — Open-Meteo, imperial, Columbia only. 2026-09-26, carolynl950.
+- **D5. Weather provider** — Open-Meteo; imperial and Columbia by default, both changeable.
+  2026-09-26, carolynl950.
