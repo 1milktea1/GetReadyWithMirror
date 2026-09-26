@@ -68,18 +68,3 @@ documented interface, and other features depend only on its public interface.
 | [`docs/demo-scenario.md`](docs/demo-scenario.md) | The Columbia to downtown 5 PM dinner flow |
 | [`docs/permissions.md`](docs/permissions.md) | Tool allowlist and confirmation-required actions |
 | [`docs/decisions.md`](docs/decisions.md) | Open decisions the team still owes |
-
-## Before implementation starts
-
-Four things need to be settled — see [`docs/decisions.md`](docs/decisions.md):
-
-1. **Feature ownership.** Who owns which feature, and who is the single integration owner.
-2. **Contract shapes.** The field lists in [`shared/contracts/`](shared/README.md) are
-   proposed, not agreed.
-3. **Providers and accounts.** Weather provider, Google Calendar and Maps access, quotas, and
-   the exact demo restaurant address.
-4. **Event transport.** One choice, made once, before anyone implements it.
-
-## Setup instructions
-
-TBD. There is nothing to install or run yet.
