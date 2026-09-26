@@ -60,8 +60,8 @@ repo root supplies install, build, and output settings.
    ```
 
    That body should be JSON (`{"ok":true,...}` or a documented error). If Vercel still
-   serves `index.html` for `/api/*`, the UI uses the labeled Columbia → Soothr fixture
-   so leave-by still appears.
+   serves `index.html` or a plain `NOT_FOUND` for `/api/*`, the UI uses the labeled
+   Columbia → Soothr fixture so leave-by still appears.
 
 After that, Vercel's Git integration is the pipeline:
 

@@ -12,5 +12,10 @@ describe('API response guards', () => {
     expect(isHtmlResponse(html)).toBe(true)
     expect(shouldUseLocalApiFallback(html)).toBe(true)
     expect(shouldUseLocalApiFallback({ status: 500, headers: { get: () => 'application/json' } })).toBe(true)
+    const missing = new Response('The page could not be found\n\nNOT_FOUND\n', {
+      status: 404,
+      headers: { 'content-type': 'text/plain; charset=utf-8' },
+    })
+    expect(shouldUseLocalApiFallback(missing)).toBe(true)
   })
 })
