@@ -1,8 +1,25 @@
+/* Tokens are scoped to the module so it does not depend on, or leak into, the app shell. */
 .weather {
+  --mirror-bg: #000;
+  --mirror-text: #fff;
+  --mirror-muted: #a3a3a3;
+  --mirror-dim: #5c5c5c;
+  --mirror-rule: #262626;
+  --text-body: clamp(18px, 1.5vw, 28px);
+  --text-small: clamp(14px, 1.1vw, 20px);
+
   display: flex;
   flex-direction: column;
   gap: 1.2em;
+  color: var(--mirror-text);
+  font-size: var(--text-body);
+  font-weight: 300;
   animation: weather-fade-in 600ms ease-out;
+}
+
+.weather,
+.weather * {
+  box-sizing: border-box;
 }
 
 .weather-toggle {
