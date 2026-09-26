@@ -2,7 +2,7 @@
 // `location: null` means the backend default (Columbia University).
 
 import { useCallback, useState } from 'react';
-import type { UnitSystem, WeatherLocation } from '../../../../shared/contracts/weather/types.ts';
+import type { UnitSystem, WeatherLocation } from '@contracts/weather/types';
 
 export interface WeatherSettings {
   location: WeatherLocation | null;

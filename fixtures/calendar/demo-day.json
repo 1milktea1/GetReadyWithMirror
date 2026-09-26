@@ -1,0 +1,60 @@
+{
+  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). The dinner is the AGENTS.md demo event; its restaurant address is intentionally TBD.",
+  "timeZone": "America/New_York",
+  "events": [
+    {
+      "id": "fixture-standup",
+      "title": "Research group standup",
+      "dayOffset": 0,
+      "startTime": "09:30",
+      "durationMinutes": 30,
+      "venueName": "Columbia University"
+    },
+    {
+      "id": "fixture-lunch",
+      "title": "Lunch with study group",
+      "dayOffset": 0,
+      "startTime": "12:30",
+      "durationMinutes": 60,
+      "venueName": "Columbia University"
+    },
+    {
+      "id": "fixture-office-hours",
+      "title": "Office hours",
+      "dayOffset": 0,
+      "startTime": "14:00",
+      "durationMinutes": 60,
+      "venueName": "Columbia University"
+    },
+    {
+      "id": "fixture-dinner",
+      "title": "Dinner reservation",
+      "dayOffset": 0,
+      "startTime": "17:00",
+      "durationMinutes": 90,
+      "venueName": "Downtown (restaurant TBD)"
+    },
+    {
+      "id": "fixture-gym",
+      "title": "Gym",
+      "dayOffset": 1,
+      "startTime": "08:00",
+      "durationMinutes": 60
+    },
+    {
+      "id": "fixture-seminar",
+      "title": "Department seminar",
+      "dayOffset": 1,
+      "startTime": "11:00",
+      "durationMinutes": 90,
+      "venueName": "Columbia University"
+    },
+    {
+      "id": "fixture-brunch",
+      "title": "Brunch",
+      "dayOffset": 2,
+      "startTime": "10:30",
+      "durationMinutes": 90
+    }
+  ]
+}

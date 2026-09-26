@@ -1,4 +1,4 @@
-import type { Condition } from '../../../../shared/contracts/weather/types.ts';
+import type { Condition } from '@contracts/weather/types';
 
 const CLOUD = 'M7 19h10.5a4.5 4.5 0 0 0 .6-8.96A6.5 6.5 0 0 0 5.6 11.2 4 4 0 0 0 7 19z';
 

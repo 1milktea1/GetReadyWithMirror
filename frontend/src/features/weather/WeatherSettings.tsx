@@ -3,7 +3,7 @@
 // Open-Meteo directly.
 
 import { useEffect, useState } from 'react';
-import type { LocationSearchResponse, WeatherLocation } from '../../../../shared/contracts/weather/types.ts';
+import type { LocationSearchResponse, WeatherLocation } from '@contracts/weather/types';
 import type { WeatherSettings as Settings } from './useWeatherSettings.ts';
 
 interface WeatherSettingsProps {
@@ -15,14 +15,12 @@ export function WeatherSettings({ settings, onChange }: WeatherSettingsProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<WeatherLocation[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  // Under two characters there is nothing to search; hide any earlier results instead of clearing them.
+  const searching = query.trim().length >= 2;
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setResults([]);
-      setMessage(null);
-      return;
-    }
+    if (q.length < 2) return;
     const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
@@ -86,7 +84,7 @@ export function WeatherSettings({ settings, onChange }: WeatherSettingsProps) {
             if (e.key === 'Enter' && results[0]) choose(results[0]);
           }}
         />
-        {results.length > 0 && (
+        {searching && results.length > 0 && (
           <ul className="weather-results">
             {results.map((r) => (
               <li key={`${r.latitude},${r.longitude}`}>
@@ -97,7 +95,7 @@ export function WeatherSettings({ settings, onChange }: WeatherSettingsProps) {
             ))}
           </ul>
         )}
-        {message && <div className="weather-settings-message">{message}</div>}
+        {searching && message && <div className="weather-settings-message">{message}</div>}
         {settings.location && (
           <button type="button" className="weather-link" onClick={() => choose(null)}>
             Reset to Columbia University

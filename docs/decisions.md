@@ -84,7 +84,14 @@ it is an environment variable, a request parameter, or a UI control, and what it
 
 Every feature that reads the clock must read it through this override.
 
-**Status:** Open.
+**Status:** Frontend half implemented, pending team confirmation. The UI reads a `?now=` URL
+parameter (`?now=15:30`, `?now=2026-09-26T15:30`, or an ISO instant) and runs the clock from
+that time, labeled `Demo time · actual <real time>`. See
+[`frontend/src/shared/time/nowOverride.ts`](../frontend/src/shared/time/nowOverride.ts).
+
+Still open: how the override reaches the **backend** once the planner computes real deadlines.
+The frontend could forward its overridden "now" on each request, or the backend could read its
+own setting — but both must agree, or the UI and planner will disagree about the time.
 
 ### D10. Voice API placement
 
@@ -98,7 +105,10 @@ A dedicated backend namespace, or integrated session endpoints. Document whichev
 time-zone-aware arithmetic, which argues for shared — but shared code is also the most common
 merge-conflict source between two concurrent developers.
 
-**Status:** Open.
+**Status:** Frontend settled, backend open. Display-time utilities (New York clock, formatting,
+day labels, daylight-saving-safe conversion) live in
+[`frontend/src/shared/time/`](../frontend/src/shared/time/). The backend location for
+scheduling arithmetic is still undecided.
 
 ### D12. Confirmation mechanism
 
@@ -112,7 +122,11 @@ whether a saved plan exists at all before SQLite is introduced.
 File format, naming convention, and how a fixture is selected — environment flag, request
 parameter, or a mock-service boundary. Also who keeps fixtures in sync with contract changes.
 
-**Status:** Open. See [`fixtures/`](../fixtures/README.md).
+**Status:** Partly settled by example. The calendar fixture is JSON with wall-clock times
+relative to the current day, placed onto real instants at runtime so it never goes stale, and
+is selected in code by passing a fixture-backed `CalendarSource`. Worth adopting for the other
+fixtures unless someone objects. Sync ownership still open. See
+[`fixtures/`](../fixtures/README.md).
 
 ### D14. SQLite
 
@@ -129,6 +143,19 @@ laptop-side component owns the connection.
 The core demo must work without it either way.
 
 **Status:** Open.
+
+### D16. UI hosting and preview pipeline
+
+Vercel hosts the frontend so every push gets a preview URL teammates can open without running
+anything locally. [`vercel.json`](../vercel.json) is committed; deploys run lint and the full
+test suite before building, and skip pushes with no UI changes since the last successful deploy.
+
+This hosts the **UI only**. The Express backend is planned to run on the laptop, so once modules
+depend on `/api/*`, the Vercel preview will need either the fixture sources or a reachable
+backend URL. Decide which before the first live-data module lands.
+
+**Status:** Configured; waiting for someone with Vercel access to import the repository. See
+[`frontend/README.md`](../frontend/README.md#deploying-to-vercel).
 
 ## Decided
 

@@ -1,8 +1,8 @@
 // Weather module: compact tile on the overview, expanded view on request.
 // Renders backend results only; suggestion rules and unit conversion happen on the backend.
 
-import { useEffect, useState, type ReactNode } from 'react';
-import type { WeatherResult } from '../../../../shared/contracts/weather/types.ts';
+import { useState, type ReactNode } from 'react';
+import type { WeatherResult } from '@contracts/weather/types';
 import { useWeather } from './useWeather.ts';
 import { useWeatherSettings, weatherQuery } from './useWeatherSettings.ts';
 import { WeatherIcon } from './WeatherIcon.tsx';
@@ -22,10 +22,12 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
   const { state, retry } = useWeather(weatherQuery(settings, now));
   // In the expanded view, settings replace the hourly table so the column never overflows.
   const [showSettings, setShowSettings] = useState(false);
-
-  useEffect(() => {
+  // Collapsing the panel closes settings, so the next expand opens on the hourly view.
+  const [prevExpanded, setPrevExpanded] = useState(expanded);
+  if (expanded !== prevExpanded) {
+    setPrevExpanded(expanded);
     if (!expanded) setShowSettings(false);
-  }, [expanded]);
+  }
 
   const settingsPanel = <WeatherSettings settings={settings} onChange={update} />;
 

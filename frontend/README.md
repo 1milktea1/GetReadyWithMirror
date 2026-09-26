@@ -1,9 +1,62 @@
 # Frontend
 
-**Status:** Scaffold only — no components, no dependencies, no build setup.
+**Status:** Calendar module implemented with synthetic data. Other modules not started.
 
-Planned stack: React + TypeScript (Vite), with a black-background, mirror-friendly UI. Nothing
-is installed yet; see [`AGENTS.md`](../AGENTS.md) Section 8.
+React 19 + TypeScript on Vite, with a black-background, mirror-friendly UI.
+
+## Running it
+
+Requires Node.js 20 or newer.
+
+```bash
+cd frontend
+npm install
+npm run dev          # http://localhost:5173
+```
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server with hot reload |
+| `npm test` | Run the test suite once |
+| `npm run test:watch` | Re-run tests on change |
+| `npm run lint` | oxlint; warnings count as failures |
+| `npm run build` | Typecheck and production build into `dist/` |
+| `npm run verify` | Lint, test, then build — exactly what Vercel runs |
+
+Tests deliberately run in the `Asia/Tokyo` time zone, so code that accidentally uses the
+machine's local zone instead of New York fails rather than passing on a New York laptop.
+
+### Rehearsing a time of day
+
+Without any parameter, the mirror always shows the device's real clock in New York time.
+
+Append `?now=15:30` (or `?now=2026-09-26T15:30`, or any ISO instant) to start the mirror at
+that New York time instead. The clock keeps running from there, and a bright tag under the date
+reads `Demo time · actual 11:36 AM` with the real time, so a simulated clock can't be mistaken
+for the real one. Remove `?now=` from the URL to go back. This is how to check the noon, 2 PM,
+3:30 PM, and 4 PM demo scenarios.
+
+Watch for browser autocomplete: after visiting a `?now=` URL, typing the plain address may fill
+the old parameter back in.
+
+## Deploying to Vercel
+
+The repository imports with **no settings changes** — [`vercel.json`](../vercel.json) at the
+repo root supplies install, build, and output settings.
+
+1. In Vercel, choose **Add New → Project** and import `1milktea1/GetReadyWithMirror`.
+2. Leave **Root Directory** as the repository root. Do not point it at `frontend/`: the root
+   `vercel.json` would then be ignored and tests would not run before deploys.
+3. Click **Deploy**. No environment variables are needed yet.
+
+After that, Vercel's Git integration is the pipeline:
+
+- **Every push to any branch** gets its own preview URL, linked from its pull request.
+- **Pushes to `main`** deploy to production.
+- **A deploy fails if lint or any test fails**, because the build runs `npm run verify`.
+- **Pushes that don't touch the UI are skipped** — if nothing under `frontend/`,
+  `shared/contracts/`, `fixtures/`, or `vercel.json` changed since the branch's last successful
+  deploy, Vercel doesn't rebuild. When that can't be determined, it builds.
 
 ## Layout
 
@@ -13,12 +66,18 @@ frontend/src/
 ├── features/
 │   ├── overview/   # Compact default view, assembles the other modules
 │   ├── weather/    # Weather module and clothing/packing display
-│   ├── calendar/   # Upcoming event module
+│   ├── calendar/   # Clock, date, and upcoming events — implemented, top-right
 │   ├── maps/       # Travel options and leave-by summary
 │   ├── planner/    # Getting-ready timeline and conflicts
 │   └── assistant/  # Push-to-talk, microphone and listening status
-└── shared/       # Cross-module presentation utilities and hooks
+├── shared/
+│   └── time/       # New York time math, formatting, ?now= override
+└── test/         # Vitest setup
 ```
+
+The mirror layout in [`src/app/App.css`](src/app/App.css) defines screen regions (top-left,
+top-right, middle, bottom). Unfilled regions stay pure black. On screens narrower than 52rem the
+regions stack full width.
 
 ## Display behavior
 
@@ -41,8 +100,12 @@ generates JSX or manipulates browser elements.
 ## Ownership
 
 Frontend feature modules render state. They do not own provider requests, API credentials, or
-the logic that belongs to a backend feature. Time arithmetic in particular is computed on the
-backend, not here.
+the logic that belongs to a backend feature.
+
+Time handling is split deliberately. **Display** time — the clock, formatting, Today/Tomorrow
+labels, and the `?now=` override — lives in [`src/shared/time/`](src/shared/time/). **Scheduling**
+arithmetic — leave-by deadlines, travel buffers, and plan feasibility — belongs to the backend
+planner feature and must not be reimplemented here.
 
 [`src/app/`](src/app/README.md) and [`src/shared/`](src/shared/README.md) are
 integration-owned; coordinate before restructuring them.

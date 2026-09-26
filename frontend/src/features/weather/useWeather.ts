@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { WeatherError, WeatherResponse, WeatherResult } from '../../../../shared/contracts/weather/types.ts';
+import type { WeatherError, WeatherResponse, WeatherResult } from '@contracts/weather/types';
 
 const REFRESH_MS = 10 * 60 * 1000;
 

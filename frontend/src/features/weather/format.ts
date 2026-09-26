@@ -1,4 +1,4 @@
-import type { Condition, SuggestionItem } from '../../../../shared/contracts/weather/types.ts';
+import type { Condition, SuggestionItem } from '@contracts/weather/types';
 
 export const CONDITION_LABEL: Record<Condition, string> = {
   clear: 'Clear',

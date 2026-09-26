@@ -1,8 +1,20 @@
 # Backend Feature: Calendar
 
 **Owner:** TBD
-**Status:** Not implemented — contract not yet agreed
+**Status:** Not implemented. The frontend is already built against a draft contract and is
+waiting on this feature.
 **Contract:** [`shared/contracts/calendar/`](../../../../shared/contracts/calendar/README.md)
+
+## What the frontend expects from this feature
+
+`GET /api/calendar` returning a `CalendarResult` from
+[`shared/contracts/calendar/index.ts`](../../../../shared/contracts/calendar/index.ts): event
+times as ISO 8601 instants, `provenance: 'live'`, and provider or OAuth failures mapped onto
+the contract's `status` values rather than thrown. Return events around now, including any
+already in progress; the frontend chooses which to show.
+
+Once this exists, the frontend swap is one line — see
+[`frontend/src/features/calendar/`](../../../../frontend/src/features/calendar/README.md#going-live-with-google-calendar).
 
 ## Responsibility
 

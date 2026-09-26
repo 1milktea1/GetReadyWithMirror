@@ -1,38 +1,50 @@
-// Minimal app shell (integration-owned). Mirror layout: weather on the left, calendar on the
-// right, and the middle left empty so the user can see their reflection.
-//
-// Until typed UI events exist, clicking a module toggles its expanded view and Escape
-// returns to the overview. Add ?now=<ISO time> to the URL to test a demo time.
+import { useEffect, useState } from 'react'
+import { CalendarModule, createFixtureCalendarSource } from '../features/calendar'
+import { WeatherPanel } from '../features/weather/WeatherPanel'
+import { useNow } from '../shared/time/useNow'
+import './App.css'
 
-import { useEffect, useState } from 'react';
-import { WeatherPanel } from '../features/weather/WeatherPanel.tsx';
+const calendarSource = createFixtureCalendarSource()
 
-type ExpandedModule = 'weather' | null;
+// The weather backend refetches whenever its "now" changes, so the override is
+// passed in 10-minute steps (matching the panel's refresh) rather than every tick.
+const WEATHER_NOW_STEP_MS = 10 * 60 * 1000
 
-const demoNow = new URLSearchParams(window.location.search).get('now') ?? undefined;
+type ExpandedModule = 'weather' | null
 
 export function App() {
-  const [expanded, setExpanded] = useState<ExpandedModule>(null);
+  const { now, actualNow, isOverridden } = useNow()
+  const [expanded, setExpanded] = useState<ExpandedModule>(null)
 
+  // Until typed UI events exist, clicking a module toggles it and Escape returns to the overview.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setExpanded(null);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+      if (e.key === 'Escape') setExpanded(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  const weatherNow = isOverridden
+    ? new Date(Math.floor(now.getTime() / WEATHER_NOW_STEP_MS) * WEATHER_NOW_STEP_MS).toISOString()
+    : undefined
 
   return (
     <main className="mirror">
-      <section className="mirror-left">
+      <div className="mirror__region mirror__region--top-left">
         <WeatherPanel
           expanded={expanded === 'weather'}
           onToggle={() => setExpanded(expanded === 'weather' ? null : 'weather')}
-          now={demoNow}
+          now={weatherNow}
         />
-      </section>
-      <section className="mirror-center" aria-hidden="true" />
-      <section className="mirror-right">{/* Calendar module goes here. */}</section>
+      </div>
+      <div className="mirror__region mirror__region--top-right">
+        <CalendarModule
+          now={now}
+          source={calendarSource}
+          actualTime={isOverridden ? actualNow : undefined}
+        />
+      </div>
     </main>
-  );
+  )
 }

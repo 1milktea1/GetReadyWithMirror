@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
     <title>GetReadyWithMirror</title>
+    <!-- Paint black before the stylesheet loads so the mirror never flashes white. -->
+    <style>
+      html,
+      body {
+        background: #000;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
