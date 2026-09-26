@@ -20,7 +20,7 @@ is picked under "Location & units".
 
 - **Compact tile (overview):** current temperature, condition, the afternoon high/low, and the
   most important suggestion.
-- **Expanded view:** hourly outlook from now to the event, precipitation and UV, and every
+- **Expanded view:** hourly outlook from now through the end of the day, precipitation and UV, and every
   suggestion with its reason (for example "Umbrella — 70% chance of rain at 5 PM").
 - **States:** loading, `external-provider-unavailable` ("Weather unavailable"), `no-data`,
   and a visible fixture label when applicable.

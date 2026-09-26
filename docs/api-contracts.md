@@ -19,7 +19,7 @@ implement a feature independently. Nothing here is agreed yet.
 ## Summary of what each must carry
 
 **Weather result** — location, forecast timestamp and time zone, current conditions, hourly
-outlook across the event window, precipitation and temperature summary, provenance/status.
+outlook from now through the end of the local day, precipitation and temperature summary, provenance/status.
 
 **Calendar event** — ID, title, start and end with time zone, venue name and address if
 provided, provenance/status. The demo event is synthetic until calendar access is configured.

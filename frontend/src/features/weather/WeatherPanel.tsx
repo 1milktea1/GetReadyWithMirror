@@ -115,8 +115,7 @@ function Suggestions({ data, limit }: { data: WeatherResult; limit?: number }) {
 
 const MAX_HOURLY_ROWS = 8;
 
-// Long windows (for example a far-away time zone) are thinned to fit the column, always keeping
-// the first hour and the event hour.
+// Long windows are thinned to fit the column, always keeping the first hour and the last.
 function sampleHours<T>(hours: T[]): T[] {
   if (hours.length <= MAX_HOURLY_ROWS) return hours;
   const step = Math.ceil((hours.length - 1) / (MAX_HOURLY_ROWS - 1));
