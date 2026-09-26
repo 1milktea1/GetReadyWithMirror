@@ -1,5 +1,5 @@
 {
-  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). The dinner is the AGENTS.md demo event; its restaurant address is intentionally TBD.",
+  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). The dinner is the AGENTS.md demo event; the venue is a real address so maps can route to it, but the reservation itself is synthetic.",
   "timeZone": "America/New_York",
   "events": [
     {
@@ -32,7 +32,8 @@
       "dayOffset": 0,
       "startTime": "17:00",
       "durationMinutes": 90,
-      "venueName": "Downtown (restaurant TBD)"
+      "venueName": "Soothr",
+      "venueAddress": "204 E 13th St, New York, NY 10003"
     },
     {
       "id": "fixture-gym",

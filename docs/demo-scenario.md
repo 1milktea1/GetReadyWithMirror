@@ -12,12 +12,13 @@ hackathon demo.
 | Demo can run | **Any time between 12 PM and 4 PM** |
 | Fictional user location | Columbia University |
 | Event | Dinner reservation, **5 PM** |
-| Event location | Somewhere downtown — **exact address TBD** |
+| Event location | **Soothr, 204 E 13th St, New York, NY 10003** (East Village) |
 | Track | Live Better (strictly personal utility) |
 
-The exact sample restaurant address must be chosen before maps integration, since accurate
-routing requires a real destination. Until then it stays `TBD` — do not invent one and hardcode
-it.
+The destination is a **real address** so maps can return genuine travel estimates for
+Columbia → Soothr. The **reservation itself is synthetic** and stays so until Google Calendar is
+connected. Settled as [`decisions.md`](decisions.md) D8; route this address rather than
+re-inventing a destination per feature.
 
 ## The flow
 
@@ -49,7 +50,7 @@ phrase.
 
 ### 4. "When do I need to leave?"
 
-The maps feature retrieves travel estimates from Columbia to the event address. A
+The maps feature retrieves travel estimates from Columbia to 204 E 13th St. A
 **deterministic backend calculation** combines event start, travel duration, and buffer into a
 leave-by time.
 
@@ -103,7 +104,6 @@ Fixtures do not exist yet. See [`fixtures/`](../fixtures/README.md).
 
 ## Open questions
 
-- The exact downtown restaurant address.
-- The default arrival buffer before a 5 PM reservation.
-- Which transport modes to offer for Columbia to downtown.
+- The default arrival buffer before the 5 PM reservation.
+- Which transport modes to offer for Columbia → Soothr.
 - Assumed task durations for shower, hair, and getting dressed when the user does not say.

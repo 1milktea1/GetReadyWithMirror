@@ -182,7 +182,7 @@ describe('CalendarModule with the demo fixture', () => {
       'Department seminar',
       'Brunch',
     ])
-    expect(eventMeta(container)[0]).toBe('Downtown (restaurant TBD) · in 1 hr 39 min')
+    expect(eventMeta(container)[0]).toBe('Soothr · in 1 hr 39 min')
     expect(screen.getByText('Monday')).toBeInTheDocument()
     expect(screen.getByText('Sample data')).toBeInTheDocument()
   })

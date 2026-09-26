@@ -16,7 +16,8 @@ not dominate the Live Better pitch.
 ## Planned public inputs
 
 - Normalized origin (the demo user is at Columbia University).
-- Normalized destination (the event venue address; the exact sample restaurant address is TBD).
+- Normalized destination (the event's `venueAddress`; for the demo, Soothr at
+  204 E 13th St, New York, NY 10003).
 - Departure time or arrival target.
 - Transport modes to consider.
 
@@ -38,8 +39,9 @@ arrival estimates.
 
 - A maps/directions provider. Google Maps Routes is planned; account, quotas, and exact
   endpoints are TBD — see [`docs/decisions.md`](../../../../docs/decisions.md).
-- The event venue address from the calendar feature's public interface. An exact address is
-  required for accurate routing.
+- The event venue address from the calendar feature's public interface. Take it from
+  `CalendarEvent.venueAddress` rather than hardcoding the demo destination, so a real calendar
+  event routes just as well.
 
 ## Downstream consumers
 

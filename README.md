@@ -65,6 +65,6 @@ documented interface, and other features depend only on its public interface.
 | [`docs/architecture.md`](docs/architecture.md) | Data flow, speech pipeline, integration boundaries |
 | [`docs/collaboration.md`](docs/collaboration.md) | Ownership, branching, merge rules |
 | [`docs/api-contracts.md`](docs/api-contracts.md) | Index to feature contracts and the event envelope |
-| [`docs/demo-scenario.md`](docs/demo-scenario.md) | The Columbia to downtown 5 PM dinner flow |
+| [`docs/demo-scenario.md`](docs/demo-scenario.md) | The Columbia → Soothr 5 PM dinner flow |
 | [`docs/permissions.md`](docs/permissions.md) | Tool allowlist and confirmation-required actions |
 | [`docs/decisions.md`](docs/decisions.md) | Open decisions the team still owes |

@@ -64,16 +64,20 @@ is configured — and configuring it must not block other work.
 
 ### D7. Google Maps Routes access
 
-Account, quotas, exact endpoints, and which transport modes matter for Columbia to downtown.
+Account, quotas, exact endpoints, and which transport modes matter for Columbia → Soothr
+(204 E 13th St), roughly 6 miles down Manhattan.
 
 **Status:** Open.
 
 ### D8. The exact demo restaurant address
 
-Accurate routing needs a real downtown address. Currently `TBD` everywhere by design — do not
-hardcode a placeholder.
+Accurate routing needs a real downtown address.
 
-**Status:** Open. See [`demo-scenario.md`](demo-scenario.md).
+**Status:** Decided 2026-09-26. **Soothr, 204 E 13th St, New York, NY 10003** (East Village) is
+the 5 PM reservation venue. It is in
+[`fixtures/calendar/demo-day.json`](../fixtures/calendar/demo-day.json) as the dinner event's
+`venueName` and `venueAddress`, so maps can route Columbia → Soothr. The **address is real; the
+reservation is not** — the event stays synthetic until Google Calendar is connected.
 
 ## Design and scope
 
@@ -163,3 +167,4 @@ Move entries here with the date and who agreed.
 
 - **D5. Weather provider** — Open-Meteo; imperial and Columbia by default, both changeable.
   2026-09-26, carolynl950.
+- **D8. Demo restaurant address** — Soothr, 204 E 13th St, New York, NY 10003. 2026-09-26.

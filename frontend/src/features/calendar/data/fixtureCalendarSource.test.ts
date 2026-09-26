@@ -16,9 +16,14 @@ describe('demo fixture', () => {
     )
   })
 
-  it('does not invent a restaurant address', () => {
-    const dinner = demoDay.events.find((event) => event.id === 'fixture-dinner')
-    expect(dinner).not.toHaveProperty('venueAddress')
+  it('carries the agreed demo restaurant, which maps needs to route to', () => {
+    expect(demoDay.events).toContainEqual(
+      expect.objectContaining({
+        id: 'fixture-dinner',
+        venueName: 'Soothr',
+        venueAddress: '204 E 13th St, New York, NY 10003',
+      }),
+    )
   })
 })
 
