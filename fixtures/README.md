@@ -1,9 +1,27 @@
 # Fixtures
 
-**Status:** Scaffold only — directories exist, **no fixture data has been written**.
+**Status:** Calendar fixture written. Weather, maps, and planner fixtures not started.
 
-`AGENTS.md` Section 8 explicitly defers creating actual fixtures. These directories exist so
-the strategy has a home and teammates know where fixtures will live.
+## Calendar: `calendar/demo-day.json`
+
+A synthetic agenda used by the frontend calendar module until Google Calendar is connected.
+Events are **wall-clock times in `America/New_York`, relative to the current day**:
+
+```json
+{ "id": "fixture-dinner", "title": "Dinner reservation",
+  "dayOffset": 0, "startTime": "17:00", "durationMinutes": 90,
+  "venueName": "Downtown (restaurant TBD)" }
+```
+
+`dayOffset` 0 is today, 1 is tomorrow. At runtime these are placed onto real instants around
+the current (or `?now=`-overridden) New York time, so the sample day **never goes stale** and the
+5 PM dinner from the demo scenario is always "today".
+
+The restaurant address is deliberately absent rather than invented. The UI labels this data
+`Sample data`.
+
+This relative format suits any fixture whose meaning depends on time of day, and is a
+candidate convention for the others — see [`docs/decisions.md`](../docs/decisions.md) D13.
 
 ## Why fixtures matter here
 
@@ -17,7 +35,7 @@ moving when another feature or provider is not ready.
 ```text
 fixtures/
 ├── weather/    # Synthetic forecast scenarios
-├── calendar/   # Synthetic event scenarios (the demo dinner is synthetic until access exists)
+├── calendar/   # demo-day.json — synthetic agenda including the 5 PM demo dinner
 ├── maps/       # Synthetic route and duration scenarios
 └── planner/    # Synthetic getting-ready scenarios, feasible and conflicting
 ```

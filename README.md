@@ -3,9 +3,9 @@ agentic smart mirror that optimizes everyday life
 
 ---
 
-**Status: repository scaffold only.** No application code, dependencies, endpoints, or
-working features exist yet. This repository currently contains the agreed folder structure and
-Markdown placeholders so two developers can claim features and start work in parallel.
+**Status: early build.** The mirror UI runs with a working **calendar module** (New York clock,
+date, and upcoming events from synthetic data) in the top-right corner. Other modules, the
+backend, voice, and live data are not started.
 
 Read [`AGENTS.md`](AGENTS.md) before changing anything.
 
@@ -20,13 +20,13 @@ The headline value is the **intelligent preparation planner**: Gemini connects w
 event information to user-described tasks against a real deadline. Transportation supports
 that experience rather than being the point of the project.
 
-## Planned stack
+## Stack
 
-Nothing below is installed or implemented yet.
+Only the frontend is set up so far; the rest is planned.
 
 | Layer | Choice |
 |---|---|
-| Frontend | React + TypeScript (Vite), black-background mirror UI |
+| Frontend | React + TypeScript (Vite), black-background mirror UI — **set up**, hosted on Vercel |
 | Backend | Node.js + Express + TypeScript, on the laptop |
 | AI controller | Gemini — intent interpretation, constrained tool selection, response wording |
 | Voice | ElevenLabs Scribe for speech-to-text, ElevenLabs for text-to-speech |
@@ -46,7 +46,8 @@ hardware.
 
 ```text
 ├── AGENTS.md      # Project context and coding-agent instructions — read this first
-├── frontend/      # React interface (planned)
+├── frontend/      # React interface — calendar module implemented
+├── vercel.json    # Vercel build settings for the frontend
 ├── backend/       # Express server, feature-first (planned)
 ├── shared/        # Cross-feature contracts
 ├── hardware/      # Optional Pico accessory
@@ -69,17 +70,45 @@ documented interface, and other features depend only on its public interface.
 | [`docs/permissions.md`](docs/permissions.md) | Tool allowlist and confirmation-required actions |
 | [`docs/decisions.md`](docs/decisions.md) | Open decisions the team still owes |
 
-## Before implementation starts
+## Still to settle
 
-Four things need to be settled — see [`docs/decisions.md`](docs/decisions.md):
+See [`docs/decisions.md`](docs/decisions.md):
 
 1. **Feature ownership.** Who owns which feature, and who is the single integration owner.
-2. **Contract shapes.** The field lists in [`shared/contracts/`](shared/README.md) are
-   proposed, not agreed.
+2. **Contract shapes.** Calendar has a [draft](shared/contracts/calendar/README.md) in use by the
+   frontend; the others are proposed, not agreed.
 3. **Providers and accounts.** Weather provider, Google Calendar and Maps access, quotas, and
    the exact demo restaurant address.
 4. **Event transport.** One choice, made once, before anyone implements it.
 
-## Setup instructions
+## Running the UI locally
 
-TBD. There is nothing to install or run yet.
+Requires Node.js 20 or newer.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. Add `?now=15:30` to rehearse any New York time of day. See
+[`frontend/README.md`](frontend/README.md) for tests and other commands.
+
+## Deploying the UI to Vercel
+
+The repository is ready to import with **no settings changes** — [`vercel.json`](vercel.json)
+supplies everything.
+
+1. In Vercel, choose **Add New → Project** and import `1milktea1/GetReadyWithMirror`.
+2. Leave **Root Directory** as the repository root and **Framework Preset** as detected. Do not
+   point it at `frontend/`; the root `vercel.json` would then be ignored and tests would not run.
+3. Click **Deploy**. No environment variables are needed yet.
+
+After that, Vercel's Git integration handles the pipeline:
+
+- **Every push to any branch** gets its own preview URL, linked from the pull request.
+- **Pushes to `main`** deploy to production.
+- **A deploy fails if lint or any test fails**, because the build runs `npm run verify`.
+- **Pushes that don't touch the UI are skipped** — if nothing under `frontend/`,
+  `shared/contracts/`, `fixtures/`, or `vercel.json` changed since the branch's last successful
+  deploy, Vercel doesn't rebuild. When in doubt (first deploy, or history unavailable) it builds.
