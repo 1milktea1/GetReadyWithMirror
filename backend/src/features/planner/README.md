@@ -21,19 +21,19 @@ for the demo. They are rehearsal choices, not a closed team decision.
 | Choice | Value | Why |
 |---|---|---|
 | Transport | `transit` | The demo user is at Columbia; a car is not assumed |
-| Travel time | Selected mode's duration from maps | Fixture subway is 35 min, so leave-by is 4:15 PM. A live duration moves leave-by. |
-| Arrival buffer | 10 min | Arrive at 4:50 rather than walking in at 5:00 |
-| Tasks, in order | Shower 15, hair 20, get dressed 10 | 45 minutes, so the routine must start at 3:30 PM |
+| Travel time | Selected mode's duration from maps | Fixture subway is 35 min, so leave-by is 6:15 PM. A live duration moves leave-by. |
+| Arrival buffer | 10 min | Arrive at 6:50 rather than walking in at 7:00 |
+| Tasks, in order | Shower 15, hair 20, get dressed 10 | 45 minutes, so the routine must start at 5:30 PM |
 
 With those numbers the demo clock lands on the scenario matrix:
 
 | Now (New York) | Result |
 |---|---|
-| 12:00 PM | Relaxed. Routine still starts at 3:30 PM |
-| 2:00 PM | Comfortable |
-| 3:30 PM | Tight. Start now; the routine ends exactly at leave-by |
-| 4:00 PM | Conflict. 30 minutes short. Tasks stay on the plan |
-| 3:30 PM, hair 40 | Conflict. 20 minutes short. Shortening hair back to 20 resolves it |
+| 12:00 PM | Relaxed. Routine still starts at 5:30 PM |
+| 4:00 PM | Comfortable |
+| 5:30 PM | Tight. Start now; the routine ends exactly at leave-by |
+| 6:00 PM | Conflict. 30 minutes short. Tasks stay on the plan |
+| 5:30 PM, hair 40 | Conflict. 20 minutes short. Shortening hair back to 20 resolves it |
 
 Slack is free minutes before the routine. 120 or more is relaxed, 30 or more is comfortable,
 zero or more is tight, and anything negative is a conflict. A conflict is a successful
@@ -64,7 +64,7 @@ scheduled forward from now so the timeline shows the overrun.
 ## Upstream dependencies
 
 - Calendar fixture service: the next event that has not ended and has a `venueAddress`. On the
-  demo day that is the 5 PM dinner at Soothr.
+  demo day that is the 7 PM dinner at Soothr.
 - Maps fixture service: travel minutes for that address. Any other destination is `no-data`;
   this feature will not guess a duration.
 

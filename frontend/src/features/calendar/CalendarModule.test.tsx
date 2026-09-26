@@ -156,7 +156,7 @@ describe('CalendarModule data labeling and errors', () => {
 })
 
 describe('CalendarModule with the demo fixture', () => {
-  it('shows the 5 PM dinner as next during the 12-4 PM demo window', async () => {
+  it('shows the 7 PM dinner as next during the afternoon', async () => {
     const threeTwentyOne = new Date('2026-09-26T19:21:00Z') // 3:21 PM in New York
     const { container } = render(
       <CalendarModule now={threeTwentyOne} source={createFixtureCalendarSource()} />,
@@ -168,7 +168,7 @@ describe('CalendarModule with the demo fixture', () => {
       'Department seminar',
       'Brunch',
     ])
-    expect(eventMeta(container)[0]).toBe('Soothr · in 1 hr 39 min')
+    expect(eventMeta(container)[0]).toBe('Soothr · in 3 hr 39 min')
     expect(screen.getByText('Monday')).toBeInTheDocument()
   })
 })

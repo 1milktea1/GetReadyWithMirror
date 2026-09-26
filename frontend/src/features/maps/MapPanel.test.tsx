@@ -114,7 +114,9 @@ describe('MapPanel', () => {
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument()
     expect(screen.getByText('Columbia University → Soothr')).toBeInTheDocument()
     expect(screen.queryByText(/straight line/i)).not.toBeInTheDocument()
-    expect(circleMarker).toHaveBeenCalledWith([40.8075, -73.9626], expect.anything())
+    await vi.waitFor(() => {
+      expect(circleMarker).toHaveBeenCalledWith([40.8075, -73.9626], expect.anything())
+    })
     expect(circleMarker).toHaveBeenCalledWith([40.732269, -73.987352], expect.anything())
     expect(polyline).not.toHaveBeenCalled()
   })
@@ -124,6 +126,9 @@ describe('MapPanel', () => {
     const onModeChange = vi.fn()
     render(<MapPanel mode="walking" onModeChange={onModeChange} />)
     expect(await screen.findByText('Live road route')).toBeInTheDocument()
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalled()
+    })
     expect(polyline).toHaveBeenCalledWith(
       [
         [40.8, -73.96],

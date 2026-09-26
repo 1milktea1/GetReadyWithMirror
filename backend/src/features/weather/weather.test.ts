@@ -119,8 +119,8 @@ test('getWeather windows the forecast from now to the event start', async () => 
   assert.ok(res.ok);
   const { data } = res;
   assert.equal(data.window.start, '2026-09-26T14:00:00-04:00');
-  assert.equal(data.window.end, '2026-09-26T17:00:00-04:00');
-  assert.equal(data.hourly.length, 4);
+  assert.equal(data.window.end, '2026-09-26T19:00:00-04:00');
+  assert.equal(data.hourly.length, 6);
   assert.equal(data.summary.maxPrecipitationProbability, 80);
   assert.deepEqual(data.suggestions.map((s) => s.item), ['umbrella']);
   assert.equal(data.units.system, 'imperial');
@@ -137,13 +137,13 @@ test('getWeather converts every value to metric when asked', async () => {
   assert.equal(data.hourly[0].temperature, 21.1);
   assert.equal(data.hourly[0].precipitation, 2.54); // 0.1 in
   assert.equal(data.hourly[0].windSpeed, 8); // 5 mph
-  assert.equal(data.summary.totalPrecipitation, 10.16); // 4 hours × 2.54 mm
+  assert.equal(data.summary.totalPrecipitation, 15.24); // 6 hours × 2.54 mm
 });
 
 test('getWeather requests the chosen location and its time zone', async () => {
   const seen: string[] = [];
   const london = { name: 'London, England', latitude: 51.5085, longitude: -0.1257, timeZone: 'Europe/London' };
-  // 2:30 PM New York is 7:30 PM London; the New York 5 PM dinner has not started yet.
+  // 2:30 PM New York is 7:30 PM London; the New York 7 PM dinner has not started yet.
   const res = await getWeather({ now: TWO_THIRTY, location: london, fetchFn: fakeFetch(undefined, seen) });
   assert.ok(res.ok);
   const params = new URL(seen[0]).searchParams;
@@ -159,7 +159,7 @@ test('overridden "now" uses that hour, not the provider\'s real-time current blo
 });
 
 test('getWeather rejects a window that has already ended', async () => {
-  const res = await getWeather({ now: new Date('2026-09-26T17:30:00-04:00'), fetchFn: fakeFetch() });
+  const res = await getWeather({ now: new Date('2026-09-26T19:30:00-04:00'), fetchFn: fakeFetch() });
   assert.deepEqual(res.ok ? null : res.error.status, 'input-invalid');
 });
 

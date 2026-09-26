@@ -88,14 +88,14 @@ function planFromScenario(file: ScenarioFile, scenario: ScenarioFile['scenarios'
   return { plan: buildPlan(input), leaveBy: zonedTimeToUtc(wall(file.assumptions.leaveByTime), file.timeZone) };
 }
 
-test('demo scenarios: noon, 2 PM, 3:30 PM, 4 PM, and a hair conflict', async () => {
+test('demo scenarios: noon, 4 PM, 5:30 PM, 6 PM, and a hair conflict', async () => {
   const file = loadScenarios();
   for (const scenario of file.scenarios) {
     const { plan, leaveBy } = planFromScenario(file, scenario);
     assert.equal(plan.pressure, scenario.pressure, scenario.id);
     assert.equal(plan.feasible, scenario.feasible, scenario.id);
     assert.equal(plan.leaveBy.at, leaveBy.toISOString(), scenario.id);
-    assert.equal(plan.event.start, '2026-09-26T21:00:00.000Z', scenario.id);
+    assert.equal(plan.event.start, '2026-09-26T23:00:00.000Z', scenario.id);
     assert.equal(plan.tasks.length, file.assumptions.tasks.length, scenario.id);
     if (scenario.shortfallMinutes !== undefined) {
       assert.equal(plan.conflict?.shortfallMinutes, scenario.shortfallMinutes, scenario.id);
@@ -117,21 +117,21 @@ test('a feasible plan is just-in-time and ends at leave-by', async () => {
   const noon = file.scenarios.find((scenario) => scenario.id === 'noon');
   assert.ok(noon);
   const { plan } = planFromScenario(file, noon);
-  assert.equal(plan.startGettingReadyAt, at('15:30').toISOString());
+  assert.equal(plan.startGettingReadyAt, at('17:30').toISOString());
   assert.deepEqual(
     plan.tasks.map((task) => [task.id, task.start, task.end]),
     [
-      ['shower', at('15:30').toISOString(), at('15:45').toISOString()],
-      ['hair', at('15:45').toISOString(), at('16:05').toISOString()],
-      ['dressed', at('16:05').toISOString(), at('16:15').toISOString()],
+      ['shower', at('17:30').toISOString(), at('17:45').toISOString()],
+      ['hair', at('17:45').toISOString(), at('18:05').toISOString()],
+      ['dressed', at('18:05').toISOString(), at('18:15').toISOString()],
     ],
   );
-  assert.equal(plan.slackMinutes, 210);
+  assert.equal(plan.slackMinutes, 330);
   assert.equal(plan.tasks.some((task) => task.overruns), false);
 });
 
-test('a 4 PM conflict keeps every task and does not move dinner', async () => {
-  const result = await generatePreparationPlan({ now: at('16:00') });
+test('a 6 PM conflict keeps every task and does not move dinner', async () => {
+  const result = await generatePreparationPlan({ now: at('18:00') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.status, 'schedule-conflict');
@@ -140,25 +140,25 @@ test('a 4 PM conflict keeps every task and does not move dinner', async () => {
     result.data.tasks.map((task) => task.id),
     ['shower', 'hair', 'dressed'],
   );
-  assert.equal(result.data.event.start, at('17:00').toISOString());
-  assert.equal(result.data.leaveBy.at, at('16:15').toISOString());
-  assert.equal(result.data.tasks[0].start, at('16:00').toISOString());
+  assert.equal(result.data.event.start, at('19:00').toISOString());
+  assert.equal(result.data.leaveBy.at, at('18:15').toISOString());
+  assert.equal(result.data.tasks[0].start, at('18:00').toISOString());
   assert.equal(result.data.tasks[1].overruns, true);
   assert.equal(result.data.conflict?.adjustments.every((item) => !item.resolves), true);
   assert.equal(result.data.provenance.isFixture, true);
 });
 
-test('3:30 PM with the default routine is tight but feasible', async () => {
-  const result = await generatePreparationPlan({ now: at('15:30') });
+test('5:30 PM with the default routine is tight but feasible', async () => {
+  const result = await generatePreparationPlan({ now: at('17:30') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.pressure, 'tight');
   assert.equal(result.data.slackMinutes, 0);
   assert.equal(result.data.feasible, true);
-  assert.equal(result.data.tasks[0].start, at('15:30').toISOString());
+  assert.equal(result.data.tasks[0].start, at('17:30').toISOString());
 });
 
-test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', async () => {
+test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', async () => {
   const tasks = updateTaskDuration(DEFAULT_TASKS, 'hair', 40);
   assert.ok(tasks);
   assert.equal(tasks.length, DEFAULT_TASKS.length);
@@ -166,7 +166,7 @@ test('twenty more minutes of hair at 3:30 PM conflicts and offers to undo it', a
     tasks.map((task) => task.id),
     DEFAULT_TASKS.map((task) => task.id),
   );
-  const result = await generatePreparationPlan({ now: at('15:30'), tasks });
+  const result = await generatePreparationPlan({ now: at('17:30'), tasks });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.feasible, false);
@@ -183,7 +183,7 @@ test('marking tasks done does not remove them', async () => {
   assert.equal(showerDone.length, 3);
   assert.equal(showerDone[0].completed, true);
   assert.equal(showerDone[0].durationMinutes, 15);
-  const result = await generatePreparationPlan({ now: at('16:00'), tasks: showerDone });
+  const result = await generatePreparationPlan({ now: at('18:00'), tasks: showerDone });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.tasks[0].completed, true);
@@ -209,7 +209,7 @@ test('unknown task edits are rejected and do not change the list', async () => {
 });
 
 test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored', async () => {
-  const conflict = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
+  const conflict = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T18:00:00-04:00'));
   assert.equal(conflict.status, 200);
   assert.equal(conflict.body.ok, true);
   if (!conflict.body.ok) return;
@@ -220,7 +220,7 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal(noon.status, 200);
   if (!noon.body.ok) return;
   assert.equal(noon.body.data.pressure, 'relaxed');
-  assert.equal(noon.body.data.leaveBy.at, at('16:15').toISOString());
+  assert.equal(noon.body.data.leaveBy.at, at('18:15').toISOString());
 
   assert.equal((await handlePlannerRequest(new URLSearchParams('now=bogus'))).status, 400);
   assert.equal((await handlePlannerRequest(new URLSearchParams('buffer=-5'))).status, 400);
@@ -228,19 +228,19 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal((await handlePlannerRequest(new URLSearchParams('tasks=hair:0'))).status, 400);
   assert.equal((await handlePlannerRequest(new URLSearchParams('done=nails'))).status, 400);
 
-  const hair = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T15:30:00-04:00&tasks=shower:15,hair:40,dressed:10'));
+  const hair = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T17:30:00-04:00&tasks=shower:15,hair:40,dressed:10'));
   assert.equal(hair.status, 200);
   if (!hair.body.ok) return;
   assert.equal(hair.body.data.conflict?.shortfallMinutes, 20);
 });
 
 test('after dinner has ended the planner reports no-data instead of inventing an event', async () => {
-  const result = await generatePreparationPlan({ now: at('19:00') });
+  const result = await generatePreparationPlan({ now: at('21:00') });
   assert.deepEqual(result.ok ? null : result.error, {
     status: 'no-data',
     message: 'No upcoming event with an address to travel to.',
   });
-  assert.equal((await handlePlannerRequest(new URLSearchParams('now=2026-09-26T19:00:00-04:00'))).status, 404);
+  assert.equal((await handlePlannerRequest(new URLSearchParams('now=2026-09-26T21:00:00-04:00'))).status, 404);
 });
 
 test('walking uses that mode\'s duration for leave-by', async () => {
@@ -249,7 +249,7 @@ test('walking uses that mode\'s duration for leave-by', async () => {
   if (!result.ok) return;
   assert.equal(result.data.leaveBy.transportMode, 'walking');
   assert.equal(result.data.leaveBy.travelMinutes, 105);
-  assert.equal(result.data.leaveBy.at, at('15:05').toISOString());
+  assert.equal(result.data.leaveBy.at, at('17:05').toISOString());
 });
 
 test('rideshare leave-by uses the driving duration', async () => {
@@ -257,7 +257,7 @@ test('rideshare leave-by uses the driving duration', async () => {
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.leaveBy.travelMinutes, 30);
-  assert.equal(result.data.leaveBy.at, at('16:20').toISOString());
+  assert.equal(result.data.leaveBy.at, at('18:20').toISOString());
 });
 
 test('leave-by uses a live Google duration for the selected mode', async () => {
@@ -286,7 +286,7 @@ test('leave-by uses a live Google duration for the selected mode', async () => {
     if (!result.ok) return;
     assert.equal(result.data.leaveBy.transportMode, 'transit');
     assert.equal(result.data.leaveBy.travelMinutes, 22);
-    assert.equal(result.data.leaveBy.at, at('16:28').toISOString());
+    assert.equal(result.data.leaveBy.at, at('18:28').toISOString());
     assert.equal(result.data.provenance.maps, 'google');
     assert.equal(result.data.provenance.isFixture, false);
   } finally {
@@ -329,7 +329,7 @@ test('leave-by uses a live subway itinerary instead of the 35 minute fixture', a
     if (!result.ok) return;
     assert.equal(result.data.leaveBy.transportMode, 'transit');
     assert.equal(result.data.leaveBy.travelMinutes, 54);
-    assert.equal(result.data.leaveBy.at, at('15:56').toISOString());
+    assert.equal(result.data.leaveBy.at, at('17:56').toISOString());
     assert.equal(result.data.provenance.maps, 'transitous');
     assert.equal(result.data.provenance.isFixture, false);
   } finally {

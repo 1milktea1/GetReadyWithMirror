@@ -23,7 +23,7 @@ test('Express mounts health, maps, and the planner', async () => {
     assert.equal(maps.data.provenance.isFixture, true);
     assert.equal(maps.data.routes.find((route) => route.mode === 'transit')?.durationMinutes, 35);
 
-    const planner = (await (await fetch(`${base}/api/planner?now=2026-09-26T16:00:00-04:00`)).json()) as {
+    const planner = (await (await fetch(`${base}/api/planner?now=2026-09-26T18:00:00-04:00`)).json()) as {
       ok: boolean;
       data: { status: string; conflict: { shortfallMinutes: number } | null };
     };

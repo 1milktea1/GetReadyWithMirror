@@ -83,7 +83,7 @@ labeled fixture
 Accurate routing needs a real downtown address.
 
 **Status:** Decided 2026-09-26. **Soothr, 204 E 13th St, New York, NY 10003** (East Village) is
-the 5 PM reservation venue. It is in
+the 7 PM reservation venue. It is in
 [`fixtures/calendar/demo-day.json`](../fixtures/calendar/demo-day.json) as the dinner event's
 `venueName` and `venueAddress`, so maps can route Columbia → Soothr. The **address is real; the
 reservation is not** — the event stays synthetic until Google Calendar is connected.

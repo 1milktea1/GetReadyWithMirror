@@ -1,11 +1,11 @@
 {
-  "description": "SYNTHETIC planner rehearsal cases for the 5 PM Soothr dinner. Not a live schedule. Each case uses the maps fixture transit duration and the default buffer and tasks. noon is relaxed, 2 PM is comfortable, 3:30 PM is tight, 4 PM conflicts, and 3:30 PM with 20 extra minutes of hair also conflicts.",
+  "description": "SYNTHETIC planner rehearsal cases for the 7 PM Soothr dinner. Not a live schedule. Each case uses the maps fixture transit duration and the default buffer and tasks. noon is relaxed, 4 PM is comfortable, 5:30 PM is tight, 6 PM conflicts, and 5:30 PM with 20 extra minutes of hair also conflicts.",
   "timeZone": "America/New_York",
   "date": "2026-09-26",
   "event": {
     "id": "fixture-dinner",
     "title": "Dinner reservation",
-    "startTime": "17:00",
+    "startTime": "19:00",
     "durationMinutes": 90,
     "venueName": "Soothr",
     "venueAddress": "204 E 13th St, New York, NY 10003"
@@ -14,7 +14,7 @@
     "transportMode": "transit",
     "travelMinutes": 35,
     "arrivalBufferMinutes": 10,
-    "leaveByTime": "16:15",
+    "leaveByTime": "18:15",
     "tasks": [
       { "id": "shower", "name": "Shower", "durationMinutes": 15 },
       { "id": "hair", "name": "Hair", "durationMinutes": 20 },
@@ -23,12 +23,12 @@
   },
   "scenarios": [
     { "id": "noon", "nowTime": "12:00", "pressure": "relaxed", "feasible": true },
-    { "id": "two-pm", "nowTime": "14:00", "pressure": "comfortable", "feasible": true },
-    { "id": "three-thirty", "nowTime": "15:30", "pressure": "tight", "feasible": true },
-    { "id": "four-pm", "nowTime": "16:00", "pressure": "conflict", "feasible": false, "shortfallMinutes": 30 },
+    { "id": "four-pm-comfortable", "nowTime": "16:00", "pressure": "comfortable", "feasible": true },
+    { "id": "five-thirty", "nowTime": "17:30", "pressure": "tight", "feasible": true },
+    { "id": "six-pm", "nowTime": "18:00", "pressure": "conflict", "feasible": false, "shortfallMinutes": 30 },
     {
-      "id": "hair-plus-20-at-three-thirty",
-      "nowTime": "15:30",
+      "id": "hair-plus-20-at-five-thirty",
+      "nowTime": "17:30",
       "taskOverrides": { "hair": 40 },
       "pressure": "conflict",
       "feasible": false,
