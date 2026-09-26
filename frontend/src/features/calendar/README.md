@@ -13,8 +13,9 @@ region of the mirror.
   that have already ended are hidden.
 - The **next** event shows a countdown (`in 1 hr 9 min`); an event **under way** shows `Now`
   and its end time (`until 1:30 PM`).
-- **Labels anything not real.** Fixture data shows a `Sample data` tag, and a simulated clock
-  shows `Demo time`, so neither can be mistaken for live conditions during the demo.
+- **Labels anything not real.** Fixture data shows a `Sample data` tag. A simulated clock shows
+  a bright `Demo time · actual 11:36 AM` tag with the real time, so neither can be mistaken for
+  live conditions. With no `?now=` in the URL, the clock is always the device's real time.
 - **Fallbacks** for loading, nothing scheduled, not connected, not set up, and provider
   unavailable — never blank space and never invented events.
 
@@ -43,7 +44,8 @@ Shared pieces it depends on:
 ## Rehearsing different times
 
 Add `?now=` to the URL to start the whole mirror at another time. The clock keeps ticking from
-there, and a `Demo time` tag appears.
+there, and a `Demo time · actual …` tag shows the real time. Remove `?now=` to return to the
+real clock.
 
 | URL | Shows |
 |---|---|

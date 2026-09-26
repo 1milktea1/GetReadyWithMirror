@@ -83,7 +83,7 @@ Every feature that reads the clock must read it through this override.
 
 **Status:** Frontend half implemented, pending team confirmation. The UI reads a `?now=` URL
 parameter (`?now=15:30`, `?now=2026-09-26T15:30`, or an ISO instant) and runs the clock from
-that time, labeled `Demo time`. See
+that time, labeled `Demo time · actual <real time>`. See
 [`frontend/src/shared/time/nowOverride.ts`](../frontend/src/shared/time/nowOverride.ts).
 
 Still open: how the override reaches the **backend** once the planner computes real deadlines.

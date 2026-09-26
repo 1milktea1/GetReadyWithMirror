@@ -28,9 +28,16 @@ machine's local zone instead of New York fails rather than passing on a New York
 
 ### Rehearsing a time of day
 
+Without any parameter, the mirror always shows the device's real clock in New York time.
+
 Append `?now=15:30` (or `?now=2026-09-26T15:30`, or any ISO instant) to start the mirror at
-that New York time. The clock keeps running from there and shows a `Demo time` tag. This is
-how to check the noon, 2 PM, 3:30 PM, and 4 PM demo scenarios.
+that New York time instead. The clock keeps running from there, and a bright tag under the date
+reads `Demo time · actual 11:36 AM` with the real time, so a simulated clock can't be mistaken
+for the real one. Remove `?now=` from the URL to go back. This is how to check the noon, 2 PM,
+3:30 PM, and 4 PM demo scenarios.
+
+Watch for browser autocomplete: after visiting a `?now=` URL, typing the plain address may fill
+the old parameter back in.
 
 ## Deploying to Vercel
 
