@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { decodePolyline, mapGoogleRoute } from './googleDirectionsAdapter.ts';
 import { handleMapsRequest } from './mapsHttp.ts';
 import { getCommute } from './mapsService.ts';
+import { mapTransitRoute, transitAccessPoint } from './transitAdapter.ts';
 import { mapValhallaRoute } from './valhallaAdapter.ts';
 
 test('the demo fixture returns a labeled transit duration for Columbia → Soothr', async () => {
@@ -153,7 +154,37 @@ test('a live Google response replaces the fixture duration', async () => {
   }
 });
 
-test('without a Google key, road modes come from Valhalla and subway stays a fixture', async () => {
+test('Columbia campus transit starts at the 116 St 1 train, not a 21-minute walk to the 2/3', () => {
+  const station = transitAccessPoint({ latitude: 40.8075, longitude: -73.9626 });
+  assert.equal(station.latitude, 40.807722);
+  assert.equal(station.longitude, -73.964105);
+  const elsewhere = transitAccessPoint({ latitude: 40.732269, longitude: -73.987352 });
+  assert.equal(elsewhere.latitude, 40.732269);
+});
+
+test('maps a subway itinerary onto a path instead of a straight pin line', () => {
+  const route = mapTransitRoute({
+    itineraries: [
+      {
+        duration: 54 * 60,
+        legs: [
+          { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U' } },
+          { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
+          { mode: 'SUBWAY', routeShortName: 'L', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+        ],
+      },
+    ],
+  });
+  assert.equal(route?.mode, 'transit');
+  assert.equal(route?.durationMinutes, 54);
+  assert.equal(route?.summary, 'Subway 1 · L');
+  assert.equal(route?.provenance.source, 'transitous');
+  assert.ok(route && route.path.length >= 3);
+  assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-4);
+  assert.equal(mapTransitRoute({ itineraries: [{ duration: 60, legs: [{ mode: 'BUS', routeShortName: 'M4' }] }] }), undefined);
+});
+
+test('without a Google key, subway comes from Transitous and roads from Valhalla', async () => {
   const previous = process.env.GOOGLE_MAPS_API_KEY;
   delete process.env.GOOGLE_MAPS_API_KEY;
   try {
@@ -161,6 +192,21 @@ test('without a Google key, road modes come from Valhalla and subway stays a fix
       live: true,
       fetchFn: async (input) => {
         const url = new URL(String(input));
+        if (url.hostname === 'api.transitous.org') {
+          assert.equal(url.searchParams.get('transitModes'), 'TRANSIT');
+          assert.equal(url.searchParams.get('fromPlace'), '40.807722,-73.964105');
+          return Response.json({
+            itineraries: [
+              {
+                duration: 54 * 60,
+                legs: [
+                  { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+                  { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
+                ],
+              },
+            ],
+          });
+        }
         assert.equal(url.hostname, 'valhalla1.openstreetmap.de');
         const costing = (JSON.parse(url.searchParams.get('json') ?? '{}') as { costing?: string }).costing;
         const minutes = costing === 'pedestrian' ? 112 : costing === 'bicycle' ? 43 : 19;
@@ -179,14 +225,14 @@ test('without a Google key, road modes come from Valhalla and subway stays a fix
     const walking = result.data.routes.find((route) => route.mode === 'walking');
     const driving = result.data.routes.find((route) => route.mode === 'driving');
     const rideshare = result.data.routes.find((route) => route.mode === 'rideshare');
-    assert.equal(transit?.durationMinutes, 35);
-    assert.equal(transit?.provenance.isFixture, true);
+    assert.equal(transit?.durationMinutes, 54);
+    assert.equal(transit?.provenance.source, 'transitous');
+    assert.equal(transit?.provenance.isFixture, false);
+    assert.ok(transit && transit.path.length >= 3);
     assert.equal(walking?.durationMinutes, 112);
     assert.equal(walking?.provenance.source, 'valhalla');
-    assert.equal(walking?.path.length, 3);
     assert.equal(driving?.durationMinutes, 19);
     assert.equal(rideshare?.durationMinutes, 19);
-    assert.equal(rideshare?.provenance.isFixture, false);
     assert.equal(rideshare?.summary, 'Rideshare follows the driving route');
   } finally {
     restoreKey(previous);

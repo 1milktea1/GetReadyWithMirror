@@ -52,13 +52,13 @@ The provider is always queried in imperial units and the rules always run on imp
 ## Interim calendar stand-in
 
 The calendar feature is not built yet. Until it is, weather uses a small local stand-in that
-returns the synthetic 5 PM demo dinner, labeled as a fixture. It has the same call shape
+returns the synthetic 7 PM demo dinner, labeled as a fixture. It has the same call shape
 weather will use against the calendar feature's public service, so switching over is a
 one-line change.
 
 - The stand-in lives inside this feature and is deleted once calendar's public service exists.
 - It must not grow into a second calendar implementation.
-- It returns only the event start: 5 PM **New York time**, whichever location's weather is
+- It returns only the event start: 7 PM **New York time**, whichever location's weather is
   shown, because the event is a fixed moment.
 
 ## Upstream dependencies
@@ -96,7 +96,7 @@ Each state needs a useful UI fallback. See
 | `openMeteoAdapter.ts` | Open-Meteo forecast and place-search requests and response mapping. Nothing else knows the provider's shape. |
 | `suggestions.ts` | Deterministic suggestion rules and thresholds. |
 | `units.ts` | Imperial-to-metric conversion. |
-| `calendarStandIn.ts` | **Interim** synthetic 5 PM event start. Delete when calendar exists. |
+| `calendarStandIn.ts` | **Interim** synthetic 7 PM event start. Delete when calendar exists. |
 | `weatherHttp.ts` | Framework-agnostic handlers for `GET /api/weather` and `GET /api/weather/locations`, with input validation. |
 | `devServer.ts` | Standalone weather-only server. The composed app in [`backend/src/app/`](../../app/README.md) also mounts these handlers; prefer `npm run dev` from `backend/` when exercising the mirror. |
 | `weather.test.ts` | Rule and service tests against a fake provider response (no network). |

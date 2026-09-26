@@ -69,8 +69,11 @@ Account, quotas, exact endpoints, and which transport modes matter for Columbia 
 
 **Status:** Open for the account and quota. The demo can run without a key. When
 `GOOGLE_MAPS_API_KEY` is set, the backend calls the Directions API for transit, driving,
-walking, and cycling. Otherwise walking, driving, and cycling use the public Valhalla road
-router, and subway stays on the labeled fixture
+walking, and cycling, and driving can include traffic. A key is optional — the demo already
+has live subway times without one. Campus pins start Transitous at the 116 St–Columbia
+University 1 train so the trip is ~33 minutes (the time Google/Apple show), not a 21-minute
+walk to the 2/3. Walking and driving use Valhalla, and anything still missing stays on the
+labeled fixture
 ([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
 35 minutes, plus cycling 28, driving 30, and walking 105. Rideshare copies driving. See
 [`backend/src/features/maps/README.md`](../backend/src/features/maps/README.md).
@@ -80,7 +83,7 @@ router, and subway stays on the labeled fixture
 Accurate routing needs a real downtown address.
 
 **Status:** Decided 2026-09-26. **Soothr, 204 E 13th St, New York, NY 10003** (East Village) is
-the 5 PM reservation venue. It is in
+the 7 PM reservation venue. It is in
 [`fixtures/calendar/demo-day.json`](../fixtures/calendar/demo-day.json) as the dinner event's
 `venueName` and `venueAddress`, so maps can route Columbia → Soothr. The **address is real; the
 reservation is not** — the event stays synthetic until Google Calendar is connected.
@@ -94,14 +97,10 @@ it is an environment variable, a request parameter, or a UI control, and what it
 
 Every feature that reads the clock must read it through this override.
 
-**Status:** Frontend half implemented, pending team confirmation. The UI reads a `?now=` URL
-parameter (`?now=15:30`, `?now=2026-09-26T15:30`, or an ISO instant) and runs the clock from
-that time, labeled `Demo time · actual <real time>`. See
+**Status:** The mirror UI always uses the device clock. It does not honor `?now=` and does
+not show a demo-time label. Backend APIs still accept `?now=` so tests and local rehearsal
+can pin a clock without shifting the display. See
 [`frontend/src/shared/time/nowOverride.ts`](../frontend/src/shared/time/nowOverride.ts).
-
-Still open: how the override reaches the **backend** once the planner computes real deadlines.
-The frontend could forward its overridden "now" on each request, or the backend could read its
-own setting — but both must agree, or the UI and planner will disagree about the time.
 
 ### D10. Voice API placement
 

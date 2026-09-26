@@ -31,18 +31,8 @@ unavailable state; the calendar still renders from its fixture.
 Tests deliberately run in the `Asia/Tokyo` time zone, so code that accidentally uses the
 machine's local zone instead of New York fails rather than passing on a New York laptop.
 
-### Rehearsing a time of day
-
-Without any parameter, the mirror always shows the device's real clock in New York time.
-
-Append `?now=15:30` (or `?now=2026-09-26T15:30`, or any ISO instant) to start the mirror at
-that New York time instead. The clock keeps running from there, and a bright tag under the date
-reads `Demo time · actual 11:36 AM` with the real time, so a simulated clock can't be mistaken
-for the real one. Remove `?now=` from the URL to go back. This is how to check the noon, 2 PM,
-3:30 PM, and 4 PM demo scenarios.
-
-Watch for browser autocomplete: after visiting a `?now=` URL, typing the plain address may fill
-the old parameter back in.
+The mirror always shows the device's real clock in New York time, including on the expanded
+map. It does not honor `?now=`.
 
 ## Deploying to Vercel
 
@@ -76,13 +66,13 @@ frontend/src/
 │   ├── planner/    # Getting-ready timeline and conflicts
 │   └── assistant/  # Push-to-talk, microphone and listening status
 ├── shared/
-│   └── time/       # New York time math, formatting, ?now= override
+│   └── time/       # New York time math and formatting
 └── test/         # Vitest setup
 ```
 
-The mirror layout in [`src/app/App.css`](src/app/App.css) defines screen regions (top-left,
-top-right, middle, bottom). Unfilled regions stay pure black. On screens narrower than 52rem the
-regions stack full width.
+The mirror layout in [`src/app/App.css`](src/app/App.css) defines screen regions (left column
+for weather, plan, and leave-by; top-right for clock and calendar). Unfilled regions stay
+pure black. On screens narrower than 52rem the regions stack full width.
 
 ## Display behavior
 
@@ -107,8 +97,8 @@ generates JSX or manipulates browser elements.
 Frontend feature modules render state. They do not own provider requests, API credentials, or
 the logic that belongs to a backend feature.
 
-Time handling is split deliberately. **Display** time — the clock, formatting, Today/Tomorrow
-labels, and the `?now=` override — lives in [`src/shared/time/`](src/shared/time/). **Scheduling**
+Time handling is split deliberately. **Display** time — the clock, formatting, and
+Today/Tomorrow labels — lives in [`src/shared/time/`](src/shared/time/). **Scheduling**
 arithmetic — leave-by deadlines, travel buffers, and plan feasibility — belongs to the backend
 planner feature and must not be reimplemented here.
 

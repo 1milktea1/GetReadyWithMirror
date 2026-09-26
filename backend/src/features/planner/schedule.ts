@@ -2,7 +2,7 @@
 // Tasks keep the caller's order. A routine that does not fit is returned as a conflict;
 // nothing here shortens, drops, or reorders work to force a feasible plan.
 
-import type { TransportMode } from '../../../../shared/contracts/maps/types.ts';
+import type { RouteSource, TransportMode } from '../../../../shared/contracts/maps/types.ts';
 import type {
   PlanAdjustment,
   PlanPressure,
@@ -39,7 +39,7 @@ export interface BuildPlanInput {
   /** Other modes for the same trip, used only to phrase a switch the user could accept. */
   alternateRoutes?: readonly AlternateRoute[];
   calendarProvenance?: 'fixture' | 'live';
-  mapsProvenance?: 'fixture' | 'google' | 'valhalla';
+  mapsProvenance?: RouteSource;
 }
 
 const MODE_LABEL: Record<TransportMode, string> = {

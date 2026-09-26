@@ -113,16 +113,12 @@ describe('MapPanel', () => {
     expect(screen.getByRole('button', { name: 'Walk · 105 min' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument()
     expect(screen.getByText('Columbia University → Soothr')).toBeInTheDocument()
-    expect(screen.getByText('Straight line between the pins — not a road path.')).toBeInTheDocument()
-    expect(circleMarker).toHaveBeenCalledWith([40.8075, -73.9626], expect.anything())
+    expect(screen.queryByText(/straight line/i)).not.toBeInTheDocument()
+    await vi.waitFor(() => {
+      expect(circleMarker).toHaveBeenCalledWith([40.8075, -73.9626], expect.anything())
+    })
     expect(circleMarker).toHaveBeenCalledWith([40.732269, -73.987352], expect.anything())
-    expect(polyline).toHaveBeenCalledWith(
-      [
-        [40.8075, -73.9626],
-        [40.732269, -73.987352],
-      ],
-      expect.objectContaining({ dashArray: '7 9' }),
-    )
+    expect(polyline).not.toHaveBeenCalled()
   })
 
   it('draws a live walking path and reports that choice', async () => {
@@ -130,14 +126,16 @@ describe('MapPanel', () => {
     const onModeChange = vi.fn()
     render(<MapPanel mode="walking" onModeChange={onModeChange} />)
     expect(await screen.findByText('Live road route')).toBeInTheDocument()
-    expect(screen.queryByText('Straight line between the pins — not a road path.')).not.toBeInTheDocument()
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalled()
+    })
     expect(polyline).toHaveBeenCalledWith(
       [
         [40.8, -73.96],
         [40.75, -73.97],
         [40.732269, -73.987352],
       ],
-      expect.objectContaining({ dashArray: undefined }),
+      expect.not.objectContaining({ dashArray: expect.anything() }),
     )
     fireEvent.click(screen.getByRole('button', { name: 'Drive · 30 min' }))
     expect(onModeChange).toHaveBeenCalledWith('driving')

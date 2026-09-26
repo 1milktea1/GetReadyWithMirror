@@ -30,7 +30,7 @@
       "id": "fixture-dinner",
       "title": "Dinner reservation",
       "dayOffset": 0,
-      "startTime": "17:00",
+      "startTime": "19:00",
       "durationMinutes": 90,
       "venueName": "Soothr",
       "venueAddress": "204 E 13th St, New York, NY 10003"

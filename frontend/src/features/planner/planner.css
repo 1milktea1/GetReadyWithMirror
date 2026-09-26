@@ -5,7 +5,7 @@
   color: var(--mirror-text);
   font-size: var(--text-body);
   font-weight: var(--weight-regular);
-  text-align: center;
+  text-align: left;
   animation: planner-fade-in 900ms ease-out both;
 }
 
@@ -42,15 +42,15 @@
 }
 
 .planner__time {
-  font-size: var(--text-display);
+  font-size: var(--text-headline);
   font-weight: var(--weight-display);
   letter-spacing: -0.03em;
 }
 
 .planner__period {
-  margin-left: 0.35em;
-  padding-top: 0.5em;
-  font-size: var(--text-title);
+  margin-left: 0.3em;
+  padding-top: 0.35em;
+  font-size: var(--text-body);
   font-weight: var(--weight-medium);
   letter-spacing: 0.06em;
 }
@@ -64,7 +64,7 @@
 .planner__tasks {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.35em 1.4em;
   margin-top: 0.9em !important;
   padding-top: 0.8em !important;
@@ -75,7 +75,7 @@
 .planner__task {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   min-width: 7em;
 }
 
@@ -126,7 +126,7 @@
 .planner__actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.6em;
   margin-top: 0.9em;
 }
@@ -165,13 +165,9 @@
 }
 
 .leave-by {
-  position: fixed;
-  right: clamp(1rem, 3vmin, 2.25rem);
-  bottom: clamp(1rem, 3vmin, 2.25rem);
-  z-index: 1000;
+  margin-top: 1.1rem;
   min-width: 8.5rem;
   padding: 0.65rem 0.9rem 0.75rem;
-  background: #000;
   border: 1px solid var(--mirror-edge);
   text-align: left;
   pointer-events: none;

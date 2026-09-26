@@ -2,7 +2,7 @@
 // Scheduling arithmetic is deterministic; these types carry the result, they do not compute it.
 // `schedule-conflict` is a successful answer (ok: true), not an error envelope.
 
-import type { TransportMode } from '../maps/types.ts';
+import type { RouteSource, TransportMode } from '../maps/types.ts';
 
 export interface PreparationTask {
   id: string;
@@ -87,7 +87,7 @@ export interface PreparationPlan {
   summary: string;
   conflict: ScheduleConflict | null;
   /** `isFixture` is true when the travel duration used for leave-by is a rehearsal number. */
-  provenance: { calendar: 'fixture' | 'live'; maps: 'fixture' | 'google' | 'valhalla'; isFixture: boolean };
+  provenance: { calendar: 'fixture' | 'live'; maps: RouteSource; isFixture: boolean };
 }
 
 export type PlannerErrorStatus = 'input-invalid' | 'no-data';
