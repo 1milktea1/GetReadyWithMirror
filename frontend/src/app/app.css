@@ -1,0 +1,51 @@
+/* Behind a two-way mirror, only lit pixels show. Pure black background, white type. */
+:root {
+  --mirror-bg: #000;
+  --mirror-text: #fff;
+  --mirror-muted: #a3a3a3;
+  --mirror-dim: #5c5c5c;
+  --mirror-rule: #262626;
+  --mirror-gutter: clamp(24px, 3vw, 64px);
+  --text-body: clamp(18px, 1.5vw, 28px);
+  --text-small: clamp(14px, 1.1vw, 20px);
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--mirror-bg);
+  color: var(--mirror-text);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: var(--text-body);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.mirror {
+  display: grid;
+  grid-template-columns: minmax(280px, 30vw) 1fr minmax(280px, 30vw);
+  height: 100%;
+  padding: var(--mirror-gutter);
+  gap: var(--mirror-gutter);
+}
+
+.mirror-left,
+.mirror-right {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mirror-right {
+  text-align: right;
+}
