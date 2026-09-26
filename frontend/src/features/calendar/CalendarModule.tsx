@@ -16,15 +16,16 @@ import './CalendarModule.css'
 export interface CalendarModuleProps {
   now: Date
   source: CalendarSource
-  /**
-   * The real device time, passed only while the demo-time override is active.
-   * The module then labels the clock as simulated and shows this alongside it.
-   */
-  actualTime?: Date
   timeZone?: string
   maxEvents?: number
-  /** clock keeps the time and date. agenda keeps the event list. full is the overview corner. */
-  part?: 'full' | 'clock' | 'agenda'
+  /** Clock only. Used when the map is open and the date and agenda should stay hidden. */
+  clockOnly?: boolean
+  /** Time and date, without the upcoming-event list. Used when another module is expanded. */
+  hideAgenda?: boolean
+  /** Event list only, without the clock. Used on the expanded calendar screen. */
+  agendaOnly?: boolean
+  /** Opens or closes the expanded calendar screen. */
+  onActivate?: () => void
 }
 
 const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
@@ -37,36 +38,49 @@ const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
 export function CalendarModule({
   now,
   source,
-  actualTime,
   timeZone = MIRROR_TIME_ZONE,
   maxEvents = 4,
-  part = 'full',
+  clockOnly = false,
+  hideAgenda = false,
+  agendaOnly = false,
+  onActivate,
 }: CalendarModuleProps) {
   const state = useCalendarEvents(source, now)
   const clock = formatClock(now, timeZone)
+  const showClock = !agendaOnly
+  const showAgenda = !clockOnly && !hideAgenda
 
   return (
-    <section className={`calendar${part === 'agenda' ? ' calendar--agenda' : ''}`} aria-label={part === 'clock' ? 'Time' : 'Calendar'}>
-      {part !== 'agenda' && (
-      <header className="calendar__now">
-        <time className="calendar__clock" dateTime={now.toISOString()}>
-          <span className="calendar__time">{clock.time}</span>
-          <span className="calendar__period">{clock.period}</span>
-        </time>
-        <p className="calendar__date">{formatLongDate(now, timeZone)}</p>
-        {actualTime && (
-          <p className="calendar__tag">Demo time · actual {formatTimeOfDay(actualTime, timeZone)}</p>
-        )}
-      </header>
+    <section className={agendaOnly ? 'calendar calendar--agenda' : 'calendar'} aria-label={showAgenda ? 'Calendar' : 'Time'}>
+      {showClock && (
+        <header className="calendar__now">
+          <time className="calendar__clock" dateTime={now.toISOString()}>
+            <span className="calendar__time">{clock.time}</span>
+            <span className="calendar__period">{clock.period}</span>
+          </time>
+          {!clockOnly && <p className="calendar__date">{formatLongDate(now, timeZone)}</p>}
+        </header>
       )}
 
-      {part !== 'clock' && (
-      <div className="calendar__agenda">
-        <div className="calendar__agenda-header">
-          <h2 className="calendar__heading">Upcoming</h2>
+      {showAgenda && (
+        <div
+          className="calendar__agenda"
+          role={onActivate ? 'button' : undefined}
+          tabIndex={onActivate ? 0 : undefined}
+          onClick={onActivate}
+          onKeyDown={
+            onActivate
+              ? (event) => {
+                  if (event.key === 'Enter' || event.key === ' ') onActivate()
+                }
+              : undefined
+          }
+        >
+          <div className="calendar__agenda-header">
+            <h2 className="calendar__heading">Upcoming</h2>
+          </div>
+          <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
         </div>
-        <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
-      </div>
       )}
     </section>
   )

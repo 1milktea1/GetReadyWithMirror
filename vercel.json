@@ -4,5 +4,5 @@
   "installCommand": "npm ci --prefix frontend",
   "buildCommand": "npm run --prefix frontend verify",
   "outputDirectory": "frontend/dist",
-  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- frontend shared/contracts fixtures vercel.json"
+  "ignoreCommand": "[ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- frontend shared/contracts fixtures vercel.json api backend/src/features/weather"
 }

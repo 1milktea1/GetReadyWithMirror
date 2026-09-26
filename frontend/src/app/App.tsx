@@ -1,29 +1,76 @@
 import { useEffect, useState } from 'react'
+import type { TransportMode } from '@contracts/maps/types'
 import { RushReminders } from '../features/assistant/RushReminders'
 import { VoiceButton, type VoiceUiEvent } from '../features/assistant/VoiceButton'
 import { CalendarModule, createFixtureCalendarSource } from '../features/calendar'
-import { CommutePanel } from '../features/maps/CommutePanel'
+import { MapPanel } from '../features/maps/MapPanel'
+import {
+  publishMirrorCommand,
+  subscribeMirrorCommands,
+  type MirrorCommand,
+} from '../features/overview/mirrorCommands'
+import { PlannerPanel } from '../features/planner/PlannerPanel'
 import { WeatherPanel } from '../features/weather/WeatherPanel'
 import { useNow } from '../shared/time/useNow'
 import './App.css'
 
 const calendarSource = createFixtureCalendarSource()
 
-// The weather backend refetches whenever its "now" changes, so the override is
-// passed in 10-minute steps (matching the panel's refresh) rather than every tick.
-const WEATHER_NOW_STEP_MS = 10 * 60 * 1000
+type ExpandedModule = 'weather' | 'calendar' | 'planner' | 'map' | null
 
-type ExpandedModule = 'weather' | 'calendar' | 'map' | null
-
-function screenFromLocation(): ExpandedModule {
+function expandFromLocation(): ExpandedModule {
   const widget = new URLSearchParams(window.location.search).get('expand')
-  if (widget === 'weather' || widget === 'calendar' || widget === 'map') return widget
+  if (widget === 'map' || widget === 'weather' || widget === 'calendar') return widget
+  return null
+}
+
+function screenClass(expanded: ExpandedModule): string {
+  if (expanded === 'map') return 'mirror mirror--map'
+  if (expanded === 'weather') return 'mirror mirror--weather'
+  if (expanded === 'calendar') return 'mirror mirror--calendar'
+  return 'mirror'
+}
+
+function screenForVoice(event: VoiceUiEvent): ExpandedModule | 'overview' | null {
+  if (event.action === 'showOverview' || event.action === 'collapseWidget') return 'overview'
+  if (event.action !== 'expandWidget') return null
+  if (event.target === 'weather' || event.target === 'calendar' || event.target === 'planner') return event.target
+  if (event.target === 'maps' || event.target === 'map') return 'map'
   return null
 }
 
 export function App() {
-  const { now, actualNow, isOverridden } = useNow()
-  const [expanded, setExpanded] = useState<ExpandedModule>(screenFromLocation)
+  const { now } = useNow()
+  const [expanded, setExpanded] = useState<ExpandedModule>(expandFromLocation)
+  const [mode, setMode] = useState<TransportMode>('transit')
+  const mapOpen = expanded === 'map'
+  const weatherOpen = expanded === 'weather'
+  const calendarOpen = expanded === 'calendar'
+  const focusOpen = weatherOpen || calendarOpen
+
+  useEffect(() => {
+    window.mirrorCommand = (command: MirrorCommand) => publishMirrorCommand(command)
+    return () => {
+      delete window.mirrorCommand
+    }
+  }, [])
+
+  useEffect(() => {
+    return subscribeMirrorCommands((command) => {
+      if (command.action === 'showOverview') {
+        setExpanded(null)
+        return
+      }
+      if (
+        command.widget === 'map' ||
+        command.widget === 'weather' ||
+        command.widget === 'calendar' ||
+        command.widget === 'planner'
+      ) {
+        setExpanded(command.widget)
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -33,58 +80,60 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  const weatherNow = isOverridden
-    ? new Date(Math.floor(now.getTime() / WEATHER_NOW_STEP_MS) * WEATHER_NOW_STEP_MS).toISOString()
-    : undefined
-
   function applyVoiceEvents(events: VoiceUiEvent[]) {
     for (const event of events) {
-      if (event.action === 'showOverview' || event.action === 'collapseWidget') {
-        setExpanded(null)
-      } else if (event.action === 'expandWidget' && event.target === 'weather') {
-        setExpanded('weather')
-      } else if (event.action === 'expandWidget' && event.target === 'calendar') {
-        setExpanded('calendar')
-      } else if (event.action === 'expandWidget' && event.target === 'maps') {
-        setExpanded('map')
-      }
+      const screen = screenForVoice(event)
+      if (screen === 'overview') setExpanded(null)
+      else if (screen) setExpanded(screen)
     }
   }
 
-  const focused = expanded !== null
-
   return (
-    <main className={expanded ? `mirror mirror--${expanded}` : 'mirror'}>
-      {!focused && (
-        <div className="mirror__region mirror__region--top-left">
-          <WeatherPanel expanded={false} onToggle={() => setExpanded('weather')} now={weatherNow} />
+    <main className={screenClass(expanded)}>
+      {mapOpen && (
+        <div className="mirror__region mirror__region--map">
+          <MapPanel mode={mode} onModeChange={setMode} />
+        </div>
+      )}
+      {weatherOpen && (
+        <div className="mirror__region mirror__region--weather">
+          <WeatherPanel expanded onToggle={() => setExpanded(null)} />
+        </div>
+      )}
+      {calendarOpen && (
+        <div className="mirror__region mirror__region--calendar">
+          <CalendarModule
+            now={now}
+            source={calendarSource}
+            agendaOnly
+            maxEvents={12}
+            onActivate={() => setExpanded(null)}
+          />
+        </div>
+      )}
+      {!focusOpen && (
+        <div className="mirror__region mirror__region--left">
+          {!mapOpen && (
+            <WeatherPanel expanded={false} onToggle={() => setExpanded('weather')} />
+          )}
+          <PlannerPanel
+            expanded={expanded === 'planner'}
+            onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
+            mode={mode}
+          />
         </div>
       )}
       <div className="mirror__region mirror__region--top-right">
         <CalendarModule
           now={now}
           source={calendarSource}
-          actualTime={isOverridden ? actualNow : undefined}
-          part={focused ? 'clock' : 'full'}
+          clockOnly={mapOpen}
+          hideAgenda={weatherOpen || calendarOpen}
+          onActivate={calendarOpen ? undefined : () => setExpanded('calendar')}
         />
       </div>
-      {expanded === 'weather' && (
-        <div className="mirror__region mirror__region--middle">
-          <WeatherPanel expanded onToggle={() => setExpanded(null)} now={weatherNow} />
-        </div>
-      )}
-      {expanded === 'calendar' && (
-        <div className="mirror__region mirror__region--middle">
-          <CalendarModule now={now} source={calendarSource} part="agenda" maxEvents={8} />
-        </div>
-      )}
-      {expanded === 'map' && (
-        <div className="mirror__region mirror__region--middle">
-          <CommutePanel />
-        </div>
-      )}
       <RushReminders now={now} source={calendarSource} />
-      <div className="mirror__region mirror__region--bottom">
+      <div className="mirror__region mirror__region--voice">
         <VoiceButton onEvents={applyVoiceEvents} />
       </div>
     </main>

@@ -4,7 +4,10 @@
 **Status:** Implemented with synthetic fixture data. Not yet connected to Google Calendar.
 
 Shows the current New York time and date, then up to four upcoming events, in the top-right
-region of the mirror.
+region of the mirror. Clicking the event list, `?expand=calendar`, or `expandWidget` for
+`calendar` opens those events in the center. Time and date stay top-right; weather and the
+getting-ready plan hide. Escape returns to the overview. The expanded list shows up to twelve
+events.
 
 ## What it does
 
@@ -13,10 +16,9 @@ region of the mirror.
   that have already ended are hidden.
 - The **next** event shows a countdown (`in 1 hr 9 min`); an event **under way** shows `Now`
   and its end time (`until 1:30 PM`).
-- **Labels a simulated clock.** A `Demo time · actual 11:36 AM` tag shows the real time beside an
-  overridden one, so it cannot be mistaken for the live clock. With no `?now=` in the URL, the
-  clock is always the device's real time. Fixture *events* carry no on-screen tag; the weather
-  module's `Sample data — not live` badge covers provenance for the mirror as a whole.
+- The clock is always the device's real New York time, including when the map is open.
+  Fixture *events* carry no on-screen tag; the weather module's `Sample data — not live`
+  badge covers provenance for the mirror as a whole.
 - **Fallbacks** for loading, nothing scheduled, not connected, not set up, and provider
   unavailable — never blank space and never invented events.
 
@@ -39,21 +41,7 @@ Shared pieces it depends on:
   `CalendarEvent` and `CalendarResult` shapes.
 - [`fixtures/calendar/demo-day.json`](../../../../fixtures/calendar/demo-day.json) — the synthetic
   agenda.
-- [`frontend/src/shared/time/`](../../shared/time/) — New York time math, formatting, and the
-  `?now=` override.
-
-## Rehearsing different times
-
-Add `?now=` to the URL to start the whole mirror at another time. The clock keeps ticking from
-there, and a `Demo time · actual …` tag shows the real time. Remove `?now=` to return to the
-real clock.
-
-| URL | Shows |
-|---|---|
-| `/?now=12:45` | Lunch in progress (`Now`), office hours next |
-| `/?now=15:30` | The 5 PM dinner next, with a countdown |
-| `/?now=23:30` | Today finished; agenda starts with Tomorrow |
-| `/?now=2026-12-15T17:00` | A specific New York date and time |
+- [`frontend/src/shared/time/`](../../shared/time/) — New York time math and formatting.
 
 ## Going live with Google Calendar
 

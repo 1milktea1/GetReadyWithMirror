@@ -1,7 +1,6 @@
 // Weather public service. Other features call getWeather(); nothing imports the adapter directly.
 
 import { fetchForecast, ProviderError, searchPlaces } from './openMeteoAdapter.ts';
-import { getUpcomingEventStart } from './calendarStandIn.ts';
 import { buildSuggestions } from './suggestions.ts';
 import { UNITS, convertHourly, convertReading, precipitation, snowfall, temperature } from './units.ts';
 import type {
@@ -10,15 +9,6 @@ import type {
   WeatherLocation,
   WeatherResponse,
 } from '../../../../shared/contracts/weather/types.ts';
-
-function endOfLocalEvening(now: Date, timeZone: string): Date {
-  const date = new Intl.DateTimeFormat('en-CA', { timeZone }).format(now);
-  const offset = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
-    .formatToParts(now)
-    .find((part) => part.type === 'timeZoneName')!
-    .value.replace('GMT', '');
-  return new Date(`${date}T23:00:00${offset || 'Z'}`);
-}
 
 export const COLUMBIA: WeatherLocation = {
   name: 'Columbia University',
@@ -34,7 +24,7 @@ export interface GetWeatherOptions {
   units?: UnitSystem;
   // Reference "now". Pass the demo/test-time override here; defaults to the system clock.
   now?: Date;
-  // End of the forecast window. Defaults to the upcoming event start.
+  // Exclusive end of the forecast window. Defaults to midnight at the end of the local day.
   windowEnd?: Date;
   fetchFn?: typeof fetch;
 }
@@ -43,18 +33,14 @@ export async function getWeather(options: GetWeatherOptions = {}): Promise<Weath
   const location = options.location ?? COLUMBIA;
   const system = options.units ?? 'imperial';
   const now = options.now ?? new Date();
-  // The event is a fixed moment (the demo dinner is in New York), whichever location's weather
-  // is shown; hourly times are still displayed in the forecast location's time zone.
-  const eventStart = getUpcomingEventStart(now, COLUMBIA.timeZone).start;
-  // After the dinner has started, keep forecasting the rest of the local day so a question
-  // such as "will it snow" still has hours to answer from.
-  const windowEnd =
-    options.windowEnd ?? (eventStart.getTime() > now.getTime() ? eventStart : endOfLocalEvening(now, location.timeZone));
+  // Hourly times are displayed in the forecast location's time zone. The window runs through
+  // the end of that local day, not the dinner reservation.
+  const windowEnd = options.windowEnd ?? endOfLocalDay(now, location.timeZone);
 
   if (windowEnd.getTime() <= now.getTime()) {
     return {
       ok: false,
-      error: { status: 'input-invalid', message: 'The event has already started; there is no window to forecast.' },
+      error: { status: 'input-invalid', message: 'The forecast window has already ended.' },
     };
   }
 
@@ -68,11 +54,11 @@ export async function getWeather(options: GetWeatherOptions = {}): Promise<Weath
     throw err;
   }
 
-  // Include the hour already in progress, through the hour containing the event start.
+  // Include the hour already in progress, up to but not including the exclusive window end.
   const windowStartMs = now.getTime() - 60 * 60 * 1000;
   const inWindow = forecast.hourly.filter((h) => {
     const t = Date.parse(h.time);
-    return t > windowStartMs && t <= windowEnd.getTime();
+    return t > windowStartMs && t < windowEnd.getTime();
   });
   const currentHour = inWindow[0];
 
@@ -122,6 +108,24 @@ export async function getWeather(options: GetWeatherOptions = {}): Promise<Weath
       provenance: { source: 'open-meteo', isFixture: false },
     },
   };
+}
+
+// Midnight that ends the local calendar day containing `now`. Exclusive: the 11 PM hour is in
+// range, and the next day's midnight hour is not.
+function endOfLocalDay(now: Date, timeZone: string): Date {
+  const date = new Intl.DateTimeFormat('en-CA', { timeZone }).format(now);
+  const [year, month, day] = date.split('-').map(Number);
+  const nextDate = new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+  const offsetAt = (instant: Date) => {
+    const value = new Intl.DateTimeFormat('en-US', { timeZone, timeZoneName: 'longOffset' })
+      .formatToParts(instant)
+      .find((part) => part.type === 'timeZoneName')
+      ?.value.replace('GMT', '');
+    return value || 'Z';
+  };
+  const midnight = new Date(`${nextDate}T00:00:00${offsetAt(now)}`);
+  const refined = offsetAt(midnight);
+  return refined === offsetAt(now) ? midnight : new Date(`${nextDate}T00:00:00${refined}`);
 }
 
 export async function searchLocations(query: string, fetchFn?: typeof fetch): Promise<LocationSearchResponse> {

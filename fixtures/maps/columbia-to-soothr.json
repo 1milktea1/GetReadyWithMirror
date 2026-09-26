@@ -1,18 +1,40 @@
 {
-  "description": "SYNTHETIC travel durations for Columbia University to Soothr, 204 E 13th St. Rehearsal numbers for the offline demo, not a live route.",
+  "description": "SYNTHETIC travel durations for Columbia University → Soothr, 204 E 13th St. Rehearsal numbers for the offline demo, not a live maps retrieval and not a measured route. 35 minutes of transit plus the planner's 10-minute arrival buffer puts leave-by at 6:15 PM, so the default 45-minute routine must start at 5:30 PM.",
   "origin": {
     "name": "Columbia University",
-    "address": "Columbia University, New York, NY 10027"
+    "address": "Columbia University, New York, NY 10027",
+    "location": { "latitude": 40.8075, "longitude": -73.9626 }
   },
   "destination": {
     "name": "Soothr",
-    "address": "204 E 13th St, New York, NY 10003"
+    "address": "204 E 13th St, New York, NY 10003",
+    "location": { "latitude": 40.732269, "longitude": -73.987352 }
   },
   "recommendedMode": "transit",
   "routes": [
-    { "mode": "transit", "durationMinutes": 35, "summary": "Rehearsal estimate — not a live route" },
-    { "mode": "cycling", "durationMinutes": 28, "summary": "Rehearsal estimate — not a live route" },
-    { "mode": "driving", "durationMinutes": 30, "summary": "Rehearsal estimate — not a live route" },
-    { "mode": "walking", "durationMinutes": 105, "summary": "Rehearsal estimate — not a live route" }
+    {
+      "mode": "transit",
+      "durationMinutes": 35,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "cycling",
+      "durationMinutes": 28,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "driving",
+      "durationMinutes": 30,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "walking",
+      "durationMinutes": 105,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    }
   ]
 }

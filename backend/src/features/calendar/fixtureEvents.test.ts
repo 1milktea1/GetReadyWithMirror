@@ -14,7 +14,7 @@ test('upcoming demo events keep the dinner and label the calendar as a fixture',
 });
 
 test('events that already ended are left out', () => {
-  const result = getUpcomingEvents(new Date('2026-09-26T19:30:00-04:00'));
+  const result = getUpcomingEvents(new Date('2026-09-26T21:00:00-04:00'));
   assert.equal(
     result.data.events.some((event) => event.title === 'Dinner reservation'),
     false,

@@ -13,7 +13,7 @@ import './weather.css';
 interface WeatherPanelProps {
   expanded: boolean;
   onToggle: () => void;
-  // Demo/test-time override, passed through to the backend.
+  /** Optional clock for tests. The overview does not pass this. */
   now?: string;
 }
 
@@ -32,15 +32,25 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
   const settingsPanel = <WeatherSettings settings={settings} onChange={update} />;
 
   if (state.status === 'loading') {
-    return <div className="weather weather--status">Loading weather…</div>;
+    return (
+      <div className="weather weather--status" onClick={onToggle}>
+        Loading weather…
+      </div>
+    );
   }
 
   if (state.status === 'error') {
     return (
-      <div className="weather weather--status" role="alert">
+      <div className="weather weather--status" role="alert" onClick={onToggle}>
         <div className="weather-status-title">Weather unavailable</div>
         <div className="weather-status-detail">{state.error.message}</div>
-        <button className="weather-retry" onClick={retry}>
+        <button
+          className="weather-retry"
+          onClick={(event) => {
+            event.stopPropagation();
+            retry();
+          }}
+        >
           Retry
         </button>
         {/* Always reachable here, so a location that fails can be changed back. */}
@@ -66,7 +76,7 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
       <div className="weather-details" aria-hidden={!expanded}>
         <div className="weather-details-inner">
           {showSettings ? settingsPanel : <Hourly data={data} />}
-          <Footer data={data} now={now}>
+          <Footer data={data}>
             <button type="button" className="weather-link" onClick={() => setShowSettings(!showSettings)}>
               {showSettings ? 'Done' : 'Location & units'}
             </button>
@@ -115,8 +125,7 @@ function Suggestions({ data, limit }: { data: WeatherResult; limit?: number }) {
 
 const MAX_HOURLY_ROWS = 8;
 
-// Long windows (for example a far-away time zone) are thinned to fit the column, always keeping
-// the first hour and the event hour.
+// Long windows are thinned to fit the column, always keeping the first hour and the last.
 function sampleHours<T>(hours: T[]): T[] {
   if (hours.length <= MAX_HOURLY_ROWS) return hours;
   const step = Math.ceil((hours.length - 1) / (MAX_HOURLY_ROWS - 1));
@@ -146,12 +155,11 @@ function Hourly({ data }: { data: WeatherResult }) {
   );
 }
 
-function Footer({ data, now, children }: { data: WeatherResult; now?: string; children?: ReactNode }) {
+function Footer({ data, children }: { data: WeatherResult; children?: ReactNode }) {
   return (
     <div className="weather-footer">
       {children}
       {data.provenance.isFixture && <span className="weather-badge">Sample data — not live</span>}
-      {now && <span className="weather-badge">Demo time {hourLabel(data.window.start)}</span>}
       <span>
         Open-Meteo · updated {clockLabel(data.retrievedAt, data.timeZone)} {shortZone(data.retrievedAt, data.timeZone)}
       </span>

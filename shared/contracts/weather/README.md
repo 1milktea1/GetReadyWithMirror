@@ -68,17 +68,13 @@ changing them does not change the contract shape.
 
 - **Units:** imperial by default; metric on request.
 - **Location:** Columbia University by default; any searchable place on request.
-- **Event window:** from "now" (honoring the demo/test-time override) to the event start. The
-  event start is a fixed moment, independent of which location's weather is shown. Weather
-  obtains it from the calendar feature's public interface. Until that exists, it uses an
-  interim stand-in — see the
-  [backend weather README](../../../backend/src/features/weather/README.md#interim-calendar-stand-in).
+- **Day window:** from "now" (honoring the demo/test-time override) through the end of the
+  forecast location's local day. The 11 PM hour is included. The next day's midnight hour is not.
 - **Fixture flag:** `provenance.isFixture: true`, which the UI must render as a visible label.
 
 ## Open questions
 
 - Does the planner need anything beyond `summary` and `suggestions`?
-- Should the window extend past event start to cover the walk home after dinner?
 
 ## Consumers
 

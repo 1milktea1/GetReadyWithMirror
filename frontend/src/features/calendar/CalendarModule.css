@@ -51,18 +51,6 @@
   font-weight: var(--weight-regular);
 }
 
-.calendar__tag {
-  display: inline-block;
-  margin-top: 0.5rem !important;
-  padding: 0.2em 0.6em;
-  border: 1px solid var(--mirror-edge);
-  border-radius: 999px;
-  font-size: var(--text-micro);
-  font-weight: var(--weight-strong);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-}
-
 /* Agenda */
 
 .calendar__agenda {

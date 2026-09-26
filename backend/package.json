@@ -8,6 +8,13 @@
   "scripts": {
     "dev": "node --env-file-if-exists=.env --watch src/app/server.ts",
     "dev:weather": "node --watch src/features/weather/devServer.ts",
-    "test": "node --test \"src/**/*.test.ts\""
+    "test": "MAPS_LIVE=0 TZ=Asia/Tokyo node --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.3"
   }
 }

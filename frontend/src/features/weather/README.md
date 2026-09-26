@@ -20,16 +20,17 @@ is picked under "Location & units".
 
 - **Compact tile (overview):** current temperature, condition, the afternoon high/low, and the
   most important suggestion.
-- **Expanded view:** hourly outlook from now to the event, precipitation and UV, and every
+- **Expanded view:** hourly outlook from now through the end of the day, precipitation and UV, and every
   suggestion with its reason (for example "Umbrella — 70% chance of rain at 5 PM").
 - **States:** loading, `external-provider-unavailable` ("Weather unavailable"), `no-data`,
   and a visible fixture label when applicable.
 
 ## Layout
 
-Weather lives in the **left column** of the mirror. The calendar takes the right column, and
-the center stays empty so the user can see their reflection. Expanding weather grows the panel
-downward in its column; it never covers the center.
+On the overview, weather is the compact tile in the **left column**, above the getting-ready
+plan. Expanding it (`?expand=weather`, a click, or `expandWidget` for `weather`) opens a
+centered expanded panel. The getting-ready plan and calendar events hide. Time and date stay
+in the top right. Escape returns to the overview.
 
 ## Files
 
@@ -55,7 +56,7 @@ cd frontend && npm install && npm run dev   # UI on http://localhost:5173
 ```
 
 Until voice UI events exist, click the weather panel to expand it and press Escape to return
-to the overview. Add `?now=2026-09-26T14:00:00-04:00` to the URL to test a demo time.
+to the overview. The panel uses the real clock.
 
 ## Does NOT own
 
