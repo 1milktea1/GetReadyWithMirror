@@ -49,8 +49,8 @@ not apply them, drop tasks, or edit the reservation.
 
 ## Consumers
 
-- Frontend overview / planner panel — implemented.
-- Backend assistant, via `generatePreparationPlan`, `updateTaskDuration`, and `markTaskComplete` — not yet.
+All time arithmetic here is computed in **time-zone-aware code**, not produced by Grok
+prose. Grok may explain a result; it may not calculate one.
 
 ## Change rule
 

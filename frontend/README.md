@@ -87,7 +87,7 @@ recognition fails.
 
 ## The rule that shapes this whole layer
 
-**React does not decide intent.** The UI must not string match spoken phrases. Gemini selects
+**React does not decide intent.** The UI must not string match spoken phrases. Grok selects
 intent through a bounded tool list, the backend validates and executes, and React receives a
 **typed UI event**. React owns the actual expansion and fade animation; the assistant never
 generates JSX or manipulates browser elements.

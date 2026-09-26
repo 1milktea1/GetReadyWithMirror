@@ -13,7 +13,8 @@ All scheduling math is deterministic and time-zone aware. Gemini may explain a r
 it does not compute one. This feature makes no external API requests. It calls the calendar
 and maps **public** services and never their adapters.
 
-## Defaults
+All scheduling logic must be **deterministic and time-zone aware**. Task windows, event
+deadlines, travel buffers, and feasibility are computed in code, never by Grok prose.
 
 These answer the open questions in [`docs/demo-scenario.md`](../../../../docs/demo-scenario.md)
 for the demo. They are rehearsal choices, not a closed team decision.

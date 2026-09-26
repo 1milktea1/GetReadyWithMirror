@@ -29,7 +29,7 @@ backend/src/
 │   ├── calendar/   # Calendar provider adapter, upcoming event, auth boundary
 │   ├── maps/       # Routing adapter, travel durations, freshness
 │   ├── planner/    # Tasks, timeline, feasibility, leave-by calculation
-│   ├── assistant/  # Gemini orchestration and UI action dispatch
+│   ├── assistant/  # Grok orchestration and UI action dispatch
 │   └── voice/      # ElevenLabs speech-to-text and text-to-speech
 └── shared/
     ├── config/     # Environment and config handling
@@ -51,11 +51,11 @@ internals. Third-party response shapes stay inside provider adapters.
 a route or controller if exposed over HTTP, service logic, a provider adapter where
 applicable, and feature-local tests.
 
-**Secrets stay server-side.** No Gemini, ElevenLabs, maps, or calendar key goes into a React
+**Secrets stay server-side.** No Grok, ElevenLabs, maps, or calendar key goes into a React
 bundle, into Git, or into documentation. The frontend never calls a provider directly.
 
 **Deterministic time.** Task windows, event deadlines, travel buffers, and feasibility are
-computed in time-zone-aware code — never by Gemini prose. Read "now" through the
+computed in time-zone-aware code — never by Grok prose. Read "now" through the
 demo/test-time override rather than the system clock.
 
 **Degrade cleanly.** A missing credential, an unreachable provider, a denied microphone, or
