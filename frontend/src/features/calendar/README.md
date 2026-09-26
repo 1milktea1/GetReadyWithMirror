@@ -13,9 +13,10 @@ region of the mirror.
   that have already ended are hidden.
 - The **next** event shows a countdown (`in 1 hr 9 min`); an event **under way** shows `Now`
   and its end time (`until 1:30 PM`).
-- **Labels anything not real.** Fixture data shows a `Sample data` tag. A simulated clock shows
-  a bright `Demo time · actual 11:36 AM` tag with the real time, so neither can be mistaken for
-  live conditions. With no `?now=` in the URL, the clock is always the device's real time.
+- **Labels a simulated clock.** A `Demo time · actual 11:36 AM` tag shows the real time beside an
+  overridden one, so it cannot be mistaken for the live clock. With no `?now=` in the URL, the
+  clock is always the device's real time. Fixture *events* carry no on-screen tag; the weather
+  module's `Sample data — not live` badge covers provenance for the mirror as a whole.
 - **Fallbacks** for loading, nothing scheduled, not connected, not set up, and provider
   unavailable — never blank space and never invented events.
 
@@ -67,8 +68,7 @@ The frontend never calls Google directly: credentials must stay server-side. The
 3. **Swap one line** in [`frontend/src/app/App.tsx`](../../app/App.tsx):
    `createFixtureCalendarSource()` becomes the HTTP source.
 
-`CalendarModule` and its tests need no changes. The `Sample data` tag disappears automatically
-because live results carry `provenance: 'live'`.
+`CalendarModule` and its tests need no changes.
 
 Deciding the OAuth flow, scopes, and which calendars to read is open — see
 [`docs/decisions.md`](../../../../docs/decisions.md) D6.
