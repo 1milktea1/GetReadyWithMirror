@@ -1,16 +1,16 @@
 // Deterministic leave-by and getting-ready timeline.
-// Tasks keep the caller's order. A routine that does not fit is returned as a conflict;
-// nothing here shortens, drops, or reorders work to force a feasible plan.
+// Tasks keep the caller's order. The last unfinished task always ends at leave-by,
+// even when the ideal start is already in the past. The planner does not drop or
+// reorder work, and it does not move the reservation.
 
 import type { RouteSource, TransportMode } from '../../../../shared/contracts/maps/types.ts';
 import type {
-  PlanAdjustment,
   PlanPressure,
   PreparationPlan,
   PreparationTask,
   ScheduledTask,
 } from '../../../../shared/contracts/planner/types.ts';
-import { COMFORTABLE_SLACK_MINUTES, MIN_TASK_MINUTES, RELAXED_SLACK_MINUTES } from './defaults.ts';
+import { COMFORTABLE_SLACK_MINUTES, RELAXED_SLACK_MINUTES } from './defaults.ts';
 
 const MINUTE_MS = 60_000;
 
@@ -36,22 +36,13 @@ export interface BuildPlanInput {
   transportMode: TransportMode;
   arrivalBufferMinutes: number;
   tasks: readonly PreparationTask[];
-  /** Other modes for the same trip, used only to phrase a switch the user could accept. */
+  /** Other modes for the same trip. Kept for callers; the schedule does not switch modes. */
   alternateRoutes?: readonly AlternateRoute[];
   calendarProvenance?: 'fixture' | 'live';
   mapsProvenance?: RouteSource;
 }
 
-const MODE_LABEL: Record<TransportMode, string> = {
-  transit: 'Subway',
-  driving: 'Driving',
-  walking: 'Walking',
-  cycling: 'Cycling',
-  rideshare: 'Rideshare',
-};
-
 function pressureFor(slackMinutes: number): PlanPressure {
-  if (slackMinutes < 0) return 'conflict';
   if (slackMinutes < COMFORTABLE_SLACK_MINUTES) return 'tight';
   if (slackMinutes < RELAXED_SLACK_MINUTES) return 'comfortable';
   return 'relaxed';
@@ -65,16 +56,13 @@ function summaryFor(
   event: PlanEventInput,
   pressure: PlanPressure,
   slackMinutes: number,
+  availableMinutes: number,
   eventStarted: boolean,
 ): string {
   if (eventStarted) return `${event.title} has already started.`;
-  if (pressure === 'conflict') {
-    const shortfall = -slackMinutes;
-    const unit = shortfall === 1 ? 'minute' : 'minutes';
-    return `${shortfall} ${unit} short of finishing before you need to leave for ${where(event)}.`;
-  }
-  if (pressure === 'tight' && slackMinutes === 0) {
-    return `Start getting ready now — no spare time before you leave for ${where(event)}.`;
+  if (availableMinutes < 0) return `Leave now for ${where(event)}.`;
+  if (pressure === 'tight' && slackMinutes <= 0) {
+    return `Start getting ready now — the routine ends when you leave for ${where(event)}.`;
   }
   if (pressure === 'tight') {
     const unit = slackMinutes === 1 ? 'minute' : 'minutes';
@@ -82,70 +70,6 @@ function summaryFor(
   }
   if (pressure === 'comfortable') return `On track to leave for ${where(event)}.`;
   return `Plenty of time before you leave for ${where(event)}.`;
-}
-
-function adjustmentsFor(
-  tasks: readonly PreparationTask[],
-  shortfall: number,
-  bufferMinutes: number,
-  travelMinutes: number,
-  mode: TransportMode,
-  alternates: readonly AlternateRoute[],
-): PlanAdjustment[] {
-  const adjustments: PlanAdjustment[] = [];
-  const unfinished = tasks.filter((task) => !task.completed);
-  const longest = unfinished.reduce<PreparationTask | undefined>(
-    (best, task) => (!best || task.durationMinutes > best.durationMinutes ? task : best),
-    undefined,
-  );
-
-  if (longest && longest.durationMinutes > MIN_TASK_MINUTES) {
-    const save = Math.min(longest.durationMinutes - MIN_TASK_MINUTES, shortfall);
-    const nextDuration = longest.durationMinutes - save;
-    const resolves = save >= shortfall;
-    adjustments.push({
-      id: `shorten-${longest.id}`,
-      label: resolves
-        ? `Shorten ${longest.name} from ${longest.durationMinutes} to ${nextDuration} minutes.`
-        : `Shorten ${longest.name} from ${longest.durationMinutes} to ${nextDuration} minutes — saves ${save}, still ${shortfall - save} short.`,
-      savesMinutes: save,
-      resolves,
-      action: { type: 'shorten-task', taskId: longest.id, durationMinutes: nextDuration },
-    });
-  }
-
-  if (bufferMinutes > 0) {
-    const save = Math.min(bufferMinutes, shortfall);
-    const resolves = save >= shortfall;
-    adjustments.push({
-      id: 'reduce-buffer',
-      label: resolves
-        ? `Arrive at the reservation instead of ${bufferMinutes} minutes early.`
-        : `Drop the ${bufferMinutes}-minute early arrival — saves ${save}, still ${shortfall - save} short.`,
-      savesMinutes: save,
-      resolves,
-      action: { type: 'set-buffer', arrivalBufferMinutes: bufferMinutes - save },
-    });
-  }
-
-  const faster = alternates
-    .filter((route) => route.mode !== mode && route.durationMinutes < travelMinutes)
-    .sort((a, b) => a.durationMinutes - b.durationMinutes)[0];
-  if (faster) {
-    const save = travelMinutes - faster.durationMinutes;
-    const resolves = save >= shortfall;
-    adjustments.push({
-      id: `mode-${faster.mode}`,
-      label: resolves
-        ? `${MODE_LABEL[faster.mode]} instead of ${MODE_LABEL[mode]} — saves ${save} minutes.`
-        : `${MODE_LABEL[faster.mode]} instead of ${MODE_LABEL[mode]} — saves ${save} minutes, still ${shortfall - save} short.`,
-      savesMinutes: save,
-      resolves,
-      action: { type: 'set-mode', mode: faster.mode },
-    });
-  }
-
-  return adjustments.sort((a, b) => Number(b.resolves) - Number(a.resolves) || b.savesMinutes - a.savesMinutes);
 }
 
 export function buildPlan(input: BuildPlanInput): PreparationPlan {
@@ -156,16 +80,13 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
   // Floor so a partial minute is not treated as time the user still has.
   const availableMinutes = Math.floor((leaveByMs - input.now.getTime()) / MINUTE_MS);
   const slackMinutes = availableMinutes - neededMinutes;
-  const feasible = slackMinutes >= 0;
-  const pressure = pressureFor(slackMinutes);
   const eventStarted = input.event.start.getTime() <= input.now.getTime();
   const idealStartMs = leaveByMs - neededMinutes * MINUTE_MS;
-  // Feasible plans wait until the just-in-time start. Conflicts run forward from now
-  // so the timeline shows the overrun instead of a schedule that pretends to fit.
-  const routineStartMs = feasible ? Math.max(input.now.getTime(), idealStartMs) : input.now.getTime();
+  // Always pack just-in-time so the last unfinished task ends at leave-by.
+  const routineStartMs = idealStartMs;
 
   let cursor = routineStartMs;
-  const windows = new Map<string, { start: string; end: string; overruns: boolean }>();
+  const windows = new Map<string, { start: string; end: string }>();
   for (const task of unfinished) {
     const startMs = cursor;
     const endMs = cursor + task.durationMinutes * MINUTE_MS;
@@ -173,7 +94,6 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
     windows.set(task.id, {
       start: new Date(startMs).toISOString(),
       end: new Date(endMs).toISOString(),
-      overruns: endMs > leaveByMs,
     });
   }
 
@@ -197,16 +117,16 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
       completed: false,
       start: window.start,
       end: window.end,
-      overruns: window.overruns,
+      overruns: false,
     };
   });
 
-  const shortfall = feasible ? 0 : -slackMinutes;
   const calendar = input.calendarProvenance ?? 'fixture';
   const maps = input.mapsProvenance ?? 'fixture';
+  const pressure = pressureFor(Math.max(slackMinutes, 0));
 
   return {
-    status: feasible ? 'ok' : 'schedule-conflict',
+    status: 'ok',
     timeZone: input.timeZone,
     now: input.now.toISOString(),
     event: {
@@ -227,25 +147,10 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
     startGettingReadyAt: new Date(idealStartMs).toISOString(),
     tasks,
     slackMinutes,
-    feasible,
+    feasible: true,
     pressure,
-    summary: summaryFor(input.event, pressure, slackMinutes, eventStarted),
-    conflict: feasible
-      ? null
-      : {
-          shortfallMinutes: shortfall,
-          unfinishedTaskIds: unfinished.map((task) => task.id),
-          adjustments: eventStarted
-            ? []
-            : adjustmentsFor(
-                input.tasks,
-                shortfall,
-                input.arrivalBufferMinutes,
-                input.travelMinutes,
-                input.transportMode,
-                input.alternateRoutes ?? [],
-              ),
-        },
+    summary: summaryFor(input.event, pressure, slackMinutes, availableMinutes, eventStarted),
+    conflict: null,
     provenance: { calendar, maps, isFixture: maps === 'fixture' },
   };
 }

@@ -1,7 +1,7 @@
 // Demo defaults for the three open questions in docs/demo-scenario.md.
 // They are rehearsal choices, not a team decision: transit because the demo user is
 // at Columbia without assuming a car, 10 minutes so they walk in a little early,
-// and a 45-minute routine so 5:30 PM is tight and 6:00 PM does not fit.
+// and a 45-minute routine so 5:30 PM is tight. A later clock still ends at leave-by.
 
 import type { PreparationTask } from '../../../../shared/contracts/planner/types.ts';
 import type { TransportMode } from '../../../../shared/contracts/maps/types.ts';

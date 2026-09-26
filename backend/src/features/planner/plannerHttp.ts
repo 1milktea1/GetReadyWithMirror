@@ -5,9 +5,8 @@
 //   tasks   — optional id:minutes list, comma-separated, replacing the default routine
 //   done    — optional comma-separated task ids to mark complete
 //
-// A schedule conflict is HTTP 200 with data.status "schedule-conflict". It is a real
-// answer, not a failed request. 400 and 404 are reserved for unusable input and missing
-// upstream data.
+// A usable plan is HTTP 200 with data.status "ok". The last unfinished task ends at
+// leave-by. 400 and 404 are reserved for unusable input and missing upstream data.
 
 import { isTransportMode } from '../maps/mapsService.ts';
 import type { PlannerError, PlannerErrorStatus, PlannerResponse, PreparationTask } from '../../../../shared/contracts/planner/types.ts';

@@ -20,7 +20,7 @@ The HTTP query and `generatePreparationPlan` carry:
 
 ## Output: `PreparationPlan`
 
-Returned as `{ ok: true, data }` even when the routine does not fit.
+Returned as `{ ok: true, data }`. The last unfinished task always ends at leave-by.
 
 | Field | Purpose |
 |---|---|

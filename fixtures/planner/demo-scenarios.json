@@ -1,5 +1,5 @@
 {
-  "description": "SYNTHETIC planner rehearsal cases for the 7 PM Soothr dinner. Not a live schedule. Each case uses the maps fixture transit duration and the default buffer and tasks. noon is relaxed, 4 PM is comfortable, 5:30 PM is tight, 6 PM conflicts, and 5:30 PM with 20 extra minutes of hair also conflicts.",
+  "description": "SYNTHETIC planner rehearsal cases for the 7 PM Soothr dinner. Not a live schedule. Each case uses the maps fixture transit duration and the default buffer and tasks. noon is relaxed, 4 PM is comfortable, 5:30 PM is tight, and a later clock or a longer hair block still ends at leave-by.",
   "timeZone": "America/New_York",
   "date": "2026-09-26",
   "event": {
@@ -25,15 +25,13 @@
     { "id": "noon", "nowTime": "12:00", "pressure": "relaxed", "feasible": true },
     { "id": "four-pm-comfortable", "nowTime": "16:00", "pressure": "comfortable", "feasible": true },
     { "id": "five-thirty", "nowTime": "17:30", "pressure": "tight", "feasible": true },
-    { "id": "six-pm", "nowTime": "18:00", "pressure": "conflict", "feasible": false, "shortfallMinutes": 30 },
+    { "id": "six-pm", "nowTime": "18:00", "pressure": "tight", "feasible": true },
     {
       "id": "hair-plus-20-at-five-thirty",
       "nowTime": "17:30",
       "taskOverrides": { "hair": 40 },
-      "pressure": "conflict",
-      "feasible": false,
-      "shortfallMinutes": 20,
-      "resolvingAdjustment": "shorten-hair"
+      "pressure": "tight",
+      "feasible": true
     }
   ]
 }
