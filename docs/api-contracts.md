@@ -29,8 +29,7 @@ event address is required for accurate routing.
 
 **Planner input** — current (or overridden demo) time, event time, venue, route duration,
 preferred arrival buffer, named preparation tasks and durations.
-**Planner output** — a feasible schedule, **or** an explicit conflict with suggested
-adjustments.
+**Planner output** — a schedule whose last unfinished task ends at leave-by.
 
 **Agent tools** — `expandWidget`, `collapseWidget`, `showOverview`, `getWeather`,
 `getUpcomingEvent`, `getCommute`, `generatePreparationPlan`, `updateTaskDuration`,

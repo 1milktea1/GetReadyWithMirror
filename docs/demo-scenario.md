@@ -63,7 +63,7 @@ timeline.
 
 ### 6. "Actually, give me 20 more minutes for my hair."
 
-Grok identifies the update. The planner **recalculates** and explains any conflict.
+Grok identifies the update. The planner **recalculates** so the last task still ends at leave-by.
 
 It must **not** silently remove tasks, and must **not** change the calendar reservation.
 
@@ -98,7 +98,7 @@ Fixture scenarios worth covering, all against the same 7 PM event:
 | 12 PM | Ample time; relaxed plan |
 | 4 PM | Comfortable plan |
 | 5:30 PM | Tight; buffer under pressure |
-| 6 PM | Likely **conflict** — exercises the conflict path |
+| 6 PM | Tight; getting-ready windows still end at leave-by |
 
 Fixtures do not exist yet. See [`fixtures/`](../fixtures/README.md).
 
@@ -115,7 +115,8 @@ Until the questions below are settled by the team, the planner uses these rehear
 | Leave-by | 6:15 PM |
 | Tasks | Shower 15, hair 20, get dressed 10 |
 
-That routine must start at 5:30 PM, which is why 5:30 is tight and 6:00 conflicts.
+That routine must start at 5:30 PM, which is why 5:30 is tight. A later clock keeps the
+same windows so the last task still ends at leave-by.
 
 ## Open questions
 

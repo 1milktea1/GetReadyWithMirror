@@ -25,11 +25,13 @@ test('Express mounts health, maps, and the planner', async () => {
 
     const planner = (await (await fetch(`${base}/api/planner?now=2026-09-26T18:00:00-04:00`)).json()) as {
       ok: boolean;
-      data: { status: string; conflict: { shortfallMinutes: number } | null };
+      data: { status: string; leaveBy: { at: string }; tasks: { end: string | null; overruns: boolean }[] };
     };
     assert.equal(planner.ok, true);
-    assert.equal(planner.data.status, 'schedule-conflict');
-    assert.equal(planner.data.conflict?.shortfallMinutes, 30);
+    assert.equal(planner.data.status, 'ok');
+    const last = planner.data.tasks.at(-1);
+    assert.equal(last?.end, planner.data.leaveBy.at);
+    assert.equal(planner.data.tasks.some((task) => task.overruns), false);
   } finally {
     server.close();
     await once(server, 'close');

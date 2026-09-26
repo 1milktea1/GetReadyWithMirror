@@ -42,8 +42,6 @@ interface ScenarioFile {
     taskOverrides?: Record<string, number>;
     pressure: string;
     feasible: boolean;
-    shortfallMinutes?: number;
-    resolvingAdjustment?: string;
   }[];
 }
 
@@ -88,27 +86,20 @@ function planFromScenario(file: ScenarioFile, scenario: ScenarioFile['scenarios'
   return { plan: buildPlan(input), leaveBy: zonedTimeToUtc(wall(file.assumptions.leaveByTime), file.timeZone) };
 }
 
-test('demo scenarios: noon, 4 PM, 5:30 PM, 6 PM, and a hair conflict', async () => {
+test('demo scenarios: noon, 4 PM, 5:30 PM, 6 PM, and extra hair still end at leave-by', async () => {
   const file = loadScenarios();
   for (const scenario of file.scenarios) {
     const { plan, leaveBy } = planFromScenario(file, scenario);
     assert.equal(plan.pressure, scenario.pressure, scenario.id);
     assert.equal(plan.feasible, scenario.feasible, scenario.id);
+    assert.equal(plan.status, 'ok', scenario.id);
+    assert.equal(plan.conflict, null, scenario.id);
     assert.equal(plan.leaveBy.at, leaveBy.toISOString(), scenario.id);
     assert.equal(plan.event.start, '2026-09-26T23:00:00.000Z', scenario.id);
     assert.equal(plan.tasks.length, file.assumptions.tasks.length, scenario.id);
-    if (scenario.shortfallMinutes !== undefined) {
-      assert.equal(plan.conflict?.shortfallMinutes, scenario.shortfallMinutes, scenario.id);
-    } else {
-      assert.equal(plan.conflict, null, scenario.id);
-    }
-    if (scenario.resolvingAdjustment) {
-      assert.equal(
-        plan.conflict?.adjustments.some((item) => item.id === scenario.resolvingAdjustment && item.resolves),
-        true,
-        scenario.id,
-      );
-    }
+    const last = plan.tasks.at(-1);
+    assert.equal(last?.end, leaveBy.toISOString(), scenario.id);
+    assert.equal(plan.tasks.some((task) => task.overruns), false, scenario.id);
   }
 });
 
@@ -130,21 +121,27 @@ test('a feasible plan is just-in-time and ends at leave-by', async () => {
   assert.equal(plan.tasks.some((task) => task.overruns), false);
 });
 
-test('a 6 PM conflict keeps every task and does not move dinner', async () => {
+test('a 6 PM plan still ends at leave-by and does not move dinner', async () => {
   const result = await generatePreparationPlan({ now: at('18:00') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
-  assert.equal(result.data.status, 'schedule-conflict');
-  assert.equal(result.data.conflict?.shortfallMinutes, 30);
+  assert.equal(result.data.status, 'ok');
+  assert.equal(result.data.feasible, true);
+  assert.equal(result.data.conflict, null);
   assert.deepEqual(
     result.data.tasks.map((task) => task.id),
     ['shower', 'hair', 'dressed'],
   );
   assert.equal(result.data.event.start, at('19:00').toISOString());
   assert.equal(result.data.leaveBy.at, at('18:15').toISOString());
-  assert.equal(result.data.tasks[0].start, at('18:00').toISOString());
-  assert.equal(result.data.tasks[1].overruns, true);
-  assert.equal(result.data.conflict?.adjustments.every((item) => !item.resolves), true);
+  assert.deepEqual(
+    result.data.tasks.map((task) => [task.id, task.start, task.end, task.overruns]),
+    [
+      ['shower', at('17:30').toISOString(), at('17:45').toISOString(), false],
+      ['hair', at('17:45').toISOString(), at('18:05').toISOString(), false],
+      ['dressed', at('18:05').toISOString(), at('18:15').toISOString(), false],
+    ],
+  );
   assert.equal(result.data.provenance.isFixture, true);
 });
 
@@ -158,7 +155,7 @@ test('5:30 PM with the default routine is tight but feasible', async () => {
   assert.equal(result.data.tasks[0].start, at('17:30').toISOString());
 });
 
-test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', async () => {
+test('twenty more minutes of hair at 5:30 PM still ends at leave-by', async () => {
   const tasks = updateTaskDuration(DEFAULT_TASKS, 'hair', 40);
   assert.ok(tasks);
   assert.equal(tasks.length, DEFAULT_TASKS.length);
@@ -169,11 +166,11 @@ test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', a
   const result = await generatePreparationPlan({ now: at('17:30'), tasks });
   assert.equal(result.ok, true);
   if (!result.ok) return;
-  assert.equal(result.data.feasible, false);
-  assert.equal(result.data.conflict?.shortfallMinutes, 20);
-  const shorten = result.data.conflict?.adjustments.find((item) => item.id === 'shorten-hair');
-  assert.equal(shorten?.resolves, true);
-  assert.deepEqual(shorten?.action, { type: 'shorten-task', taskId: 'hair', durationMinutes: 20 });
+  assert.equal(result.data.feasible, true);
+  assert.equal(result.data.conflict, null);
+  assert.equal(result.data.startGettingReadyAt, at('17:10').toISOString());
+  assert.equal(result.data.tasks.at(-1)?.end, result.data.leaveBy.at);
+  assert.equal(result.data.tasks.some((task) => task.overruns), false);
   assert.equal(result.data.event.id, 'fixture-dinner');
 });
 
@@ -188,7 +185,8 @@ test('marking tasks done does not remove them', async () => {
   if (!result.ok) return;
   assert.equal(result.data.tasks[0].completed, true);
   assert.equal(result.data.tasks[0].start, null);
-  assert.equal(result.data.conflict?.shortfallMinutes, 15);
+  assert.equal(result.data.conflict, null);
+  assert.equal(result.data.tasks.at(-1)?.end, result.data.leaveBy.at);
 });
 
 test('task order is the caller\'s order', async () => {
@@ -208,13 +206,15 @@ test('unknown task edits are rejected and do not change the list', async () => {
   assert.equal(markTaskComplete(DEFAULT_TASKS, 'nails'), null);
 });
 
-test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored', async () => {
-  const conflict = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T18:00:00-04:00'));
-  assert.equal(conflict.status, 200);
-  assert.equal(conflict.body.ok, true);
-  if (!conflict.body.ok) return;
-  assert.equal(conflict.body.data.status, 'schedule-conflict');
-  assert.equal(conflict.body.data.pressure, 'conflict');
+test('HTTP planner: a late clock is 200 and still ends at leave-by; bad input is 400', async () => {
+  const six = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T18:00:00-04:00'));
+  assert.equal(six.status, 200);
+  assert.equal(six.body.ok, true);
+  if (!six.body.ok) return;
+  assert.equal(six.body.data.status, 'ok');
+  assert.equal(six.body.data.pressure, 'tight');
+  assert.equal(six.body.data.conflict, null);
+  assert.equal(six.body.data.tasks.at(-1)?.end, six.body.data.leaveBy.at);
 
   const noon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T12:00:00-04:00'));
   assert.equal(noon.status, 200);
@@ -231,7 +231,8 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   const hair = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T17:30:00-04:00&tasks=shower:15,hair:40,dressed:10'));
   assert.equal(hair.status, 200);
   if (!hair.body.ok) return;
-  assert.equal(hair.body.data.conflict?.shortfallMinutes, 20);
+  assert.equal(hair.body.data.conflict, null);
+  assert.equal(hair.body.data.tasks.at(-1)?.end, hair.body.data.leaveBy.at);
 });
 
 test('after dinner has ended the planner reports no-data instead of inventing an event', async () => {

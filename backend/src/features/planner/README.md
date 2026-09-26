@@ -33,13 +33,12 @@ With those numbers the demo clock lands on the scenario matrix:
 | 12:00 PM | Relaxed. Routine still starts at 5:30 PM |
 | 4:00 PM | Comfortable |
 | 5:30 PM | Tight. Start now; the routine ends exactly at leave-by |
-| 6:00 PM | Conflict. 30 minutes short. Tasks stay on the plan |
-| 5:30 PM, hair 40 | Conflict. 20 minutes short. Shortening hair back to 20 resolves it |
+| 6:00 PM | Tight. Windows stay 5:30–6:15 so the last task still ends at leave-by |
+| 5:30 PM, hair 40 | Tight. Start moves to 5:10 so the longer routine still ends at leave-by |
 
 Slack is free minutes before the routine. 120 or more is relaxed, 30 or more is comfortable,
-zero or more is tight, and anything negative is a conflict. A conflict is a successful
-response (`status: "schedule-conflict"`, HTTP 200). The planner does not drop, shorten, or
-reorder tasks to hide it, and it does not move the reservation.
+and below 30 is tight. A late clock does not overrun leave-by. The planner does not drop,
+shorten, or reorder tasks, and it does not move the reservation.
 
 Task order is the caller's. The default order is shower, then hair, then dressed.
 
@@ -56,11 +55,10 @@ Task order is the caller's. The default order is shower, then hair, then dressed
 ## Public outputs
 
 A `PreparationPlan` ([types](../../../../shared/contracts/planner/types.ts)): leave-by, per-task
-windows, pressure, and either `conflict: null` or a shortfall plus adjustments the user may
-accept. Adjustments are never applied automatically.
+windows, and pressure. The last unfinished task always ends at leave-by.
 
-Feasible plans are scheduled just-in-time so the last task ends at leave-by. Conflicts are
-scheduled forward from now so the timeline shows the overrun.
+Plans are scheduled just-in-time from leave-by. If the ideal start is already in the past,
+the windows stay anchored to leave-by instead of running past it.
 
 ## Upstream dependencies
 
@@ -78,7 +76,8 @@ scheduled forward from now so the timeline shows the overrun.
 
 - `input-invalid` — bad clock, buffer, mode, or task list (HTTP 400).
 - `no-data` — no upcoming address, or no fixture route (HTTP 404).
-- `schedule-conflict` — tasks do not fit. This is the plan itself, not an error envelope.
+- `schedule-conflict` — reserved on the contract. The current planner always returns `ok`
+  with windows that end at leave-by.
 
 ## HTTP
 
@@ -97,11 +96,11 @@ scheduled forward from now so the timeline shows the overrun.
 | File | Role |
 |---|---|
 | `plannerService.ts` | Public `generatePreparationPlan`. |
-| `schedule.ts` | Leave-by, timeline, pressure, and conflict adjustments. |
+| `schedule.ts` | Leave-by, timeline, and pressure. |
 | `tasks.ts` | `updateTaskDuration` and `markTaskComplete`. |
 | `defaults.ts` | Buffer, mode, task durations, and slack thresholds. |
 | `plannerHttp.ts` | `GET /api/planner`. |
-| `planner.test.ts` | Scenario matrix, conflict behavior, and HTTP validation. |
+| `planner.test.ts` | Scenario matrix, leave-by alignment, and HTTP validation. |
 
 Mounted by [`backend/src/app/createApp.ts`](../../app/createApp.ts). From `backend/`:
 
@@ -111,8 +110,8 @@ npm run dev    # http://localhost:3001/api/planner?now=2026-09-26T16:00:00-04:00
 ```
 
 Try `now` at `12:00`, `14:00`, `15:30`, and `16:00` on a New York afternoon (`-04:00` during
-daylight time, `-05:00` in winter). Add `&tasks=shower:15,hair:40,dressed:10` for the extra
-hair conflict.
+daylight time, `-05:00` in winter). Add `&tasks=shower:15,hair:40,dressed:10` to start the
+routine earlier so the longer hair block still ends at leave-by.
 
 ## Does NOT own
 

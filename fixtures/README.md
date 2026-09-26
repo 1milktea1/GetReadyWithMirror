@@ -37,7 +37,7 @@ fixtures/
 ├── weather/    # Synthetic forecast scenarios
 ├── calendar/   # demo-day.json — synthetic agenda including the 7 PM dinner at Soothr
 ├── maps/       # columbia-to-soothr.json — rehearsal durations and pin coordinates; live routers fill modes they can
-└── planner/    # demo-scenarios.json — noon, 4 PM, 5:30 PM, 6 PM, and a hair conflict
+└── planner/    # demo-scenarios.json — noon, 4 PM, 5:30 PM, 6 PM, and extra hair still ending at leave-by
 ```
 
 ## The labeling rule
@@ -66,8 +66,8 @@ The same 7 PM dinner against the maps fixture and the default 45-minute routine:
 | 12:00 PM | relaxed |
 | 4:00 PM | comfortable |
 | 5:30 PM | tight |
-| 6:00 PM | conflict (30 minutes short) |
-| 5:30 PM with hair at 40 minutes | conflict (20 minutes short) |
+| 6:00 PM | tight — last task still ends at leave-by |
+| 5:30 PM with hair at 40 minutes | tight — start moves earlier so the routine still ends at leave-by |
 
 Backend planner tests read this file. See [`docs/demo-scenario.md`](../docs/demo-scenario.md).
 
