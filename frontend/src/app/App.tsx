@@ -73,15 +73,21 @@ export function App() {
           <MapPanel mode={mode} onModeChange={setMode} now={plannerNow} />
         </div>
       )}
-      {!mapOpen && (
-        <div className="mirror__region mirror__region--top-left">
+      <div className="mirror__region mirror__region--left">
+        {!mapOpen && (
           <WeatherPanel
             expanded={expanded === 'weather'}
             onToggle={() => setExpanded(expanded === 'weather' ? null : 'weather')}
             now={weatherNow}
           />
-        </div>
-      )}
+        )}
+        <PlannerPanel
+          expanded={expanded === 'planner'}
+          onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
+          now={plannerNow}
+          mode={mode}
+        />
+      </div>
       <div className="mirror__region mirror__region--top-right">
         <CalendarModule
           now={now}
@@ -90,16 +96,6 @@ export function App() {
           clockOnly={mapOpen}
         />
       </div>
-      {!mapOpen && (
-        <div className="mirror__region mirror__region--middle">
-          <PlannerPanel
-            expanded={expanded === 'planner'}
-            onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
-            now={plannerNow}
-            mode={mode}
-          />
-        </div>
-      )}
     </main>
   )
 }

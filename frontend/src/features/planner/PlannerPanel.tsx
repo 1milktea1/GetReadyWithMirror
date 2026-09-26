@@ -30,12 +30,16 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
   const { state, retry } = usePlanner(buildPlannerQuery({ now, tasks, done, mode }));
 
   if (state.status === 'loading') {
-    return <section className="planner planner--status">Loading your plan…</section>;
+    return (
+      <section className="planner planner--status" aria-label="Getting ready">
+        Loading your plan…
+      </section>
+    );
   }
 
   if (state.status === 'error') {
     return (
-      <section className="planner planner--status" role="alert">
+      <section className="planner planner--status" role="alert" aria-label="Getting ready">
         <div className="planner__label">Getting ready</div>
         <p className="planner__summary">{state.error.message}</p>
         <button type="button" className="planner__button" onClick={retry}>

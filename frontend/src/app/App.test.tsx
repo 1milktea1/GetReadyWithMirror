@@ -28,13 +28,16 @@ describe('overview map', () => {
     expect(await screen.findByText('No weather')).toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Calendar' })).toBeInTheDocument()
     expect(screen.getByText('Upcoming')).toBeInTheDocument()
+    expect(screen.getByText('No plan')).toBeInTheDocument()
+    expect(screen.getByLabelText('Getting ready')).toBeInTheDocument()
 
     window.mirrorCommand?.({ action: 'expandWidget', widget: 'map' })
     expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
     expect(screen.queryByText('No weather')).not.toBeInTheDocument()
     expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
-    expect(screen.queryByText('No plan')).not.toBeInTheDocument()
+    expect(screen.getByText('No plan')).toBeInTheDocument()
+    expect(screen.getByLabelText('Getting ready')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(screen.queryByRole('region', { name: 'Route map' })).not.toBeInTheDocument()

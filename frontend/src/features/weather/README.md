@@ -27,9 +27,10 @@ is picked under "Location & units".
 
 ## Layout
 
-Weather lives in the **left column** of the mirror. The calendar takes the right column, and
-the center stays empty so the user can see their reflection. Expanding weather grows the panel
-downward in its column; it never covers the center.
+Weather lives in the **left column** of the mirror, above the getting-ready plan and leave-by.
+The calendar takes the right column, and the center stays empty so the user can see their
+reflection. Expanding weather grows the panel downward in its column; it never covers the
+center.
 
 ## Files
 

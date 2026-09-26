@@ -80,9 +80,9 @@ frontend/src/
 └── test/         # Vitest setup
 ```
 
-The mirror layout in [`src/app/App.css`](src/app/App.css) defines screen regions (top-left,
-top-right, middle, bottom). Unfilled regions stay pure black. On screens narrower than 52rem the
-regions stack full width.
+The mirror layout in [`src/app/App.css`](src/app/App.css) defines screen regions (left column
+for weather, plan, and leave-by; top-right for clock and calendar). Unfilled regions stay
+pure black. On screens narrower than 52rem the regions stack full width.
 
 ## Display behavior
 

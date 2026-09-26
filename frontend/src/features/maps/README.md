@@ -8,9 +8,9 @@ dark. CARTO's public dark tiles currently return a key watermark, so they are no
 does not call Google, Transitous, or Valhalla and never sees `GOOGLE_MAPS_API_KEY`.
 
 The overview shows the map only after `expandWidget` for `map` (voice agent or physical motion
-agent) or `?expand=map`. Weather, the calendar agenda, and the getting-ready plan hide. The
-clock stays. `showOverview` or Escape restores the dashboard. A subway result with no path
-draws the two pins and no connecting line.
+agent) or `?expand=map`. Weather and the calendar agenda hide. The clock stays top-right.
+The leave-by plan stays on the left. `showOverview` or Escape restores the dashboard. A
+subway result with no path draws the two pins and no connecting line.
 
 Subway, Walk, Drive, and Rideshare are selectable. Subway is the default. The chosen mode is
 owned by the overview and passed to the planner, so leave-by uses that mode's duration.
