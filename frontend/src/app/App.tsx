@@ -14,12 +14,19 @@ import './App.css'
 
 const calendarSource = createFixtureCalendarSource()
 
-type ExpandedModule = 'weather' | 'planner' | 'map' | null
+type ExpandedModule = 'weather' | 'calendar' | 'planner' | 'map' | null
 
 function expandFromLocation(): ExpandedModule {
   const widget = new URLSearchParams(window.location.search).get('expand')
-  if (widget === 'map' || widget === 'weather') return widget
+  if (widget === 'map' || widget === 'weather' || widget === 'calendar') return widget
   return null
+}
+
+function screenClass(expanded: ExpandedModule): string {
+  if (expanded === 'map') return 'mirror mirror--map'
+  if (expanded === 'weather') return 'mirror mirror--weather'
+  if (expanded === 'calendar') return 'mirror mirror--calendar'
+  return 'mirror'
 }
 
 export function App() {
@@ -28,7 +35,8 @@ export function App() {
   const [mode, setMode] = useState<TransportMode>('transit')
   const mapOpen = expanded === 'map'
   const weatherOpen = expanded === 'weather'
-  const screenClass = mapOpen ? 'mirror mirror--map' : weatherOpen ? 'mirror mirror--weather' : 'mirror'
+  const calendarOpen = expanded === 'calendar'
+  const focusOpen = weatherOpen || calendarOpen
 
   useEffect(() => {
     window.mirrorCommand = (command: MirrorCommand) => publishMirrorCommand(command)
@@ -43,7 +51,12 @@ export function App() {
         setExpanded(null)
         return
       }
-      if (command.widget === 'map' || command.widget === 'weather' || command.widget === 'planner') {
+      if (
+        command.widget === 'map' ||
+        command.widget === 'weather' ||
+        command.widget === 'calendar' ||
+        command.widget === 'planner'
+      ) {
         setExpanded(command.widget)
       }
     })
@@ -59,7 +72,7 @@ export function App() {
   }, [])
 
   return (
-    <main className={screenClass}>
+    <main className={screenClass(expanded)}>
       {mapOpen && (
         <div className="mirror__region mirror__region--map">
           <MapPanel mode={mode} onModeChange={setMode} />
@@ -70,7 +83,18 @@ export function App() {
           <WeatherPanel expanded onToggle={() => setExpanded(null)} />
         </div>
       )}
-      {!weatherOpen && (
+      {calendarOpen && (
+        <div className="mirror__region mirror__region--calendar">
+          <CalendarModule
+            now={now}
+            source={calendarSource}
+            agendaOnly
+            maxEvents={12}
+            onActivate={() => setExpanded(null)}
+          />
+        </div>
+      )}
+      {!focusOpen && (
         <div className="mirror__region mirror__region--left">
           {!mapOpen && (
             <WeatherPanel expanded={false} onToggle={() => setExpanded('weather')} />
@@ -83,7 +107,13 @@ export function App() {
         </div>
       )}
       <div className="mirror__region mirror__region--top-right">
-        <CalendarModule now={now} source={calendarSource} clockOnly={mapOpen} hideAgenda={weatherOpen} />
+        <CalendarModule
+          now={now}
+          source={calendarSource}
+          clockOnly={mapOpen}
+          hideAgenda={weatherOpen || calendarOpen}
+          onActivate={calendarOpen ? undefined : () => setExpanded('calendar')}
+        />
       </div>
     </main>
   )

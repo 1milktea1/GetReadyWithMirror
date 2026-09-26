@@ -74,37 +74,53 @@
   padding: 0.35rem 0.15rem 0.35rem 0.8rem;
 }
 
-/* Expanded weather: the panel sits in the center. Time and date stay top-right. */
-.mirror.mirror--weather {
+/* Expanded weather or calendar: the panel sits in the center. Time and date stay top-right. */
+.mirror.mirror--weather,
+.mirror.mirror--calendar {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     'clock'
-    'weather';
+    'focus';
 }
 
-.mirror--weather .mirror__region--top-right {
+.mirror--weather .mirror__region--top-right,
+.mirror--calendar .mirror__region--top-right {
   grid-area: clock;
   justify-self: end;
   align-self: start;
   width: auto;
 }
 
-.mirror--weather .calendar__date {
+.mirror--weather .calendar__date,
+.mirror--calendar .calendar__date {
   white-space: nowrap;
 }
 
-.mirror__region--weather {
-  grid-area: weather;
+.mirror__region--weather,
+.mirror__region--calendar {
+  grid-area: focus;
   justify-self: center;
   align-self: center;
   width: max-content;
   max-width: min(42rem, 92vw);
 }
 
+.calendar--agenda {
+  text-align: left;
+}
+
+.calendar--agenda .calendar__agenda-header {
+  justify-content: flex-start;
+}
+
+.calendar__agenda[role='button'] {
+  cursor: pointer;
+}
+
 /* Below this width a 42vw corner module gets too cramped to read, so regions stack full width. */
 @media (max-width: 52rem) {
-  .mirror:not(.mirror--map):not(.mirror--weather) {
+  .mirror:not(.mirror--map):not(.mirror--weather):not(.mirror--calendar) {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto 1fr;
     grid-template-areas:
@@ -113,8 +129,8 @@
       '.';
   }
 
-  .mirror:not(.mirror--map):not(.mirror--weather) .mirror__region--left,
-  .mirror:not(.mirror--map):not(.mirror--weather) .mirror__region--top-right {
+  .mirror:not(.mirror--map):not(.mirror--weather):not(.mirror--calendar) .mirror__region--left,
+  .mirror:not(.mirror--map):not(.mirror--weather):not(.mirror--calendar) .mirror__region--top-right {
     width: min(34rem, 100%);
   }
 }

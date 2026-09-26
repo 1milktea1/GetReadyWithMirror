@@ -71,6 +71,29 @@ describe('overview map', () => {
     expect(screen.getByText('No plan')).toBeInTheDocument()
   })
 
+  it('opens expanded calendar in the center with only the time and date', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }),
+      })),
+    )
+    render(<App />)
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+    expect(screen.getByLabelText('Getting ready')).toBeInTheDocument()
+
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'calendar' })
+    await waitFor(() => expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument())
+    expect(screen.getByText('Upcoming')).toBeInTheDocument()
+    expect(screen.queryByText('Weather unavailable')).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Calendar' })).toBeInTheDocument()
+    expect(screen.getByText(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/)).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(await screen.findByLabelText('Getting ready')).toBeInTheDocument()
+  })
+
   it('keeps the real clock when the URL has ?now=', async () => {
     vi.stubGlobal(
       'fetch',
