@@ -1,19 +1,79 @@
 # Frontend Feature: Calendar
 
 **Owner:** TBD
-**Status:** Not implemented
+**Status:** Implemented with synthetic fixture data. Not yet connected to Google Calendar.
 
-Renders the upcoming event in compact and expanded form. Responds to "show my calendar" via a
-typed UI event.
+Shows the current New York time and date, then up to four upcoming events, in the top-right
+region of the mirror.
 
-Synthetic demo events must be visibly labeled as fixtures so no one mistakes them for live
-calendar data during the demo.
+## What it does
 
-## Planned future files
+- **Clock and date** in `America/New_York`, whatever time zone the viewing machine is in.
+- **Upcoming events**, soonest first, grouped under `Today`, `Tomorrow`, or a weekday. Events
+  that have already ended are hidden.
+- The **next** event shows a countdown (`in 1 hr 9 min`); an event **under way** shows `Now`
+  and its end time (`until 1:30 PM`).
+- **Labels anything not real.** Fixture data shows a `Sample data` tag. A simulated clock shows
+  a bright `Demo time · actual 11:36 AM` tag with the real time, so neither can be mistaken for
+  live conditions. With no `?now=` in the URL, the clock is always the device's real time.
+- **Fallbacks** for loading, nothing scheduled, not connected, not set up, and provider
+  unavailable — never blank space and never invented events.
 
-Compact tile and expanded event view, including an unauthorized state for when calendar access
-has not been granted.
+## Files
+
+| File | Purpose |
+|---|---|
+| `CalendarModule.tsx` | The component: clock, date, agenda, fallback states |
+| `CalendarModule.css` | Module styling; text on pure black, nothing else lit |
+| `selectUpcoming.ts` | Pure logic: drop ended events, sort, flag in-progress, cap |
+| `useCalendarEvents.ts` | Fetches on mount and every 5 minutes, keeping the last result visible |
+| `data/calendarSource.ts` | The `CalendarSource` interface — the seam for going live |
+| `data/fixtureCalendarSource.ts` | Places the relative fixture onto real instants around "now" |
+| `index.ts` | Public interface; other code imports from here only |
+| `*.test.ts(x)` | Feature-local tests |
+
+Shared pieces it depends on:
+
+- [`shared/contracts/calendar/index.ts`](../../../../shared/contracts/calendar/index.ts) — the
+  `CalendarEvent` and `CalendarResult` shapes.
+- [`fixtures/calendar/demo-day.json`](../../../../fixtures/calendar/demo-day.json) — the synthetic
+  agenda.
+- [`frontend/src/shared/time/`](../../shared/time/) — New York time math, formatting, and the
+  `?now=` override.
+
+## Rehearsing different times
+
+Add `?now=` to the URL to start the whole mirror at another time. The clock keeps ticking from
+there, and a `Demo time · actual …` tag shows the real time. Remove `?now=` to return to the
+real clock.
+
+| URL | Shows |
+|---|---|
+| `/?now=12:45` | Lunch in progress (`Now`), office hours next |
+| `/?now=15:30` | The 5 PM dinner next, with a countdown |
+| `/?now=23:30` | Today finished; agenda starts with Tomorrow |
+| `/?now=2026-12-15T17:00` | A specific New York date and time |
+
+## Going live with Google Calendar
+
+The frontend never calls Google directly: credentials must stay server-side. The plan is:
+
+1. **Backend** — implement the Google adapter in
+   [`backend/src/features/calendar/`](../../../../backend/src/features/calendar/README.md) and
+   serve `GET /api/calendar`, returning a `CalendarResult` from the shared contract. Map OAuth
+   and provider failures onto the contract's `status` values.
+2. **Frontend** — add `data/httpCalendarSource.ts` implementing `CalendarSource` with a fetch to
+   `/api/calendar`.
+3. **Swap one line** in [`frontend/src/app/App.tsx`](../../app/App.tsx):
+   `createFixtureCalendarSource()` becomes the HTTP source.
+
+`CalendarModule` and its tests need no changes. The `Sample data` tag disappears automatically
+because live results carry `provenance: 'live'`.
+
+Deciding the OAuth flow, scopes, and which calendars to read is open — see
+[`docs/decisions.md`](../../../../docs/decisions.md) D6.
 
 ## Does NOT own
 
-Calendar provider requests, OAuth credentials, or event selection logic.
+Calendar provider requests, OAuth credentials, or event selection on the server. Time
+arithmetic lives in `frontend/src/shared/time/`, not here.
