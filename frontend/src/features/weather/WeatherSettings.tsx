@@ -95,7 +95,7 @@ export function WeatherSettings({ settings, onChange }: WeatherSettingsProps) {
             ))}
           </ul>
         )}
-        {searching && message && <div className="weather-settings-message">{message}</div>}
+        {searching && message && <div>{message}</div>}
         {settings.location && (
           <button type="button" className="weather-link" onClick={() => choose(null)}>
             Reset to Columbia University

@@ -41,8 +41,9 @@ are "upcoming" is the consumer's job: the frontend drops ended events and shows 
 
 - **All-day events.** Google Calendar has them; this draft does not. Add an `allDay` flag, or
   represent them as midnight-to-midnight instants?
-- **Venue address shape.** Free-form string, or structured enough for the maps feature to route
-  without re-geocoding?
+- **Venue address shape.** Currently a free-form string (`204 E 13th St, New York, NY 10003` for
+  the demo), which maps must geocode. Structure it, or add coordinates, so routing can skip that
+  step?
 - **Lookahead window.** How far ahead should the backend fetch — rest of today, 48 hours, a
   week?
 - **Multiple calendars.** Primary only, or merged from several?

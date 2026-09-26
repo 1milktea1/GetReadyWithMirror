@@ -89,7 +89,7 @@ function Summary({ data }: { data: WeatherResult }) {
       <div className="weather-line">
         {CONDITION_LABEL[current.condition]} · Feels like {degrees(current.feelsLike)}
       </div>
-      <div className="weather-line weather-muted">
+      <div className="weather-line">
         H {degrees(summary.high)} L {degrees(summary.low)} · Rain {summary.maxPrecipitationProbability}% · until{' '}
         {hourLabel(data.window.end)}
       </div>
@@ -99,7 +99,7 @@ function Summary({ data }: { data: WeatherResult }) {
 
 function Suggestions({ data, limit }: { data: WeatherResult; limit?: number }) {
   if (data.suggestions.length === 0) {
-    return <div className="weather-suggestions weather-muted">Nothing extra to bring.</div>;
+    return <div className="weather-suggestions">Nothing extra to bring.</div>;
   }
   return (
     <ul className="weather-suggestions">
@@ -129,14 +129,14 @@ function Hourly({ data }: { data: WeatherResult }) {
       <tbody>
         {sampleHours(data.hourly).map((h) => (
           <tr key={h.time}>
-            <td className="weather-muted">{hourLabel(h.time)}</td>
+            <td>{hourLabel(h.time)}</td>
             <td>
               <WeatherIcon condition={h.condition} size="1.6em" />
             </td>
             <td>{degrees(h.temperature)}</td>
-            <td className="weather-muted">{h.precipitationProbability}%</td>
-            <td className="weather-muted">UV {Math.round(h.uvIndex)}</td>
-            <td className="weather-muted">
+            <td>{h.precipitationProbability}%</td>
+            <td>UV {Math.round(h.uvIndex)}</td>
+            <td>
               {Math.round(h.windSpeed)} {data.units.windSpeed}
             </td>
           </tr>

@@ -20,11 +20,13 @@ anyone implements against it.
 | Retrieval timestamp | When the estimate was fetched | TBD |
 | Provider / status | Which provider, and live vs fixture | TBD |
 
-An **exact event address is required** for accurate routing.
+An **exact event address is required** for accurate routing. It arrives as
+`CalendarEvent.venueAddress`; the demo destination is Soothr, 204 E 13th St, New York, NY 10003
+([`docs/decisions.md`](../../../docs/decisions.md) D8).
 
 ## Open questions
 
-- Which transport modes matter for the Columbia to downtown demo, and in what priority order?
+- Which transport modes matter for Columbia → Soothr, and in what priority order?
 - Does the planner receive all alternatives and pick one, or does maps pick and return a
   single recommended duration?
 - How stale may a retrieval be before it must be refetched?

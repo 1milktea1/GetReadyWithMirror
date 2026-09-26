@@ -51,18 +51,13 @@ export function CalendarModule({
         </time>
         <p className="calendar__date">{formatLongDate(now, timeZone)}</p>
         {actualTime && (
-          <p className="calendar__tag calendar__tag--demo">
-            Demo time · actual {formatTimeOfDay(actualTime, timeZone)}
-          </p>
+          <p className="calendar__tag">Demo time · actual {formatTimeOfDay(actualTime, timeZone)}</p>
         )}
       </header>
 
       <div className="calendar__agenda">
         <div className="calendar__agenda-header">
           <h2 className="calendar__heading">Upcoming</h2>
-          {state.phase === 'ready' && state.result.provenance === 'fixture' && (
-            <span className="calendar__tag">Sample data</span>
-          )}
         </div>
         <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
       </div>
