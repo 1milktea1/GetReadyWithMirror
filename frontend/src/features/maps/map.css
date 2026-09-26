@@ -1,0 +1,102 @@
+.map-panel {
+  position: relative;
+  height: 100%;
+  min-height: 16rem;
+  color: var(--mirror-text);
+  background: #000;
+}
+
+.map-panel__canvas,
+.map-panel__canvas .leaflet-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  font: inherit;
+}
+
+/* Invert the light OSM raster so the glass stays black. Markers sit above this pane. */
+.map-panel .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.95);
+}
+
+.map-panel .leaflet-control-attribution {
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+  font-size: 10px;
+  max-width: 14rem;
+}
+
+.map-panel .leaflet-control-attribution a {
+  color: #fff;
+}
+
+.map-panel__bar {
+  position: absolute;
+  z-index: 700;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  max-width: calc(100% - 1.5rem);
+  pointer-events: none;
+}
+
+.map-panel__places,
+.map-panel__note,
+.map-panel__status {
+  margin: 0;
+  padding: 0.2rem 0.45rem;
+  background: #000;
+  font-size: var(--text-micro);
+}
+
+.map-panel__modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+
+.map-panel__mode {
+  background: #000;
+  color: inherit;
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-medium);
+  padding: 0.35em 0.75em;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.map-panel__mode[aria-pressed='true'] {
+  font-weight: var(--weight-strong);
+  border-color: #fff;
+}
+
+.map-panel__mode:focus-visible {
+  outline: 1px solid var(--mirror-text);
+  outline-offset: 3px;
+}
+
+.map-panel__badge {
+  display: inline-block;
+  padding: 0.2em 0.6em;
+  background: #000;
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.map-panel__status {
+  pointer-events: auto;
+}

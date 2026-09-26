@@ -9,10 +9,10 @@ const find = (events: ReturnType<typeof materializeFixture>, id: string) => {
 }
 
 describe('demo fixture', () => {
-  it('keeps the AGENTS.md demo event: a 5 PM dinner today in New York', () => {
+  it('keeps the AGENTS.md demo event: a 7 PM dinner today in New York', () => {
     expect(demoDay.timeZone).toBe('America/New_York')
     expect(demoDay.events).toContainEqual(
-      expect.objectContaining({ id: 'fixture-dinner', dayOffset: 0, startTime: '17:00' }),
+      expect.objectContaining({ id: 'fixture-dinner', dayOffset: 0, startTime: '19:00' }),
     )
   })
 
@@ -31,8 +31,8 @@ describe('materializeFixture', () => {
   it('places events on the current New York day', () => {
     const events = materializeFixture(demoDay, new Date('2026-09-26T15:21:00Z'))
     expect(find(events, 'fixture-dinner')).toMatchObject({
-      start: '2026-09-26T21:00:00.000Z',
-      end: '2026-09-26T22:30:00.000Z',
+      start: '2026-09-26T23:00:00.000Z',
+      end: '2026-09-27T00:30:00.000Z',
     })
     expect(find(events, 'fixture-gym').start).toBe('2026-09-27T12:00:00.000Z')
   })
@@ -40,12 +40,12 @@ describe('materializeFixture', () => {
   it('uses the New York day late at night, when UTC and Tokyo have already rolled over', () => {
     // 11:30 PM Saturday in New York; Sunday in both UTC and Tokyo.
     const events = materializeFixture(demoDay, new Date('2026-09-27T03:30:00Z'))
-    expect(find(events, 'fixture-dinner').start).toBe('2026-09-26T21:00:00.000Z')
+    expect(find(events, 'fixture-dinner').start).toBe('2026-09-26T23:00:00.000Z')
   })
 
   it('follows standard time in winter', () => {
     const events = materializeFixture(demoDay, new Date('2026-12-15T15:00:00Z'))
-    expect(find(events, 'fixture-dinner').start).toBe('2026-12-15T22:00:00.000Z')
+    expect(find(events, 'fixture-dinner').start).toBe('2026-12-16T00:00:00.000Z')
   })
 })
 

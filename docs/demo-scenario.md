@@ -11,7 +11,7 @@ hackathon demo.
 |---|---|
 | Demo can run | **Any time between 12 PM and 4 PM** |
 | Fictional user location | Columbia University |
-| Event | Dinner reservation, **5 PM** |
+| Event | Dinner reservation, **7 PM** |
 | Event location | **Soothr, 204 E 13th St, New York, NY 10003** (East Village) |
 | Track | Live Better (strictly personal utility) |
 
@@ -29,7 +29,7 @@ may do the same later). The mirror greets them with an appropriate **"Good after
 **fades into a compact overview** showing:
 
 - Current and afternoon weather
-- The 5 PM calendar event
+- The 7 PM calendar event
 - A short getting-ready plan
 - A leave-by summary
 
@@ -91,19 +91,36 @@ speakers, HDMI to the monitor behind the mirror. The Pico is optional.
 
 ## Test matrix to build later
 
-Fixture scenarios worth covering, all against the same 5 PM event:
+Fixture scenarios worth covering, all against the same 7 PM event:
 
 | Demo time | What it should show |
 |---|---|
 | 12 PM | Ample time; relaxed plan |
-| 2 PM | Comfortable plan |
-| 3:30 PM | Tight; buffer under pressure |
-| 4 PM | Likely **conflict** — exercises the conflict path |
+| 4 PM | Comfortable plan |
+| 5:30 PM | Tight; buffer under pressure |
+| 6 PM | Likely **conflict** — exercises the conflict path |
 
 Fixtures do not exist yet. See [`fixtures/`](../fixtures/README.md).
 
+## Defaults the planner uses
+
+Until the questions below are settled by the team, the planner uses these rehearsal values
+(also recorded in [`backend/src/features/planner/README.md`](../backend/src/features/planner/README.md)):
+
+| Choice | Value |
+|---|---|
+| Transport | Subway / transit by default. The overview can switch to walk, drive, or rideshare. |
+| Travel time | Google Directions when `GOOGLE_MAPS_API_KEY` is set. Otherwise Transitous for subway (from the 116 St 1 train, ~33 min) and Valhalla for walk, drive, and cycling. The labeled fixture fills any mode those miss (subway fixture is 35 minutes and has no path). |
+| Arrival buffer | 10 minutes (arrive at 6:50) |
+| Leave-by | 6:15 PM |
+| Tasks | Shower 15, hair 20, get dressed 10 |
+
+That routine must start at 5:30 PM, which is why 5:30 is tight and 6:00 conflicts.
+
 ## Open questions
 
-- The default arrival buffer before the 5 PM reservation.
-- Which transport modes to offer for Columbia → Soothr.
+- The default arrival buffer before the 7 PM reservation. Planner uses 10 minutes for now.
+- Which transport modes to offer for Columbia → Soothr. The overview offers subway (default),
+  walk, drive, and rideshare. The planner uses the selected mode's duration.
 - Assumed task durations for shower, hair, and getting dressed when the user does not say.
+  Planner uses 15, 20, and 10.

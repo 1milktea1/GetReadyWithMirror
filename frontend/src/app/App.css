@@ -1,24 +1,31 @@
 /*
- * Screen regions for the mirror. Unfilled regions stay pure black so the
- * glass reads as a plain mirror everywhere except where a module is drawn.
+ * Default overview: weather top-left, getting-ready plan and leave-by under it
+ * on the left, clock and calendar top-right. The route map is not on this
+ * screen. It opens only after a voice or motion command. Weather and the
+ * calendar agenda hide; the clock and the leave-by plan stay on the left.
  */
 .mirror {
   position: fixed;
   inset: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
   grid-template-areas:
-    'top-left top-right'
-    'middle middle'
-    'bottom bottom';
+    'left top-right'
+    'left .';
   padding: clamp(1.5rem, 4.5vmin, 4.5rem);
   background: #000;
 }
 
-.mirror__region--top-left {
-  grid-area: top-left;
+.mirror__region--left {
+  grid-area: left;
   justify-self: start;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1.5rem, 3.5vmin, 2.75rem);
+  width: min(28rem, 46vw);
 }
 
 .mirror__region--top-right {
@@ -27,29 +34,59 @@
   width: min(34rem, 42vw);
 }
 
-.mirror__region--middle {
-  grid-area: middle;
-  place-self: center;
+.mirror--map {
+  padding: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'map';
 }
 
-.mirror__region--bottom {
-  grid-area: bottom;
-  justify-self: center;
+.mirror__region--map {
+  grid-area: map;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.mirror--map .mirror__region--left {
+  position: absolute;
+  grid-area: auto;
+  z-index: 880;
+  top: clamp(1rem, 3vmin, 2.25rem);
+  left: clamp(1rem, 3vmin, 2.25rem);
+  width: min(28rem, 52vw);
+  background: #000;
+  padding: 0.45rem 0.75rem 0.65rem;
+}
+
+.mirror--map .planner__time {
+  font-size: var(--text-headline);
+}
+
+.mirror--map .mirror__region--top-right {
+  position: absolute;
+  grid-area: auto;
+  z-index: 900;
+  top: clamp(1rem, 3vmin, 2.25rem);
+  right: clamp(1rem, 3vmin, 2.25rem);
+  width: auto;
+  background: #000;
+  padding: 0.35rem 0.15rem 0.35rem 0.8rem;
 }
 
 /* Below this width a 42vw corner module gets too cramped to read, so regions stack full width. */
 @media (max-width: 52rem) {
-  .mirror {
+  .mirror:not(.mirror--map) {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto 1fr;
     grid-template-areas:
-      'top-left'
+      'left'
       'top-right'
-      'middle'
-      'bottom';
+      '.';
   }
 
-  .mirror__region--top-right {
+  .mirror:not(.mirror--map) .mirror__region--left,
+  .mirror:not(.mirror--map) .mirror__region--top-right {
     width: min(34rem, 100%);
   }
 }

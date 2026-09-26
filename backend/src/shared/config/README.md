@@ -23,7 +23,7 @@ in the process environment is left as-is.
 | xAI API key (Grok) | `XAI_API_KEY` | Yes, 2026-09-26 |
 | Grok model override | `XAI_MODEL` | Optional. Defaults to `grok-4.7` |
 | ElevenLabs API key | TBD | TBD |
-| Maps / directions provider key | TBD | TBD |
+| Maps / directions provider key | `GOOGLE_MAPS_API_KEY` | Name in use. Optional. See `backend/.env.example`. |
 | Calendar provider client credentials | TBD | TBD |
 | Server port | TBD | TBD |
 | Demo/test time override | TBD | TBD |

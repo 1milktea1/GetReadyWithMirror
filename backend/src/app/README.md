@@ -1,7 +1,9 @@
 # Backend App (composition point)
 
 **Owner:** Integration owner (TBD)
-**Status:** Not implemented
+**Status:** `createApp.ts` mounts `/health`, `/api/weather`, `/api/maps`, and `/api/planner`.
+`server.ts` listens on port 3001 (`npm run dev` from `backend/`). Feature logic stays in the
+feature directories.
 
 Future home of the **single** Express integration and composition point: server bootstrap,
 middleware, and the wiring that mounts each feature's routes.

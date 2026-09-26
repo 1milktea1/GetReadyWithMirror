@@ -24,9 +24,12 @@ Build a **voice-controlled, AI-powered smart mirror** for a hackathon's **Live B
 
 ## 2. Hackathon demo: the shared product contract
 
-The demonstration can occur **any time between 12 PM and 4 PM**. The fictional user is **at Columbia University** and has a **5 PM dinner reservation somewhere downtown**. Choose/set an exact sample restaurant address later; never invent current weather, routes, or arrival estimates and label demo fixtures clearly.
+The demonstration can occur **any time between 12 PM and 6 PM**. The fictional user is **at Columbia University** and has a **7 PM dinner reservation somewhere downtown**. Choose/set an exact sample restaurant address later; never invent current weather, routes, or arrival estimates and label demo fixtures clearly.
 
 Expected flow:
+1. Start a voice session via an on-screen push-to-talk control (optional Pico button later). The mirror greets the user with an appropriate **“Good afternoon”**, then **fades into a compact overview**: current/afternoon weather, the 7 PM calendar event, a short getting-ready plan, and a leave-by summary.
+2. The user says, **“Expand weather and recommend what I should wear and bring.”** ElevenLabs transcribes; Gemini interprets the request; the backend retrieves weather and event context. The React weather module expands and displays grounded clothing/essentials suggestions, while ElevenLabs speaks a concise response.
+3. The user says **“Show my calendar”** or **“Go back.”** Gemini chooses the correct interface action; the relevant module expands, or the overview returns.
 1. Start a voice session via an on-screen push-to-talk control (optional Pico button later). The mirror greets the user with an appropriate **“Good afternoon”**, then **fades into a compact overview**: current/afternoon weather, the 5 PM calendar event, a short getting-ready plan, and a leave-by summary.
 2. The user says, **“Expand weather and recommend what I should wear and bring.”** ElevenLabs transcribes; Grok interprets the request; the backend retrieves weather and event context. The React weather module expands and displays grounded clothing/essentials suggestions, while ElevenLabs speaks a concise response.
 3. The user says **“Show my calendar”** or **“Go back.”** Grok chooses the correct interface action; the relevant module expands, or the overview returns.
@@ -117,7 +120,7 @@ GetReadyWithMirror/
     ├── architecture.md             # Data flow and integrations
     ├── collaboration.md            # Ownership, branch and merge rules
     ├── api-contracts.md             # Index to feature contracts / event envelope
-    └── demo-scenario.md            # Columbia → downtown, 5 PM dinner test flow
+    └── demo-scenario.md            # Columbia → downtown, 7 PM dinner test flow
 ```
 
 For every backend feature directory and its corresponding `shared/contracts/<feature>/` directory, create a **short README.md** describing: responsibility, planned public inputs and outputs, upstream dependencies, likely downstream consumers, error states, and the assigned developer (use `TBD` until assigned). Also create brief READMEs for frontend feature folders if that helps teammates claim ownership. No working source files yet.
