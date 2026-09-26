@@ -1,6 +1,7 @@
 # Frontend
 
-**Status:** Calendar module implemented with synthetic data. Other modules not started.
+**Status:** Calendar (fixture), weather, and the getting-ready planner. The planner needs the
+backend on port 3001 (`npm run dev` from `backend/`). Maps durations shown there are fixtures.
 
 React 19 + TypeScript on Vite, with a black-background, mirror-friendly UI.
 
@@ -13,6 +14,10 @@ cd frontend
 npm install
 npm run dev          # http://localhost:5173
 ```
+
+Weather and the getting-ready plan call `/api`, which Vite proxies to `http://localhost:3001`.
+Start the backend first (`npm run dev` from `backend/`). Without it, those two panels show an
+unavailable state; the calendar still renders from its fixture.
 
 | Command | What it does |
 |---|---|

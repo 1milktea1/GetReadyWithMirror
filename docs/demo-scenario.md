@@ -102,8 +102,25 @@ Fixture scenarios worth covering, all against the same 5 PM event:
 
 Fixtures do not exist yet. See [`fixtures/`](../fixtures/README.md).
 
+## Defaults the planner uses
+
+Until the questions below are settled by the team, the planner uses these rehearsal values
+(also recorded in [`backend/src/features/planner/README.md`](../backend/src/features/planner/README.md)):
+
+| Choice | Value |
+|---|---|
+| Transport | Transit, 35 minutes, from the labeled maps fixture |
+| Other modes in the fixture | Cycling 28, driving 30, walking 105 — suggestions only |
+| Arrival buffer | 10 minutes (arrive at 4:50) |
+| Leave-by | 4:15 PM |
+| Tasks | Shower 15, hair 20, get dressed 10 |
+
+That routine must start at 3:30 PM, which is why 3:30 is tight and 4:00 conflicts.
+
 ## Open questions
 
-- The default arrival buffer before the 5 PM reservation.
-- Which transport modes to offer for Columbia → Soothr.
+- The default arrival buffer before the 5 PM reservation. Planner uses 10 minutes for now.
+- Which transport modes to offer for Columbia → Soothr. Planner defaults to transit and only
+  suggests another fixture mode when it would help.
 - Assumed task durations for shower, hair, and getting dressed when the user does not say.
+  Planner uses 15, 20, and 10.

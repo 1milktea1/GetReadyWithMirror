@@ -1,73 +1,48 @@
 # Backend Feature: Maps
 
 **Owner:** TBD
-**Status:** Not implemented — contract not yet agreed
+**Status:** Fixture-backed for the demo route — contract proposed, live Google Maps not connected
 **Contract:** [`shared/contracts/maps/`](../../../../shared/contracts/maps/README.md)
 
 ## Responsibility
 
-Owns the origin/destination routing adapter and produces candidate routes, travel durations,
-and provider freshness information. This feature supplies the travel-duration input that the
-planner turns into a leave-by deadline.
+Owns origin/destination routing and the travel duration the planner turns into a leave-by
+time. The demo route is Columbia University → Soothr, 204 E 13th St.
 
-Maps supports the getting-ready experience. It is not the project's headline value and must
-not dominate the Live Better pitch.
+Live Google Maps is not configured (decisions D7). Until it is, this feature serves
+[`fixtures/maps/columbia-to-soothr.json`](../../../../fixtures/maps/columbia-to-soothr.json).
+Those durations are **rehearsal numbers**, labeled `provenance.isFixture: true`. They are not
+a measured route. An origin or destination the fixture does not cover returns `no-data`
+rather than a guessed duration.
 
-## Planned public inputs
+## Public API
 
-- Normalized origin (the demo user is at Columbia University).
-- Normalized destination (the event's `venueAddress`; for the demo, Soothr at
-  204 E 13th St, New York, NY 10003).
-- Departure time or arrival target.
-- Transport modes to consider.
+`getCommute({ originAddress?, destinationAddress?, now? })` → `MapsResponse`
 
-## Planned public outputs
+Omitted addresses use the fixture pair (Columbia → Soothr). `now` only stamps `retrievedAt`;
+it does not change the durations.
 
-A normalized maps result. Exact field names are TBD:
+`GET /api/maps` accepts `origin`, `destination`, and `now`.
 
-- Normalized origin and destination as resolved by the provider.
-- Route alternatives.
-- Transport modes.
-- Estimated durations, plus any reported disruptions.
-- Retrieval timestamp.
-- Provider and status.
+Default recommendation is **transit, 35 minutes**. The fixture also includes cycling (28),
+driving (30), and walking (105) so a conflict can suggest another mode without inventing one.
 
-Travel estimates must come from a real retrieval or a clearly labeled fixture. Never invent
-arrival estimates.
+## Files
 
-## Upstream dependencies
-
-- A maps/directions provider. Google Maps Routes is planned; account, quotas, and exact
-  endpoints are TBD — see [`docs/decisions.md`](../../../../docs/decisions.md).
-- The event venue address from the calendar feature's public interface. Take it from
-  `CalendarEvent.venueAddress` rather than hardcoding the demo destination, so a real calendar
-  event routes just as well.
-
-## Downstream consumers
-
-- The planner feature, which combines travel duration with event start and buffer.
-- The assistant feature, via the `getCommute` tool.
-- The frontend overview and maps modules.
+| File | Role |
+|---|---|
+| `mapsService.ts` | Public `getCommute`. The only entry point other features use. |
+| `fixtureAdapter.ts` | Reads and validates the fixture. Nothing else knows the file shape. |
+| `mapsHttp.ts` | `GET /api/maps`. |
+| `maps.test.ts` | Fixture duration, address match, and the no-data path. |
 
 ## Error states
 
-- `not-configured` — no provider credentials present.
-- `external-provider-unavailable` — provider unreachable, rate limited, or erroring.
-- `no-data` — no route found between origin and destination.
-- `input-invalid` — missing or unresolvable address.
-
-When routing is unavailable the planner must surface that the leave-by time is unknown rather
-than guessing a duration.
-
-## Planned future files
-
-- A route or controller, if exposed over HTTP at `/api/maps`.
-- Service logic for selecting among route alternatives.
-- A provider adapter isolating the directions API.
-- Feature-local tests.
+- `no-data` — no fixture route for that pair, and live routing is not configured.
+- `input-invalid` — empty address or a bad `now`.
+- `not-configured` / `external-provider-unavailable` — reserved for a future live provider.
+  The fixture path does not use them.
 
 ## Does NOT own
 
-- Outfit suggestions.
-- Calendar editing.
-- Deciding the entire getting-ready routine.
+- Leave-by math, outfit suggestions, or calendar editing.

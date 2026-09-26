@@ -1,11 +1,11 @@
 # Frontend Feature: Planner
 
 **Owner:** TBD
-**Status:** Not implemented
+**Status:** Overview tile implemented. It renders `GET /api/planner` and does not compute leave-by.
 
-Renders the getting-ready timeline: task windows, the leave-by deadline, and progress through
-the routine. This is the mirror's headline value, so the expanded view deserves the most
-design attention.
+The compact tile shows the leave-by time and each task window. Click to expand conflict
+adjustments, mark a task done, or give hair 20 more minutes. Those controls call the backend
+again; they do not edit the schedule in the browser. A fixture plan shows `Sample route — not live`.
 
 Must render **schedule conflicts** clearly. When the tasks do not fit, the user sees the
 conflict and the suggested adjustments — not a quietly compressed plan.

@@ -30,6 +30,7 @@
 .mirror__region--middle {
   grid-area: middle;
   place-self: center;
+  width: min(48rem, 100%);
 }
 
 .mirror__region--bottom {

@@ -67,7 +67,10 @@ is configured — and configuring it must not block other work.
 Account, quotas, exact endpoints, and which transport modes matter for Columbia → Soothr
 (204 E 13th St), roughly 6 miles down Manhattan.
 
-**Status:** Open.
+**Status:** Open. The planner demo does not call Google Maps. It uses a labeled fixture
+([`fixtures/maps/columbia-to-soothr.json`](../fixtures/maps/columbia-to-soothr.json)): transit
+35 minutes, plus cycling, driving, and walking as suggestion-only alternatives. Live account,
+quota, and endpoints are still unset.
 
 ### D8. The exact demo restaurant address
 
@@ -109,10 +112,10 @@ A dedicated backend namespace, or integrated session endpoints. Document whichev
 time-zone-aware arithmetic, which argues for shared — but shared code is also the most common
 merge-conflict source between two concurrent developers.
 
-**Status:** Frontend settled, backend open. Display-time utilities (New York clock, formatting,
-day labels, daylight-saving-safe conversion) live in
-[`frontend/src/shared/time/`](../frontend/src/shared/time/). The backend location for
-scheduling arithmetic is still undecided.
+**Status:** Display time stays in [`frontend/src/shared/time/`](../frontend/src/shared/time/).
+Wall-clock conversion that both the calendar fixture and the planner need lives in
+[`backend/src/shared/utils/zonedTime.ts`](../backend/src/shared/utils/zonedTime.ts). Leave-by
+and feasibility stay in the planner. Not a final ruling on every future helper.
 
 ### D12. Confirmation mechanism
 

@@ -1,9 +1,7 @@
 # API Contracts
 
-**Status:** Index only. No interfaces, routes, handlers, or fixtures exist.
-
-Other developers should be able to read the contract documents, agree on them, and then
-implement a feature independently. Nothing here is agreed yet.
+**Status:** Index. Weather, calendar, maps, and planner have proposed TypeScript shapes.
+Maps and planner are implemented against fixtures. Nothing here is team-agreed yet (D2).
 
 ## Contract index
 
@@ -11,8 +9,8 @@ implement a feature independently. Nothing here is agreed yet.
 |---|---|---|---|
 | Weather result | [`shared/contracts/weather/`](../shared/contracts/weather/README.md) | Weather feature | No |
 | Calendar event | [`shared/contracts/calendar/`](../shared/contracts/calendar/README.md) | Calendar feature | No |
-| Maps result | [`shared/contracts/maps/`](../shared/contracts/maps/README.md) | Maps feature | No |
-| Planner input/output | [`shared/contracts/planner/`](../shared/contracts/planner/README.md) | Planner feature | No |
+| Maps result | [`shared/contracts/maps/`](../shared/contracts/maps/README.md) | Maps feature | Proposed in `types.ts` |
+| Planner input/output | [`shared/contracts/planner/`](../shared/contracts/planner/README.md) | Planner feature | Proposed in `types.ts` |
 | Agent tools | [`shared/contracts/assistant/`](../shared/contracts/assistant/README.md) | Assistant feature | No |
 | UI event envelope | [`shared/contracts/events/`](../shared/contracts/events/README.md) | Integration owner | No |
 

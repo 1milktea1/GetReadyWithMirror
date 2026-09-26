@@ -98,7 +98,7 @@ Each state needs a useful UI fallback. See
 | `units.ts` | Imperial-to-metric conversion. |
 | `calendarStandIn.ts` | **Interim** synthetic 5 PM event start. Delete when calendar exists. |
 | `weatherHttp.ts` | Framework-agnostic handlers for `GET /api/weather` and `GET /api/weather/locations`, with input validation. |
-| `devServer.ts` | **Interim** standalone server on port 3001. Delete once `weatherHttp.ts` is mounted in the integration-owned [`backend/src/app/`](../../app/README.md). |
+| `devServer.ts` | Standalone weather-only server. The composed app in [`backend/src/app/`](../../app/README.md) also mounts these handlers; prefer `npm run dev` from `backend/` when exercising the mirror. |
 | `weather.test.ts` | Rule and service tests against a fake provider response (no network). |
 
 Result types live in [`shared/contracts/weather/types.ts`](../../../../shared/contracts/weather/types.ts),

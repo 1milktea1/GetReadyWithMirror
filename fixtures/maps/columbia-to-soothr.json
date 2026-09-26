@@ -1,0 +1,38 @@
+{
+  "description": "SYNTHETIC travel durations for Columbia University → Soothr, 204 E 13th St. Rehearsal numbers for the offline demo, not a live maps retrieval and not a measured route. 35 minutes of transit plus the planner's 10-minute arrival buffer puts leave-by at 4:15 PM, so the default 45-minute routine must start at 3:30 PM.",
+  "origin": {
+    "name": "Columbia University",
+    "address": "Columbia University, New York, NY 10027"
+  },
+  "destination": {
+    "name": "Soothr",
+    "address": "204 E 13th St, New York, NY 10003"
+  },
+  "recommendedMode": "transit",
+  "routes": [
+    {
+      "mode": "transit",
+      "durationMinutes": 35,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "cycling",
+      "durationMinutes": 28,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "driving",
+      "durationMinutes": 30,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    },
+    {
+      "mode": "walking",
+      "durationMinutes": 105,
+      "summary": "Rehearsal estimate — not a live route",
+      "disruptions": []
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+/* Sizes, weights, and colours come from the shared mirror scale in app/global.css. */
+
+.planner {
+  width: 100%;
+  color: var(--mirror-text);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  text-align: center;
+  animation: planner-fade-in 900ms ease-out both;
+}
+
+.planner p,
+.planner ol,
+.planner ul {
+  margin: 0;
+  padding: 0;
+}
+
+.planner__toggle {
+  cursor: pointer;
+  outline: none;
+}
+
+.planner__toggle:focus-visible {
+  outline: 1px solid var(--mirror-edge);
+  outline-offset: 12px;
+}
+
+.planner__label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.planner__clock {
+  display: inline-flex;
+  align-items: flex-start;
+  margin-top: 0.2em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+
+.planner__time {
+  font-size: var(--text-display);
+  font-weight: var(--weight-display);
+  letter-spacing: -0.03em;
+}
+
+.planner__period {
+  margin-left: 0.35em;
+  padding-top: 0.5em;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+}
+
+.planner__meta,
+.planner__summary {
+  margin-top: 0.45em !important;
+  font-size: var(--text-title);
+}
+
+.planner__tasks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35em 1.4em;
+  margin-top: 0.9em !important;
+  padding-top: 0.8em !important;
+  border-top: 1px solid var(--mirror-rule);
+  list-style: none;
+}
+
+.planner__task {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 7em;
+}
+
+.planner__task-name {
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+}
+
+.planner__task-time {
+  font-size: var(--text-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.planner__task--over .planner__task-name {
+  font-weight: var(--weight-strong);
+}
+
+.planner__details {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 450ms ease,
+    opacity 450ms ease;
+}
+
+.planner--expanded .planner__details {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.planner__details-inner {
+  overflow: hidden;
+}
+
+.planner__adjustments {
+  list-style: none;
+  margin-top: 0.8em !important;
+  text-align: left;
+  font-size: var(--text-label);
+}
+
+.planner__adjustments li {
+  padding: 0.35em 0;
+  border-top: 1px solid var(--mirror-rule);
+}
+
+.planner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6em;
+  margin-top: 0.9em;
+}
+
+.planner__button {
+  background: transparent;
+  color: inherit;
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
+  font: inherit;
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  padding: 0.4em 0.85em;
+  cursor: pointer;
+}
+
+.planner__button:focus-visible {
+  outline: 1px solid var(--mirror-text);
+  outline-offset: 3px;
+}
+
+.planner__badge {
+  display: inline-block;
+  margin-top: 0.9em;
+  padding: 0.2em 0.6em;
+  border: 1px solid var(--mirror-edge);
+  border-radius: 999px;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.planner--status {
+  font-size: var(--text-title);
+}
+
+@keyframes planner-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planner {
+    animation: none;
+  }
+
+  .planner__details {
+    transition: none;
+  }
+}
