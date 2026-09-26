@@ -1,4 +1,4 @@
-# Smart Mirror — Project Context and Coding-Agent Instructions
+# GetReadyWithMirror — Project Context and Coding-Agent Instructions
 
 > **Current assignment: repository structure only.** Read this document before changing the project. For the current task, create the agreed folder structure and lightweight Markdown placeholders, but **do not implement application code, install packages, connect APIs, or generate working features**. Two developers will build separate backend features concurrently, so modular ownership and stable integration boundaries are essential.
 
@@ -66,7 +66,7 @@ Follow a **feature-first monorepo**. Weather, calendar, maps, planner, and AI/vo
 This is the **target organization**, not an instruction to create TypeScript implementations today. During scaffolding, create **directories and brief Markdown README placeholders only**. Use `.gitkeep` for intentionally empty directories if needed. Document future filenames in feature READMEs rather than generating blank `.ts`/`.tsx` modules just to fill the tree.
 
 ```text
-smart-mirror/
+GetReadyWithMirror/
 ├── AGENTS.md                       # This file: coding-agent project context
 ├── README.md                       # Short project overview and later setup instructions
 ├── frontend/
