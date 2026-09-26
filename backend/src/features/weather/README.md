@@ -40,7 +40,7 @@ A normalized forecast result in the requested units — see the
 
 ## Suggestion rules
 
-Suggestions are computed by deterministic rules in this feature, **not** by Gemini. Gemini
+Suggestions are computed by deterministic rules in this feature, **not** by Grok. Grok
 only words them. Thresholds live in the
 [contract](../../../../shared/contracts/weather/README.md#suggestions); for example, rain
 probability ≥ 40% suggests an umbrella, UV ≥ 3 suggests sunscreen, and any snowfall suggests
@@ -120,4 +120,4 @@ For a quick live check without the frontend, open
 
 - React navigation or widget expansion behavior.
 - Calendar data (it only reads the event start).
-- Gemini calls.
+- Grok calls.

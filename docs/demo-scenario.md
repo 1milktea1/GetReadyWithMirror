@@ -34,7 +34,7 @@ may do the same later). The mirror greets them with an appropriate **"Good after
 
 ### 2. "Expand weather and recommend what I should wear and bring."
 
-ElevenLabs transcribes. Gemini interprets. The backend retrieves weather and event context.
+ElevenLabs transcribes. Grok interprets. The backend retrieves weather and event context.
 The React weather module **expands** and displays grounded clothing and essentials
 suggestions, while ElevenLabs speaks a concise response.
 
@@ -43,8 +43,8 @@ information request. Suggestions must be based on the forecast actually retrieve
 
 ### 3. "Show my calendar." / "Go back."
 
-Gemini chooses the correct interface action. The relevant module expands, or the overview
-returns. Intent comes from Gemini's bounded tool list — **not** from React string matching the
+Grok chooses the correct interface action. The relevant module expands, or the overview
+returns. Intent comes from Grok's bounded tool list — **not** from React string matching the
 phrase.
 
 ### 4. "When do I need to leave?"
@@ -53,7 +53,7 @@ The maps feature retrieves travel estimates from Columbia to the event address. 
 **deterministic backend calculation** combines event start, travel duration, and buffer into a
 leave-by time.
 
-Gemini explains the result. Gemini does not compute it.
+Grok explains the result. Grok does not compute it.
 
 ### 5. "Plan my time. I need to shower, do my hair, and get dressed."
 
@@ -62,7 +62,7 @@ timeline.
 
 ### 6. "Actually, give me 20 more minutes for my hair."
 
-Gemini identifies the update. The planner **recalculates** and explains any conflict.
+Grok identifies the update. The planner **recalculates** and explains any conflict.
 
 It must **not** silently remove tasks, and must **not** change the calendar reservation.
 

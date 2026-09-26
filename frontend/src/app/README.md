@@ -19,7 +19,7 @@ not need to know about each other.
 
 ## Intent does not come from string matching
 
-The UI must not match spoken phrases to decide what to do. Gemini selects intent through a
+The UI must not match spoken phrases to decide what to do. Grok selects intent through a
 bounded tool list, and the backend emits a typed UI event. This app layer reacts to events.
 
 ## Integration-owned

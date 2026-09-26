@@ -20,7 +20,7 @@ weather, and calendar features, so they are a plausible shared concern. Where th
 finally lives is TBD — the planner feature is the alternative home.
 
 Whatever the location, deadlines and feasibility are computed deterministically in code, never
-by Gemini prose.
+by Grok prose.
 
 ## Planned future files
 

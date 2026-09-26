@@ -41,7 +41,7 @@ share a channel is itself undecided.
 The ten tools are named; their signatures are not. Confirm **jointly** — the assistant owner
 cannot decide these alone, since other features execute them.
 
-**Status:** Open. See [`permissions.md`](permissions.md).
+**Status:** Proposed shapes are implemented in [`shared/contracts/assistant/`](../shared/contracts/assistant/README.md) as of 2026-09-26. Not agreed. Confirm jointly before other features depend on them.
 
 ## Providers and accounts
 
@@ -74,6 +74,14 @@ Accurate routing needs a real downtown address. Currently `TBD` everywhere by de
 hardcode a placeholder.
 
 **Status:** Open. See [`demo-scenario.md`](demo-scenario.md).
+
+### D17. Assistant model
+
+Grok via the xAI Responses API replaces Gemini as the decision-maker. Default model `grok-4.7`.
+Optional override `XAI_MODEL`. Key `XAI_API_KEY`, server-side only. The adapter turns server-side
+web search off so facts come from allowlisted tools.
+
+**Status:** Decided 2026-09-26 on `feature/agent`.
 
 ## Design and scope
 
@@ -163,3 +171,6 @@ Move entries here with the date and who agreed.
 
 - **D5. Weather provider** — Open-Meteo; imperial and Columbia by default, both changeable.
   2026-09-26, carolynl950.
+- **D17. Assistant model** — Grok via the xAI Responses API, not Gemini. Default model
+  `grok-4.7` (`XAI_MODEL` overrides). Key name `XAI_API_KEY`, server-side only. Server-side
+  web search is off; only the allowlisted tools run. 2026-09-26, on `feature/agent`.

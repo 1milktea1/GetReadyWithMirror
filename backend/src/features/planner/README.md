@@ -13,7 +13,7 @@ This is the smart mirror's **main value**: connecting weather and event informat
 user-described tasks against a real deadline.
 
 All scheduling logic must be **deterministic and time-zone aware**. Task windows, event
-deadlines, travel buffers, and feasibility are computed in code, never by Gemini prose.
+deadlines, travel buffers, and feasibility are computed in code, never by Grok prose.
 
 Planner is its own feature even though one developer may initially own it. It consumes the
 **normalized outputs** of weather, calendar, and maps. It must not import their provider
