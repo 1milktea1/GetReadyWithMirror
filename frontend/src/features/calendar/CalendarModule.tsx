@@ -1,0 +1,149 @@
+import type { CalendarStatus } from '@contracts/calendar'
+import {
+  formatClock,
+  formatCountdown,
+  formatDayLabel,
+  formatLongDate,
+  formatTimeOfDay,
+} from '../../shared/time/format'
+import { MIRROR_TIME_ZONE } from '../../shared/time/zonedTime'
+import type { CalendarSource } from './data/calendarSource'
+import { selectUpcoming, type UpcomingEvent } from './selectUpcoming'
+import { useCalendarEvents, type CalendarState } from './useCalendarEvents'
+import './CalendarModule.css'
+
+export interface CalendarModuleProps {
+  now: Date
+  source: CalendarSource
+  /** Set when the demo/test-time override is active, so the clock is labeled. */
+  timeIsSimulated?: boolean
+  timeZone?: string
+  maxEvents?: number
+}
+
+const STATUS_MESSAGES: Record<Exclude<CalendarStatus, 'ok'>, string> = {
+  'no-data': 'Nothing scheduled',
+  'not-authorized': 'Calendar not connected',
+  'not-configured': 'Calendar not set up',
+  'external-provider-unavailable': 'Calendar unavailable',
+}
+
+export function CalendarModule({
+  now,
+  source,
+  timeIsSimulated = false,
+  timeZone = MIRROR_TIME_ZONE,
+  maxEvents = 4,
+}: CalendarModuleProps) {
+  const state = useCalendarEvents(source, now)
+  const clock = formatClock(now, timeZone)
+
+  return (
+    <section className="calendar" aria-label="Calendar">
+      <header className="calendar__now">
+        <time className="calendar__clock" dateTime={now.toISOString()}>
+          <span className="calendar__time">{clock.time}</span>
+          <span className="calendar__period">{clock.period}</span>
+        </time>
+        <p className="calendar__date">{formatLongDate(now, timeZone)}</p>
+        {timeIsSimulated && <p className="calendar__tag">Demo time</p>}
+      </header>
+
+      <div className="calendar__agenda">
+        <div className="calendar__agenda-header">
+          <h2 className="calendar__heading">Upcoming</h2>
+          {state.phase === 'ready' && state.result.provenance === 'fixture' && (
+            <span className="calendar__tag">Sample data</span>
+          )}
+        </div>
+        <Agenda state={state} now={now} timeZone={timeZone} maxEvents={maxEvents} />
+      </div>
+    </section>
+  )
+}
+
+interface AgendaProps {
+  state: CalendarState
+  now: Date
+  timeZone: string
+  maxEvents: number
+}
+
+function Agenda({ state, now, timeZone, maxEvents }: AgendaProps) {
+  if (state.phase === 'loading') {
+    return <p className="calendar__message">Loading calendar…</p>
+  }
+  if (state.phase === 'failed') {
+    return <p className="calendar__message">{STATUS_MESSAGES['external-provider-unavailable']}</p>
+  }
+  if (state.result.status !== 'ok') {
+    return <p className="calendar__message">{STATUS_MESSAGES[state.result.status]}</p>
+  }
+
+  const upcoming = selectUpcoming(state.result.events, now, maxEvents)
+  if (upcoming.length === 0) {
+    return <p className="calendar__message">Nothing else scheduled</p>
+  }
+
+  const nextEventId = upcoming.find((item) => !item.inProgress)?.event.id
+
+  return (
+    <ol className="calendar__days">
+      {groupByDay(upcoming, now, timeZone).map(({ label, items }) => (
+        <li key={label} className="calendar__day">
+          <h3 className="calendar__day-label">{label}</h3>
+          <ol className="calendar__events">
+            {items.map((item) => (
+              <EventRow
+                key={item.event.id}
+                item={item}
+                now={now}
+                timeZone={timeZone}
+                showCountdown={item.event.id === nextEventId}
+              />
+            ))}
+          </ol>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+interface EventRowProps {
+  item: UpcomingEvent
+  now: Date
+  timeZone: string
+  showCountdown: boolean
+}
+
+function EventRow({ item, now, timeZone, showCountdown }: EventRowProps) {
+  const { event, start, end, inProgress } = item
+  const meta = [
+    event.venueName,
+    inProgress ? `until ${formatTimeOfDay(end, timeZone)}` : null,
+    showCountdown ? formatCountdown(start, now) : null,
+  ].filter(Boolean)
+
+  return (
+    <li className={inProgress ? 'calendar__event calendar__event--active' : 'calendar__event'}>
+      <div className="calendar__event-body">
+        <p className="calendar__event-title">{event.title}</p>
+        {meta.length > 0 && <p className="calendar__event-meta">{meta.join(' · ')}</p>}
+      </div>
+      <time className="calendar__event-time" dateTime={event.start}>
+        {inProgress ? 'Now' : formatTimeOfDay(start, timeZone)}
+      </time>
+    </li>
+  )
+}
+
+function groupByDay(items: UpcomingEvent[], now: Date, timeZone: string) {
+  const groups: { label: string; items: UpcomingEvent[] }[] = []
+  for (const item of items) {
+    const label = formatDayLabel(item.start, now, timeZone)
+    const last = groups.at(-1)
+    if (last?.label === label) last.items.push(item)
+    else groups.push({ label, items: [item] })
+  }
+  return groups
+}

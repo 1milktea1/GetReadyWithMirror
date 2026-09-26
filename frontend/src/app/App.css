@@ -1,0 +1,37 @@
+/*
+ * Screen regions for the mirror. Unfilled regions stay pure black so the
+ * glass reads as a plain mirror everywhere except where a module is drawn.
+ */
+.mirror {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'top-left top-right'
+    'middle middle'
+    'bottom bottom';
+  padding: clamp(1.5rem, 4.5vmin, 4.5rem);
+  background: #000;
+}
+
+.mirror__region--top-left {
+  grid-area: top-left;
+  justify-self: start;
+}
+
+.mirror__region--top-right {
+  grid-area: top-right;
+  justify-self: end;
+}
+
+.mirror__region--middle {
+  grid-area: middle;
+  place-self: center;
+}
+
+.mirror__region--bottom {
+  grid-area: bottom;
+  justify-self: center;
+}
