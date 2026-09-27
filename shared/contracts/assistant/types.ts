@@ -1,7 +1,7 @@
 // Assistant turn shape, per ./README.md. Status: proposed with the Grok implementation, not yet agreed.
 // Type-only: imported by the backend assistant feature. No other feature should import the Grok adapter.
 
-export const WIDGETS = ['weather', 'calendar', 'maps', 'planner'] as const;
+export const WIDGETS = ['weather', 'calendar', 'maps', 'planner', 'unwind'] as const;
 export type WidgetName = (typeof WIDGETS)[number];
 
 // getPreferences is intentionally absent until someone owns preferences.
@@ -26,9 +26,13 @@ export interface AssistantError {
 }
 
 // What the assistant emits for React. Transport is still undecided; this is the payload only.
+export type TransportUiMode = 'transit' | 'walking' | 'driving' | 'rideshare';
+
 export interface UiEvent {
   action: 'expandWidget' | 'collapseWidget' | 'showOverview';
   target?: WidgetName;
+  /** When opening maps, the route the user asked to see. */
+  mode?: TransportUiMode;
   requestId: string;
   timestamp: string;
 }
@@ -57,7 +61,8 @@ export interface PreparationTaskInput {
 }
 
 export type ValidatedToolCall =
-  | { name: 'expandWidget' | 'collapseWidget'; widget: WidgetName }
+  | { name: 'expandWidget'; widget: WidgetName; mode?: TransportUiMode }
+  | { name: 'collapseWidget'; widget: WidgetName }
   | { name: 'showOverview' }
   | { name: 'getWeather'; units?: 'imperial' | 'metric' }
   | { name: 'getUpcomingEvent' }

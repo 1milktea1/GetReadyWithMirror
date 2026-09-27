@@ -146,6 +146,7 @@ test('a 6 PM conflict keeps every task and does not move dinner', async () => {
   assert.equal(result.data.tasks[1].overruns, true);
   assert.equal(result.data.conflict?.adjustments.every((item) => !item.resolves), true);
   assert.equal(result.data.provenance.isFixture, true);
+  assert.equal(result.data.summary, 'Late');
 });
 
 test('5:30 PM with the default routine is tight but feasible', async () => {
@@ -156,6 +157,7 @@ test('5:30 PM with the default routine is tight but feasible', async () => {
   assert.equal(result.data.slackMinutes, 0);
   assert.equal(result.data.feasible, true);
   assert.equal(result.data.tasks[0].start, at('17:30').toISOString());
+  assert.equal(result.data.summary, '45 minutes remaining for Dinner reservation · Soothr');
 });
 
 test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', async () => {
@@ -193,7 +195,7 @@ test('marking tasks done does not remove them', async () => {
 
 test('task order is the caller\'s order', async () => {
   const reversed = [...DEFAULT_TASKS].reverse();
-  const result = await generatePreparationPlan({ now: at('12:00'), tasks: reversed });
+  const result = await generatePreparationPlan({ now: at('16:00'), tasks: reversed });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.deepEqual(
@@ -216,11 +218,12 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal(conflict.body.data.status, 'schedule-conflict');
   assert.equal(conflict.body.data.pressure, 'conflict');
 
-  const noon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T12:00:00-04:00'));
-  assert.equal(noon.status, 200);
-  if (!noon.body.ok) return;
-  assert.equal(noon.body.data.pressure, 'relaxed');
-  assert.equal(noon.body.data.leaveBy.at, at('18:15').toISOString());
+  const afternoon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T15:00:00-04:00'));
+  assert.equal(afternoon.status, 200);
+  if (!afternoon.body.ok) return;
+  assert.equal(afternoon.body.data.pressure, 'relaxed');
+  assert.equal(afternoon.body.data.leaveBy.at, at('18:15').toISOString());
+  assert.equal(afternoon.body.data.summary, '3 hours 15 minutes remaining for Dinner reservation · Soothr');
 
   assert.equal((await handlePlannerRequest(new URLSearchParams('now=bogus'))).status, 400);
   assert.equal((await handlePlannerRequest(new URLSearchParams('buffer=-5'))).status, 400);
@@ -234,18 +237,18 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal(hair.body.data.conflict?.shortfallMinutes, 20);
 });
 
-test('after the 7 PM dinner ends the planner uses the 10:30 PM Soothr dinner', async () => {
+test('after the 7 PM dinner ends the planner uses the 12 AM Soothr dinner', async () => {
   const result = await generatePreparationPlan({ now: at('21:00') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.event.title, 'Late dinner');
-  assert.equal(result.data.event.start, '2026-09-27T02:30:00.000Z');
+  assert.equal(result.data.event.start, '2026-09-27T04:00:00.000Z');
   assert.equal(result.data.feasible, true);
   assert.equal((await handlePlannerRequest(new URLSearchParams('now=2026-09-26T21:00:00-04:00'))).status, 200);
 });
 
 test('walking uses that mode\'s duration for leave-by', async () => {
-  const result = await generatePreparationPlan({ now: at('12:00'), mode: 'walking' });
+  const result = await generatePreparationPlan({ now: at('16:00'), mode: 'walking' });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.leaveBy.transportMode, 'walking');
@@ -254,7 +257,7 @@ test('walking uses that mode\'s duration for leave-by', async () => {
 });
 
 test('rideshare leave-by uses the driving duration', async () => {
-  const result = await generatePreparationPlan({ now: at('12:00'), mode: 'rideshare' });
+  const result = await generatePreparationPlan({ now: at('16:00'), mode: 'rideshare' });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.leaveBy.travelMinutes, 30);
@@ -266,7 +269,7 @@ test('leave-by uses a live Google duration for the selected mode', async () => {
   process.env.GOOGLE_MAPS_API_KEY = 'test-key';
   try {
     const result = await generatePreparationPlan({
-      now: at('12:00'),
+      now: at('16:00'),
       live: true,
       fetchFn: async (input) => {
         const mode = new URL(String(input)).searchParams.get('mode');
@@ -301,7 +304,7 @@ test('leave-by uses a live subway itinerary instead of the 35 minute fixture', a
   delete process.env.GOOGLE_MAPS_API_KEY;
   try {
     const result = await generatePreparationPlan({
-      now: at('12:00'),
+      now: at('16:00'),
       live: true,
       fetchFn: async (input) => {
         const url = String(input);

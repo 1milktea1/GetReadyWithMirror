@@ -25,7 +25,7 @@ match `types.ts` and still need joint confirmation before other features depend 
 | `updateTaskDuration` | Mutates the plan | Planner, not connected yet | `{ taskName, durationMinutes }` |
 | `markTaskComplete` | Mutates the plan | Planner, not connected yet | `{ taskName }` |
 
-`widget` is `weather`, `calendar`, `maps`, or `planner`. Durations are whole minutes from 1 to
+`widget` is `weather`, `calendar`, `maps`, `planner`, or `unwind`. Durations are whole minutes from 1 to
 180. The arrival buffer is a whole number from 0 to 120. Task names are 1 to 60 characters.
 Unknown fields are rejected.
 

@@ -2,8 +2,9 @@
 // It returns the walk-to-station, train, and walk-to-door geometry. It is not a
 // straight line between the two pins. Google Directions is preferred when a key is set.
 
-import type { LatLng, RouteAlternative } from '../../../../shared/contracts/maps/types.ts';
+import type { LatLng, RouteAlternative, RouteLeg } from '../../../../shared/contracts/maps/types.ts';
 import { decodePolyline, simplifyPath } from './googleDirectionsAdapter.ts';
+import { subwayLineColor, walkLegColor } from './subwayLineColor.ts';
 
 const TRANSIT_URL = 'https://api.transitous.org/api/v6/plan';
 
@@ -79,6 +80,7 @@ export function mapTransitRoute(body: unknown): RouteAlternative | undefined {
     summary: best.lines.length > 0 ? `Subway ${best.lines.join(' · ')}` : 'Live subway',
     disruptions: [],
     path: simplifyPath(best.path, 120),
+    legs: best.legs,
     provenance: { source: 'transitous', isFixture: false },
   };
 }
@@ -88,6 +90,7 @@ interface TransitItinerary {
   subway: boolean;
   lines: string[];
   path: LatLng[];
+  legs: RouteLeg[];
 }
 
 function readItinerary(value: unknown): TransitItinerary | undefined {
@@ -99,22 +102,66 @@ function readItinerary(value: unknown): TransitItinerary | undefined {
 
   const lines: string[] = [];
   const path: LatLng[] = [];
+  const colored: RouteLeg[] = [];
   let subway = false;
   for (const leg of legs) {
     if (!leg || typeof leg !== 'object') continue;
     const mode = (leg as { mode?: unknown }).mode;
+    const encoded = (leg as { legGeometry?: { points?: unknown } }).legGeometry?.points;
+    const precision = (leg as { legGeometry?: { precision?: unknown } }).legGeometry?.precision;
+    const decoded =
+      typeof encoded === 'string' && encoded.length > 0
+        ? decodePolyline(encoded, typeof precision === 'number' ? precision : 6)
+        : [];
+    const segment = segmentOrStops(decoded, (leg as { from?: unknown }).from, (leg as { to?: unknown }).to);
     if (mode === 'SUBWAY') {
       subway = true;
       const name = (leg as { routeShortName?: unknown }).routeShortName;
+      const tint = (leg as { routeColor?: unknown }).routeColor;
       if (typeof name === 'string' && name && lines.at(-1) !== name) lines.push(name);
+      if (segment.length >= 2) {
+        colored.push({
+          kind: 'subway',
+          line: typeof name === 'string' ? name : undefined,
+          color: subwayLineColor(typeof name === 'string' ? name : '', typeof tint === 'string' ? tint : undefined),
+          fromStop: stopName((leg as { from?: unknown }).from),
+          toStop: stopName((leg as { to?: unknown }).to),
+          path: segment,
+        });
+      }
+    } else if (segment.length >= 2) {
+      colored.push({ kind: mode === 'WALK' ? 'walk' : 'other', color: walkLegColor(), path: segment });
     }
-    const encoded = (leg as { legGeometry?: { points?: unknown } }).legGeometry?.points;
-    if (typeof encoded !== 'string' || encoded.length === 0) continue;
-    path.push(...decodePolyline(encoded, 6));
+    if (segment.length > 0) path.push(...segment);
   }
-  return { durationSeconds: seconds, subway, lines, path };
+  return { durationSeconds: seconds, subway, lines, path, legs: colored };
 }
 
 function point(location: LatLng): string {
   return `${location.latitude},${location.longitude}`;
+}
+
+function segmentOrStops(decoded: LatLng[], from: unknown, to: unknown): LatLng[] {
+  const segment = decoded.length >= 2 ? simplifyPath(decoded, 80) : [];
+  if (segment.length >= 2) return segment;
+  const start = readStop(from);
+  const end = readStop(to);
+  if (start && end && !samePoint(start, end)) return [start, end];
+  return segment;
+}
+
+function readStop(value: unknown): LatLng | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const latitude = (value as { lat?: unknown }).lat;
+  const longitude = (value as { lon?: unknown }).lon;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return undefined;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return undefined;
+  return { latitude, longitude };
+}
+
+function stopName(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const name = (value as { name?: unknown }).name;
+  const trimmed = typeof name === 'string' ? name.trim() : '';
+  return trimmed || undefined;
 }

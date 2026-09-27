@@ -51,10 +51,41 @@ function mapsResult(walkingLive: boolean): MapsResult {
       {
         mode: 'transit',
         durationMinutes: 35,
-        summary: 'Rehearsal estimate',
+        summary: walkingLive ? 'Subway 1 · L' : 'Rehearsal estimate',
         disruptions: [],
-        path: [],
-        provenance: { source: 'fixture', isFixture: true },
+        path: walkingLive
+          ? [
+              { latitude: 40.8, longitude: -73.96 },
+              { latitude: 40.73, longitude: -73.99 },
+            ]
+          : [],
+        legs: walkingLive
+          ? [
+              {
+                kind: 'subway',
+                line: '1',
+                color: '#EE352E',
+                toStop: '14 St',
+                path: [
+                  { latitude: 40.8075, longitude: -73.9641 },
+                  { latitude: 40.737, longitude: -74.0 },
+                ],
+              },
+              {
+                kind: 'subway',
+                line: 'L',
+                color: '#A7A9AC',
+                fromStop: '14 St',
+                path: [
+                  { latitude: 40.737, longitude: -74.0 },
+                  { latitude: 40.732269, longitude: -73.987352 },
+                ],
+              },
+            ]
+          : undefined,
+        provenance: walkingLive
+          ? { source: 'transitous', isFixture: false }
+          : { source: 'fixture', isFixture: true },
       },
       {
         mode: 'walking',
@@ -106,6 +137,14 @@ describe('MapPanel', () => {
     polyline.mockClear()
   })
 
+  it('floors the clock to the minute so the next-event route is not refetched every second', async () => {
+    const fetchMock = vi.fn(async () => ({ json: async () => ({ ok: true, data: mapsResult(false) }) }))
+    vi.stubGlobal('fetch', fetchMock)
+    render(<MapPanel mode="transit" onModeChange={() => {}} now="2026-09-26T16:00:42.880Z" />)
+    expect(await screen.findByText('Columbia University → Soothr')).toBeInTheDocument()
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('now=2026-09-26T16%3A00%3A00.000Z')
+  })
+
   it('defaults the visible choice to subway and labels a fixture route', async () => {
     mockMaps(mapsResult(false))
     render(<MapPanel mode="transit" onModeChange={() => {}} now="2026-09-26T16:00:00.000Z" />)
@@ -131,13 +170,70 @@ describe('MapPanel', () => {
     })
     expect(polyline).toHaveBeenCalledWith(
       [
+        [40.8075, -73.9626],
         [40.8, -73.96],
         [40.75, -73.97],
         [40.732269, -73.987352],
       ],
-      expect.not.objectContaining({ dashArray: expect.anything() }),
+      expect.objectContaining({ color: '#fff' }),
     )
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Drive · 30 min' }))
     expect(onModeChange).toHaveBeenCalledWith('driving')
+  })
+
+  it('draws subway in white and names the lines and transfer', async () => {
+    mockMaps(mapsResult(true))
+    render(<MapPanel mode="transit" onModeChange={() => {}} />)
+    expect(await screen.findByLabelText('Subway lines')).toHaveTextContent(
+      '1, L. transfer at station 14 St.',
+    )
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalledWith(
+        [
+          [40.8075, -73.9641],
+          [40.737, -74.0],
+        ],
+        expect.objectContaining({ color: '#fff' }),
+      )
+    })
+    expect(polyline).toHaveBeenCalledWith(
+      [
+        [40.737, -74.0],
+        [40.732269, -73.987352],
+      ],
+      expect.objectContaining({ color: '#fff' }),
+    )
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
+  })
+
+  it('walks the last subway stop to the destination pin when the colored legs stop short', async () => {
+    const body = mapsResult(true)
+    body.routes[0] = {
+      ...body.routes[0]!,
+      legs: [
+        {
+          kind: 'subway',
+          line: '1',
+          color: '#EE352E',
+          path: [
+            { latitude: 40.8075, longitude: -73.9641 },
+            { latitude: 40.7378, longitude: -74.0002 },
+          ],
+        },
+      ],
+    }
+    mockMaps(body)
+    render(<MapPanel mode="transit" onModeChange={() => {}} />)
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalledWith(
+        [
+          [40.7378, -74.0002],
+          [40.732269, -73.987352],
+        ],
+        expect.objectContaining({ color: '#fff' }),
+      )
+    })
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
   })
 })

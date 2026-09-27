@@ -4,7 +4,9 @@ import { commandForVoiceEvent } from '../features/assistant/voiceEvents'
 import { App } from './App'
 
 vi.mock('../features/maps/MapPanel', () => ({
-  MapPanel: () => <section aria-label="Route map">Map open</section>,
+  MapPanel: ({ mode }: { mode: string }) => (
+    <section aria-label="Route map">Map open · {mode}</section>
+  ),
 }))
 
 describe('overview map', () => {
@@ -34,6 +36,11 @@ describe('overview map', () => {
 
     window.mirrorCommand?.({ action: 'expandWidget', widget: 'map' })
     expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
+    expect(screen.getByText(/Map open/)).toHaveTextContent('transit')
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'map', mode: 'walking' })
+    expect(await screen.findByText(/walking/)).toBeInTheDocument()
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'map', mode: 'driving' })
+    expect(await screen.findByText(/driving/)).toBeInTheDocument()
     expect(screen.queryByText('No weather')).not.toBeInTheDocument()
     expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
@@ -191,6 +198,16 @@ describe('overview map', () => {
       action: 'expandWidget',
       widget: 'map',
     })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps', mode: 'walking' })).toEqual({
+      action: 'expandWidget',
+      widget: 'map',
+      mode: 'walking',
+    })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps', mode: 'driving' })).toEqual({
+      action: 'expandWidget',
+      widget: 'map',
+      mode: 'driving',
+    })
     expect(commandForVoiceEvent({ action: 'showOverview' })).toEqual({ action: 'showOverview' })
 
     render(<App />)
@@ -198,6 +215,66 @@ describe('overview map', () => {
     expect(command).not.toBeNull()
     if (command) window.mirrorCommand?.(command)
     expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
+  })
+
+  it('opens the unwind screen with the morning alarm, the clock, and weather without suggestions', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/planner')) {
+          return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No plan' } }) }
+        }
+        return {
+          json: async () => ({
+            ok: true,
+            data: {
+              location: { name: 'Columbia University', latitude: 40.8, longitude: -73.96, timeZone: 'America/New_York' },
+              units: { system: 'imperial', temperature: '°F', windSpeed: 'mph', precipitation: 'in', snowfall: 'in' },
+              retrievedAt: '2026-09-26T23:00:00-04:00',
+              timeZone: 'America/New_York',
+              window: { start: '2026-09-26T23:00:00-04:00', end: '2026-09-27T08:00:00-04:00' },
+              current: {
+                temperature: 64,
+                feelsLike: 62,
+                condition: 'clear',
+                precipitationProbability: 10,
+                uvIndex: 0,
+                windSpeed: 4,
+              },
+              hourly: [],
+              summary: {
+                high: 66,
+                low: 58,
+                minFeelsLike: 56,
+                maxUvIndex: 0,
+                maxPrecipitationProbability: 20,
+                totalPrecipitation: 0,
+                totalSnowfall: 0,
+              },
+              suggestions: [{ item: 'umbrella', reason: 'Rain later', trigger: { metric: 'precipitation', value: 1, time: '2026-09-27T01:00:00-04:00' } }],
+              provenance: { source: 'fixture', isFixture: true },
+            },
+          }),
+        }
+      }),
+    )
+    window.history.replaceState(null, '', '/?expand=unwind')
+    render(<App />)
+
+    expect(screen.getByRole('region', { name: 'Alarm' })).toHaveTextContent('Alarm set')
+    expect(screen.getByText('8:00')).toBeInTheDocument()
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
+    expect(screen.getByText(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/)).toBeInTheDocument()
+    expect(await screen.findByText('Columbia University')).toBeInTheDocument()
+    expect(screen.getByText('64°')).toBeInTheDocument()
+    expect(screen.queryByText('Umbrella')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
   })
 
   it('keeps the real clock when the URL has ?now=', async () => {

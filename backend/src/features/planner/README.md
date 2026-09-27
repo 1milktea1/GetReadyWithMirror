@@ -34,7 +34,7 @@ With those numbers the demo clock lands on the scenario matrix:
 | 4:00 PM | Comfortable |
 | 5:30 PM | Tight. Start now; the routine ends exactly at leave-by |
 | 6:00 PM | Conflict. 30 minutes short. Tasks stay on the plan |
-| After 8:30 PM | The 7 PM dinner has ended, so leave-by uses the 10:30 PM Soothr dinner |
+| After 8:30 PM | The 7 PM dinner has ended, so leave-by uses the 12 AM Soothr dinner |
 | After midnight | Tomorrow: 10 AM Equinox East 92nd Street, 1:30 PM lunch at Soothr, 5 PM dinner at Soothr |
 | 5:30 PM, hair 40 | Conflict. 20 minutes short. Shortening hair back to 20 resolves it |
 

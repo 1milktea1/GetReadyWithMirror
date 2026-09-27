@@ -15,7 +15,7 @@ test('Express mounts health, maps, planner, assistant, and voice', async () => {
     assert.equal(health.status, 200);
     assert.deepEqual(await health.json(), { ok: true, service: 'getreadywithmirror' });
 
-    const maps = (await (await fetch(`${base}/api/maps`)).json()) as {
+    const maps = (await (await fetch(`${base}/api/maps?now=2026-09-26T16:00:00-04:00`)).json()) as {
       ok: boolean;
       data: { provenance: { isFixture: boolean }; routes: { mode: string; durationMinutes: number }[] };
     };

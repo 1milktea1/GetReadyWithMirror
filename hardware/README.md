@@ -1,4 +1,4 @@
-# Hardware (optional)
+# Hardware
 
 The laptop still hosts the React UI, backend, Grok, and voice. A **Raspberry Pi Pico**
 can plug in over **USB serial** as an accessory. It does not host the app, and the core
@@ -24,6 +24,15 @@ SWIPE:RIGHT
 
 `hardware/sensor_dashboard.py` is a debug plot of depth, lux, presence, and the last
 gesture. The mirror UI only cares about **swipes**.
+
+
+
+
+
+## Raspberry Pi Pico
+
+A **Raspberry Pi Pico**, connects to the laptop over **USB serial** and handles
+optional physical input or output — an activation button, or an indicator light.
 
 | Pico line | Mirror |
 |---|---|

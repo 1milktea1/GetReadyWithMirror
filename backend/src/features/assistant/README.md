@@ -41,11 +41,12 @@ Grok **requests** named tools. The backend **validates and executes** them.
 
 - Spoken text, taken from Grok only after tool results have been sent back.
 - Validated tool outcomes.
-- UI events for `expandWidget`, `collapseWidget`, and `showOverview`. The voice button applies
-  those events to the overview. React owns the animation.
+- UI events for `expandWidget`, `collapseWidget`, and `showOverview`. Those events are
+  streamed to the voice button as soon as Grok requests them, before the spoken follow-up.
+  React owns the animation.
 
 An action and an information request can occur in the same turn. Weather, the fixture
-calendar, the sample commute, and the planner are wired. Planner follow-ups
+calendar, the next-event commute, and the planner are wired. Planner follow-ups
 (`updateTaskDuration`, `markTaskComplete`) reuse the last named routine in memory.
 
 `POST /api/assistant` is mounted on the laptop Express app at port 3001.

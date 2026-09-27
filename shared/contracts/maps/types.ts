@@ -17,6 +17,19 @@ export interface MapPlace {
   location: LatLng;
 }
 
+export interface RouteLeg {
+  kind: 'subway' | 'walk' | 'other';
+  /** Subway short name, such as `1` or `L`. */
+  line?: string;
+  /** Hex stroke for the map, MTA line color when `kind` is subway. */
+  color: string;
+  /** Boarding stop name when the router provided one. */
+  fromStop?: string;
+  /** Alighting stop name when the router provided one. */
+  toStop?: string;
+  path: LatLng[];
+}
+
 export interface RouteAlternative {
   mode: TransportMode;
   /** Whole minutes. Fixture values are rehearsal numbers, not a live retrieval. */
@@ -25,6 +38,8 @@ export interface RouteAlternative {
   disruptions: string[];
   /** Road or transit path to draw. Empty when only the places are known. */
   path: LatLng[];
+  /** Colored subway and walk segments. Empty when only a single path is known. */
+  legs?: RouteLeg[];
   provenance: { source: RouteSource; isFixture: boolean };
 }
 

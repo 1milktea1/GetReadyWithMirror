@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import './VoiceButton.css'
 import { commandAfterWake } from './wakePhrase'
 import { appendSpokenTurn, type ChatTurn } from './conversation'
-import { playAudioBlob, setVoiceBusy } from './voiceBusy'
+import { primeAudioBlob, setVoiceBusy } from './voiceBusy'
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
+
+/** After the wake phrase, keep listening this long for the rest of the request. */
+const WAKE_HOLD_MS = 3000
 
 export interface VoiceUiEvent {
   action: 'expandWidget' | 'collapseWidget' | 'showOverview'
   target?: string
+  mode?: 'transit' | 'walking' | 'driving' | 'rideshare'
 }
 
 export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) => void }) {
@@ -103,14 +108,28 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       const turn = await postJson('/api/assistant', { utterance, history: historyRef.current })
       const spoken = textOf(turn, 'spokenText')
       const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
-      eventsRef.current(events)
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
-      setPhaseNow('speaking')
-      setStatus(spoken)
-      try {
-        await play(spoken)
-      } catch {
-        // Grok already opened the module. Keep the spoken line if speakers fail.
+      let speech = null
+      if (spoken) {
+        try {
+          speech = await prepareSpeech(spoken)
+        } catch {
+          // Speakers may be unset. Still open the module with the spoken line.
+        }
+      }
+      // Open the module and start audio together so the shift is not silent.
+      // Transition duration is unchanged; we only wait for the reply to be ready.
+      flushSync(() => {
+        eventsRef.current(events)
+        setPhaseNow('speaking')
+        setStatus('Thinking')
+      })
+      if (speech) {
+        try {
+          await speech.play()
+        } catch {
+          // The module is already open. Keep the spoken line if playback fails.
+        }
       }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Voice failed')
@@ -125,12 +144,17 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       onTranscript: (text) => {
         if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
         setLive(text)
+        if (commandAfterWake(text) !== null && phaseRef.current === 'idle') setStatus('Listening')
       },
       onWake: (command) => {
         if (phaseRef.current !== 'idle') return
-        setScribe('')
-        if (command) void answer(command)
-        else void recordCommand()
+        if (command) {
+          setScribe(command)
+          void answer(command)
+        } else {
+          setScribe('')
+          void recordCommand()
+        }
       },
       onDenied: () => {
         setHandsOn(true)
@@ -216,6 +240,7 @@ function startWakeListener(handlers: {
   let closed = false
   let timer = 0
   let pending = ''
+  let holding = false
 
   const fire = (command: string) => {
     window.clearTimeout(timer)
@@ -229,20 +254,24 @@ function startWakeListener(handlers: {
     handlers.onWake(command)
   }
 
+  const holdForCommand = (command: string) => {
+    pending = command
+    holding = true
+    window.clearTimeout(timer)
+    // Wait after "hey mirror" so the request can follow. Reset on each new phrase.
+    timer = window.setTimeout(() => fire(pending), WAKE_HOLD_MS)
+  }
+
   recognition.onresult = (event) => {
     const latest = latestTranscript(event)
     if (latest) handlers.onTranscript(latest)
-    const text = transcriptFrom(event)
-    const command = commandAfterWake(text)
-    if (command === null) return
-    pending = command
-    const final = event.results[event.results.length - 1]?.isFinal
-    if (final) {
-      fire(command)
+    const afterWake = commandAfterWake(transcriptFrom(event))
+    if (afterWake !== null) {
+      holdForCommand(afterWake)
       return
     }
-    window.clearTimeout(timer)
-    timer = window.setTimeout(() => fire(pending), 700)
+    // A new SpeechRecognition session drops "hey mirror". Keep the follow-up.
+    if (holding && latest) holdForCommand(latest)
   }
   recognition.onerror = (event) => {
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') handlers.onDenied()
@@ -380,7 +409,7 @@ async function postJson(path: string, payload: unknown): Promise<JsonBody> {
   return body
 }
 
-async function play(text: string): Promise<void> {
+async function prepareSpeech(text: string) {
   const res = await fetch('/api/voice/speak', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -390,7 +419,7 @@ async function play(text: string): Promise<void> {
     const body = await readJson(res)
     throw new Error(messageOf(body) || 'Could not speak the reply.')
   }
-  await playAudioBlob(await res.blob())
+  return primeAudioBlob(await res.blob())
 }
 
 interface JsonBody {

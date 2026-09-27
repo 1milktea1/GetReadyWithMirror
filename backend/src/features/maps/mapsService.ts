@@ -20,8 +20,10 @@ import type {
 export interface GetCommuteOptions {
   /** When omitted, the fixture origin (Columbia University) is used. */
   originAddress?: string;
-  /** When omitted, the fixture destination (Soothr) is used. */
+  /** When omitted, the fixture destination (Soothr) is used. HTTP fills this from the next event. */
   destinationAddress?: string;
+  /** Optional display name when the address is the next calendar venue. */
+  destinationName?: string;
   /** Passed to Google as departure_time when it is not in the past. */
   now?: Date;
   /** Injected in tests. Defaults to global fetch. */
@@ -60,7 +62,12 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
   const destinationMatches = !destinationAddress || sameAddress(destinationAddress, fixture.destination.address);
   const demoPair = originMatches && destinationMatches;
 
-  if (!demoPair && !(live && googleMapsApiKey())) {
+  const origin = resolvePlace(originAddress, fixture.origin);
+  const destination = namedPlace(resolvePlace(destinationAddress, fixture.destination), options.destinationName);
+  const googleKey = live ? googleMapsApiKey() : undefined;
+  const canLive = Boolean(live && (googleKey || (located(origin.location) && located(destination.location))));
+  const knownPins = located(origin.location) && located(destination.location);
+  if (!demoPair && !canLive && !knownPins) {
     return {
       ok: false,
       error: {
@@ -70,15 +77,15 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
     };
   }
 
-  const cacheKey = live && !options.fetchFn ? `${originAddress ?? ''}|${destinationAddress ?? ''}` : undefined;
+  const cacheKey =
+    live && !options.fetchFn
+      ? `${originAddress ?? ''}|${destinationAddress ?? ''}|${options.destinationName ?? ''}`
+      : undefined;
   if (cacheKey) {
     const hit = cache.get(cacheKey);
     if (hit && Date.now() - hit.at < CACHE_MS) return hit.value;
   }
 
-  const origin = demoPair ? fixture.origin : placeFromAddress(originAddress ?? fixture.origin.address);
-  const destination = demoPair ? fixture.destination : placeFromAddress(destinationAddress ?? fixture.destination.address);
-  const googleKey = live ? googleMapsApiKey() : undefined;
   const routes = new Map<TransportMode, RouteAlternative>();
 
   if (googleKey) {
@@ -111,7 +118,7 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
     if (transit) routes.set('transit', transit);
   }
 
-  if (live && demoPair) {
+  if (live && located(origin.location) && located(destination.location)) {
     const missing = (['walking', 'driving', 'cycling'] as const).filter((mode) => !routes.has(mode));
     const fetched = await Promise.all(
       missing.map((mode) =>
@@ -158,6 +165,19 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
   const list = [...routes.values()];
   const recommended = list.find((route) => route.mode === fixture.recommendedMode) ?? list[0];
   if (!recommended) {
+    if (knownPins) {
+      return {
+        ok: true,
+        data: {
+          origin,
+          destination,
+          routes: [],
+          recommendedMode: fixture.recommendedMode,
+          retrievedAt: (options.now ?? new Date()).toISOString(),
+          provenance: { source: 'fixture', isFixture: true },
+        },
+      };
+    }
     return {
       ok: false,
       error: { status: 'no-data', message: 'No route is available for that trip.' },
@@ -189,6 +209,41 @@ function located(location: LatLng): boolean {
 
 function placeFromAddress(address: string): MapPlace {
   return { name: address, address, location: { latitude: 0, longitude: 0 } };
+}
+
+const DEMO_PLACES: readonly MapPlace[] = [
+  {
+    name: 'Columbia University',
+    address: 'Columbia University, New York, NY 10027',
+    location: { latitude: 40.8075, longitude: -73.9626 },
+  },
+  {
+    name: 'Soothr',
+    address: '204 E 13th St, New York, NY 10003',
+    location: { latitude: 40.732269, longitude: -73.987352 },
+  },
+  {
+    name: 'Equinox East 92nd Street',
+    address: '203 E 92nd St, New York, NY 10128',
+    location: { latitude: 40.7824, longitude: -73.9508 },
+  },
+  {
+    name: 'Barney Greengrass',
+    address: '541 Amsterdam Ave, New York, NY 10024',
+    location: { latitude: 40.7869, longitude: -73.9748 },
+  },
+];
+
+function resolvePlace(address: string | undefined, fallback: MapPlace): MapPlace {
+  if (!address) return fallback;
+  const known = DEMO_PLACES.find((place) => sameAddress(address, place.address) || sameAddress(address, place.name));
+  if (known) return { ...known, location: { ...known.location } };
+  return placeFromAddress(address);
+}
+
+function namedPlace(place: MapPlace, name: string | undefined): MapPlace {
+  const label = name?.trim();
+  return label ? { ...place, name: label } : place;
 }
 
 function fromFixture(route: FixtureRoute): RouteAlternative {

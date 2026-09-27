@@ -13,9 +13,9 @@ Events are **wall-clock times in `America/New_York`, relative to the current day
   "venueName": "Soothr", "venueAddress": "204 E 13th St, New York, NY 10003" }
 ```
 
-`dayOffset` 0 is today, 1 is tomorrow. Today includes the 7 PM Soothr dinner and a 10:30 PM
-dinner for evening tests. Tomorrow is 10 AM gym at Equinox East 92nd Street, 1:30 PM lunch
-at Soothr, and 5 PM dinner at Soothr.
+`dayOffset` 0 is today, 1 is tomorrow. Today includes a 10 AM Equinox gym and the 7 PM Soothr
+dinner. Midnight tonight is a 12 AM Soothr dinner for evening tests. Tomorrow repeats gym at
+Equinox East 92nd Street, then 1:30 PM lunch at Soothr and 5 PM dinner at Soothr.
 
 The venue address is **real** — maps needs a routable destination to produce genuine travel
 estimates — but the reservation is synthetic, like every other event in this file.
