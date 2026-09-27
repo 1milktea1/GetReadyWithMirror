@@ -11,17 +11,18 @@ import {
   type MirrorCommand,
 } from '../features/overview/mirrorCommands'
 import { PlannerPanel } from '../features/planner/PlannerPanel'
+import { UnwindAlarm } from '../features/unwind/UnwindAlarm'
 import { WeatherPanel } from '../features/weather/WeatherPanel'
 import { useNow } from '../shared/time/useNow'
 import './App.css'
 
 const calendarSource = createFixtureCalendarSource()
 
-type ExpandedModule = 'weather' | 'calendar' | 'planner' | 'map' | null
+type ExpandedModule = 'weather' | 'calendar' | 'planner' | 'map' | 'unwind' | null
 
 function expandFromLocation(): ExpandedModule {
   const widget = new URLSearchParams(window.location.search).get('expand')
-  if (widget === 'map' || widget === 'weather' || widget === 'calendar') return widget
+  if (widget === 'map' || widget === 'weather' || widget === 'calendar' || widget === 'unwind') return widget
   return null
 }
 
@@ -39,6 +40,7 @@ export function App() {
   const mapOpen = expanded === 'map'
   const weatherOpen = expanded === 'weather'
   const calendarOpen = expanded === 'calendar'
+  const unwindOpen = expanded === 'unwind'
   const focusOpen = weatherOpen || calendarOpen
 
   useEffect(() => {
@@ -58,7 +60,8 @@ export function App() {
         command.widget === 'map' ||
         command.widget === 'weather' ||
         command.widget === 'calendar' ||
-        command.widget === 'planner'
+        command.widget === 'planner' ||
+        command.widget === 'unwind'
       ) {
         setExpanded(command.widget)
       }
@@ -103,7 +106,7 @@ export function App() {
           />
         </div>
       )}
-      {!focusOpen && (
+      {!focusOpen && !unwindOpen && (
         <div className="mirror__region mirror__region--left">
           {!mapOpen && (
             <WeatherPanel expanded={false} onToggle={() => setExpanded('weather')} />
@@ -115,12 +118,18 @@ export function App() {
           />
         </div>
       )}
+      {unwindOpen && (
+        <div className="mirror__region mirror__region--left">
+          <UnwindAlarm />
+          <WeatherPanel brief expanded={false} />
+        </div>
+      )}
       <div className="mirror__region mirror__region--top-right">
         <CalendarModule
           now={now}
           source={calendarSource}
           clockOnly={mapOpen}
-          hideAgenda={weatherOpen || calendarOpen}
+          hideAgenda={weatherOpen || calendarOpen || unwindOpen}
           onActivate={calendarOpen ? undefined : () => setExpanded('calendar')}
         />
       </div>

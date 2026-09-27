@@ -1,0 +1,52 @@
+.unwind-alarm {
+  color: var(--mirror-text);
+  font-weight: var(--weight-regular);
+  animation: unwind-fade-in 900ms ease-out both;
+}
+
+:where(.unwind-alarm p) {
+  margin: 0;
+}
+
+.unwind-alarm__label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-strong);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.unwind-alarm__clock {
+  display: inline-flex;
+  align-items: flex-start;
+  margin-top: 0.35em;
+  line-height: 0.9;
+  font-variant-numeric: tabular-nums;
+}
+
+.unwind-alarm__time {
+  font-size: var(--text-display);
+  font-weight: var(--weight-display);
+  letter-spacing: -0.03em;
+}
+
+.unwind-alarm__period {
+  margin-left: 0.35em;
+  padding-top: 0.5em;
+  font-size: var(--text-title);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.06em;
+}
+
+.unwind-alarm__day {
+  margin-top: 0.6rem;
+  font-size: var(--text-title);
+}
+
+@keyframes unwind-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
