@@ -13,6 +13,7 @@ import {
 import { PlannerPanel } from '../features/planner/PlannerPanel'
 import { UnwindAlarm } from '../features/unwind/UnwindAlarm'
 import { UnwindBackdrop } from '../features/unwind/UnwindBackdrop'
+import { usePicoGestures } from '../features/unwind/usePicoGestures'
 import { WeatherPanel } from '../features/weather/WeatherPanel'
 import { useNow } from '../shared/time/useNow'
 import './App.css'
@@ -50,6 +51,7 @@ export function App() {
   const calendarOpen = expanded === 'calendar'
   const unwindOpen = expanded === 'unwind'
   const focusOpen = weatherOpen || calendarOpen
+  usePicoGestures()
 
   useEffect(() => {
     window.mirrorCommand = (command: MirrorCommand) => publishMirrorCommand(command)

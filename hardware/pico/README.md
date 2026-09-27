@@ -1,30 +1,40 @@
 # Raspberry Pi Pico (optional USB-serial accessory)
 
 **Owner:** TBD
-**Status:** Not implemented — no firmware written, integration not committed to.
+**Status:** Sensor stream exists. The Pico does not host the app.
 
 ## Scope
 
-Optional physical input and output for the mirror, connected to the laptop over **USB serial**:
+The Pico is a USB-serial accessory on the laptop. It reports depth, light, presence,
+a tracked hand, and recognized **left / right swipes**. An activation button or LED is
+still optional.
 
-- An activation button that triggers the same push-to-talk action as the on-screen control.
-- An indicator (for example an LED) reflecting listening or speaking state.
+## Swipe contract
+
+The firmware already emits:
+
+```text
+SWIPE:LEFT
+SWIPE:RIGHT
+```
+
+Laptop mapping (React applies the screen change):
+
+- **Left** → unwind page
+- **Right** → main dashboard
 
 ## Hard constraints
 
 - The Pico **does not host** the frontend or the backend. The laptop runs everything.
-- The core hackathon demo must work with **no Pico attached**. On-screen push-to-talk is the
-  primary control; the button is an alternative, never a dependency.
+- The core hackathon demo must work with **no Pico attached**.
 - Nothing in the voice flow may block on Pico availability.
 
-## Planned future files
+## Laptop-side files
 
-Pico firmware and a laptop-side USB-serial message handler. Message format is TBD.
+- [`sensor_dashboard.py`](../sensor_dashboard.py) — debug plot; also POSTs swipes to the API
+  when it has the serial port.
+- [`backend/src/features/hardware/`](../../backend/src/features/hardware/README.md) — serial
+  reader, gesture hub, SSE/POST so the browser can switch pages.
 
-## Open questions
-
-- Is the Pico part of the demo at all, or a stretch goal? See
-  [`docs/decisions.md`](../../docs/decisions.md).
-- What is the serial message format between Pico and laptop?
-- Which laptop-side component owns the serial connection — the voice feature, or a separate
-  hardware feature?
+Set `PICO_SERIAL_PORT` if auto-detect misses the device (macOS often `/dev/cu.usbmodem*`,
+Windows `COM3`).

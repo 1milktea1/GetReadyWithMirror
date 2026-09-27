@@ -8,7 +8,8 @@ this screen.
 Voice and motion agents expand it by calling `window.mirrorCommand({ action: 'expandWidget', widget: 'map' })`.
 That hides weather and the calendar agenda. The clock stays top-right. The leave-by plan
 stays on the left over the map.
-`{ action: 'showOverview' }` or Escape returns here. See [`mirrorCommands.ts`](mirrorCommands.ts).
+`{ action: 'showOverview' }` or Escape returns here. A Pico `SWIPE:LEFT` opens unwind instead;
+`SWIPE:RIGHT` is the same as `showOverview`. See [`mirrorCommands.ts`](mirrorCommands.ts).
 
 The compact default view the mirror fades into after the greeting. Assembles current and
 afternoon weather, the upcoming calendar event, a short getting-ready plan, and a leave-by

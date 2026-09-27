@@ -2,10 +2,12 @@
 // Vite proxies `/api` to this port. Weather's standalone dev server remains available
 // as `npm run dev:weather` and serves weather only.
 
+import { startPicoSerial } from '../features/hardware/serialReader.ts';
 import { createApp } from './createApp.ts';
 
 const PORT = Number(process.env.PORT ?? 3001);
 
 createApp().listen(PORT, () => {
   console.log(`Mirror API: http://localhost:${PORT}/api/planner`);
+  void startPicoSerial();
 });
