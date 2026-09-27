@@ -4,7 +4,8 @@
 **Status:** “Hey Mirror” starts a turn without a tap. Saying it alone starts recording until the user goes quiet; saying a request in the same breath sends that request on. The on-screen button still works as a fallback.
 
 Owns the on-screen push-to-talk control, the microphone and listening indicators, and the
-visible loading, speaking, and error states for the voice session.
+visible loading, speaking, and error states for the voice session. Recent spoken turns are
+sent back to `/api/assistant` so follow-ups such as “give hair 20 more minutes” keep context.
 
 An optional Pico button may trigger the same control later, but the demo must work without
 any additional hardware.

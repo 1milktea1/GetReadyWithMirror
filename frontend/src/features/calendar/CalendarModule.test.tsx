@@ -164,11 +164,11 @@ describe('CalendarModule with the demo fixture', () => {
     await screen.findByText('Dinner reservation')
     expect(eventTitles(container)).toEqual([
       'Dinner reservation',
+      'Late dinner',
       'Gym',
-      'Department seminar',
-      'Brunch',
+      'Lunch at Soothr',
     ])
     expect(eventMeta(container)[0]).toBe('Soothr · in 3 hr 39 min')
-    expect(screen.getByText('Monday')).toBeInTheDocument()
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument()
   })
 })

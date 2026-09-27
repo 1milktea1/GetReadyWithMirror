@@ -1,7 +1,9 @@
 # Backend Feature: Voice (ElevenLabs)
 
 **Owner:** TBD
-**Status:** Push-to-talk path is wired. `POST /api/voice/transcribe` and `POST /api/voice/speak` call ElevenLabs. Grok still chooses tools through `POST /api/assistant`. Wake phrase and a Pico button are not implemented.
+**Status:** “Hey Mirror” or the on-screen button starts a turn. Browser speech listens for
+the wake phrase; ElevenLabs Scribe transcribes a follow-up recording; Grok chooses tools
+through `POST /api/assistant`; ElevenLabs speaks the reply. A Pico button is not required.
 
 ## Responsibility
 

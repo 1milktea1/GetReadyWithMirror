@@ -5,7 +5,7 @@ import { test } from 'node:test';
 
 import { createApp } from './createApp.ts';
 
-test('Express mounts health, maps, and the planner', async () => {
+test('Express mounts health, maps, planner, assistant, and voice', async () => {
   const server = createApp().listen(0);
   await once(server, 'listening');
   const { port } = server.address() as AddressInfo;
@@ -30,6 +30,23 @@ test('Express mounts health, maps, and the planner', async () => {
     assert.equal(planner.ok, true);
     assert.equal(planner.data.status, 'schedule-conflict');
     assert.equal(planner.data.conflict?.shortfallMinutes, 30);
+
+    const assistant = await fetch(`${base}/api/assistant`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ utterance: 'What is the weather?' }),
+    });
+    assert.equal(assistant.status, 503);
+    const assistantBody = (await assistant.json()) as { ok: boolean; error: { status: string } };
+    assert.equal(assistantBody.ok, false);
+    assert.equal(assistantBody.error.status, 'not-configured');
+
+    const speak = await fetch(`${base}/api/voice/speak`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text: 'Leave by six fifteen.' }),
+    });
+    assert.equal(speak.status, 503);
   } finally {
     server.close();
     await once(server, 'close');

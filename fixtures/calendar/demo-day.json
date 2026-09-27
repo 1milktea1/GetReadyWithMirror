@@ -1,5 +1,5 @@
 {
-  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). The dinner is the AGENTS.md demo event; the venue is a real address so maps can route to it, but the reservation itself is synthetic.",
+  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). Today has the 7 PM Soothr dinner plus a 10:30 PM dinner for evening testing. Tomorrow is gym at Equinox East 92nd Street, lunch at Soothr, and a 5 PM Soothr dinner. After the last addressed event ends, the demo day rolls forward. Venue addresses are real so maps can route; the reservations themselves are synthetic.",
   "timeZone": "America/New_York",
   "events": [
     {
@@ -36,26 +36,40 @@
       "venueAddress": "204 E 13th St, New York, NY 10003"
     },
     {
+      "id": "fixture-dinner-late",
+      "title": "Late dinner",
+      "dayOffset": 0,
+      "startTime": "22:30",
+      "durationMinutes": 60,
+      "venueName": "Soothr",
+      "venueAddress": "204 E 13th St, New York, NY 10003"
+    },
+    {
       "id": "fixture-gym",
       "title": "Gym",
       "dayOffset": 1,
-      "startTime": "08:00",
-      "durationMinutes": 60
+      "startTime": "10:00",
+      "durationMinutes": 60,
+      "venueName": "Equinox East 92nd Street",
+      "venueAddress": "203 E 92nd St, New York, NY 10128"
     },
     {
-      "id": "fixture-seminar",
-      "title": "Department seminar",
+      "id": "fixture-lunch-soothr",
+      "title": "Lunch at Soothr",
       "dayOffset": 1,
-      "startTime": "11:00",
-      "durationMinutes": 90,
-      "venueName": "Columbia University"
+      "startTime": "13:30",
+      "durationMinutes": 60,
+      "venueName": "Soothr",
+      "venueAddress": "204 E 13th St, New York, NY 10003"
     },
     {
-      "id": "fixture-brunch",
-      "title": "Brunch",
-      "dayOffset": 2,
-      "startTime": "10:30",
-      "durationMinutes": 90
+      "id": "fixture-dinner-tomorrow",
+      "title": "Dinner reservation",
+      "dayOffset": 1,
+      "startTime": "17:00",
+      "durationMinutes": 90,
+      "venueName": "Soothr",
+      "venueAddress": "204 E 13th St, New York, NY 10003"
     }
   ]
 }

@@ -1,5 +1,5 @@
 // Feature services the assistant may call after a tool call has been validated.
-// Calendar and maps use labeled demo fixtures. Planner stays unwired.
+// Calendar and maps use labeled demo fixtures. Planner uses the public plan service.
 
 import type { PreparationTaskInput } from '../../../../shared/contracts/assistant/types.ts';
 

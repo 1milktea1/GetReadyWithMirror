@@ -8,6 +8,11 @@ import { getWeather } from '../weather/weatherService.ts';
 import { loadAssistantEnv } from './envFile.ts';
 import { createResponse, ProviderError } from './grokAdapter.ts';
 import type { AssistantHandlers } from './handlers.ts';
+import {
+  handleGeneratePreparationPlan,
+  handleMarkTaskComplete,
+  handleUpdateTaskDuration,
+} from './plannerHandlers.ts';
 import { assistantInstructions } from './prompt.ts';
 import { GROK_TOOLS, validateToolCall } from './tools.ts';
 
@@ -270,5 +275,8 @@ function defaultHandlers(weatherFetch?: typeof fetch): AssistantHandlers {
     getWeather: (args, ctx) => getWeather({ units: args.units, now: ctx.now, fetchFn: weatherFetch }),
     getUpcomingEvent: (ctx) => Promise.resolve(eventsForSpeech(getUpcomingEvents(ctx.now))),
     getCommute: () => Promise.resolve(commuteForSpeech(getSampleCommute())),
+    generatePreparationPlan: handleGeneratePreparationPlan,
+    updateTaskDuration: handleUpdateTaskDuration,
+    markTaskComplete: handleMarkTaskComplete,
   };
 }

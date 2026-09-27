@@ -20,12 +20,29 @@ export interface CalendarFixture {
   events: CalendarFixtureEvent[]
 }
 
+/** Days to add so the next Soothr dinner is still upcoming on the real clock. */
+export function demoDayShift(now: Date, fixture: CalendarFixture): number {
+  const addressed = fixture.events.filter((event) => event.venueAddress)
+  if (addressed.length === 0) return 0
+  const today = zonedDate(now, fixture.timeZone)
+  for (let shift = 0; shift <= 7; shift++) {
+    const stillOpen = addressed.some((event) => {
+      const [hour, minute] = event.startTime.split(':').map(Number)
+      const start = zonedTimeToUtc({ ...addDays(today, event.dayOffset + shift), hour, minute }, fixture.timeZone)
+      return start.getTime() + event.durationMinutes * 60_000 > now.getTime()
+    })
+    if (stillOpen) return shift
+  }
+  return 0
+}
+
 /** Places relative fixture events onto real instants around `now`, so the sample day never goes stale. */
 export function materializeFixture(fixture: CalendarFixture, now: Date): CalendarEvent[] {
   const today = zonedDate(now, fixture.timeZone)
+  const shift = demoDayShift(now, fixture)
   return fixture.events.map((event) => {
     const [hour, minute] = event.startTime.split(':').map(Number)
-    const start = zonedTimeToUtc({ ...addDays(today, event.dayOffset), hour, minute }, fixture.timeZone)
+    const start = zonedTimeToUtc({ ...addDays(today, event.dayOffset + shift), hour, minute }, fixture.timeZone)
     const end = new Date(start.getTime() + event.durationMinutes * 60_000)
     return {
       id: event.id,
