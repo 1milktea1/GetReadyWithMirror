@@ -12,6 +12,7 @@ import {
 } from '../features/overview/mirrorCommands'
 import { PlannerPanel } from '../features/planner/PlannerPanel'
 import { UnwindAlarm } from '../features/unwind/UnwindAlarm'
+import { UnwindBackdrop } from '../features/unwind/UnwindBackdrop'
 import { WeatherPanel } from '../features/weather/WeatherPanel'
 import { useNow } from '../shared/time/useNow'
 import './App.css'
@@ -30,6 +31,7 @@ function screenClass(expanded: ExpandedModule): string {
   if (expanded === 'map') return 'mirror mirror--map'
   if (expanded === 'weather') return 'mirror mirror--weather'
   if (expanded === 'calendar') return 'mirror mirror--calendar'
+  if (expanded === 'unwind') return 'mirror mirror--unwind'
   return 'mirror'
 }
 
@@ -118,6 +120,7 @@ export function App() {
           />
         </div>
       )}
+      {(unwindOpen || weatherOpen) && <UnwindBackdrop sound={unwindOpen} />}
       {unwindOpen && (
         <div className="mirror__region mirror__region--left">
           <UnwindAlarm />
