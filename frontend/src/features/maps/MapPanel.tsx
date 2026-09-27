@@ -67,7 +67,11 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     )
     if (legs.length > 0) {
       for (const leg of legs) {
-        L.polyline(leg.path.map(toPair), {
+        const pairs = leg.path.map(toPair)
+        if (leg.kind !== 'subway') {
+          L.polyline(pairs, { color: '#000', weight: 7, opacity: 1 }).addTo(layers)
+        }
+        L.polyline(pairs, {
           color: leg.color,
           weight: leg.kind === 'subway' ? 5 : 4,
           opacity: 1,
@@ -159,26 +163,28 @@ function collapsed(a: LatLng, b: LatLng): boolean {
   return Math.abs(a.latitude - b.latitude) < 1e-4 && Math.abs(a.longitude - b.longitude) < 1e-4
 }
 
-function walkLeg(path: LatLng[]): RouteLeg {
-  return { kind: 'walk', color: WALK_STROKE, path }
+function walkLeg(path: LatLng[], color = WALK_STROKE): RouteLeg {
+  return { kind: 'walk', color, path }
 }
 
 /** Keep the colored subway legs, and walk any gap from the last station to the pin. */
 function connectToPlaces(origin: LatLng, destination: LatLng, legs: RouteLeg[]): RouteLeg[] {
   if (legs.length === 0) return []
   const connected: RouteLeg[] = []
+  let stroke = WALK_STROKE
   for (const leg of legs) {
     const start = leg.path[0]
     const end = leg.path.at(-1)
     if (!start || !end || collapsed(start, end)) continue
     const previous = connected.at(-1)?.path.at(-1)
-    if (previous && !near(previous, start)) connected.push(walkLeg([previous, start]))
-    connected.push(leg.kind === 'subway' ? leg : { ...leg, color: WALK_STROKE })
+    if (previous && !near(previous, start)) connected.push(walkLeg([previous, start], stroke))
+    if (leg.kind === 'subway') stroke = leg.color
+    connected.push(leg.kind === 'subway' ? leg : { ...leg, color: stroke })
   }
   const first = connected[0]?.path[0]
-  if (first && !near(first, origin)) connected.unshift(walkLeg([origin, first]))
+  if (first && !near(first, origin)) connected.unshift(walkLeg([origin, first], connected[0]?.color ?? WALK_STROKE))
   const last = connected.at(-1)?.path.at(-1)
-  if (last && !near(last, destination)) connected.push(walkLeg([last, destination]))
+  if (last && !near(last, destination)) connected.push(walkLeg([last, destination], connected.at(-1)?.color ?? WALK_STROKE))
   return connected
 }
 

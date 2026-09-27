@@ -227,7 +227,7 @@ describe('MapPanel', () => {
           [40.7378, -74.0002],
           [40.732269, -73.987352],
         ],
-        expect.objectContaining({ color: '#FFFFFF' }),
+        expect.objectContaining({ color: '#EE352E' }),
       )
     })
   })
