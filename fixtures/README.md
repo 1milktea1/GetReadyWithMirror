@@ -13,9 +13,9 @@ Events are **wall-clock times in `America/New_York`, relative to the current day
   "venueName": "Soothr", "venueAddress": "204 E 13th St, New York, NY 10003" }
 ```
 
-`dayOffset` 0 is today, 1 is tomorrow. At runtime these are placed onto real instants around
-the current (or `?now=`-overridden) New York time, so the sample day **never goes stale** and the
-7 PM dinner from the demo scenario is always "today".
+`dayOffset` 0 is today, 1 is tomorrow. Today includes the 7 PM Soothr dinner and a 10:30 PM
+dinner for evening tests. Tomorrow is 10 AM gym at Equinox East 92nd Street, 1:30 PM lunch
+at Soothr, and 5 PM dinner at Soothr.
 
 The venue address is **real** — maps needs a routable destination to produce genuine travel
 estimates — but the reservation is synthetic, like every other event in this file.
