@@ -168,6 +168,7 @@ describe('MapPanel', () => {
     })
     expect(polyline).toHaveBeenCalledWith(
       [
+        [40.8075, -73.9626],
         [40.8, -73.96],
         [40.75, -73.97],
         [40.732269, -73.987352],
@@ -200,5 +201,34 @@ describe('MapPanel', () => {
       ],
       expect.objectContaining({ color: '#A7A9AC' }),
     )
+  })
+
+  it('walks the last subway stop to the destination pin when the colored legs stop short', async () => {
+    const body = mapsResult(true)
+    body.routes[0] = {
+      ...body.routes[0]!,
+      legs: [
+        {
+          kind: 'subway',
+          line: '1',
+          color: '#EE352E',
+          path: [
+            { latitude: 40.8075, longitude: -73.9641 },
+            { latitude: 40.7378, longitude: -74.0002 },
+          ],
+        },
+      ],
+    }
+    mockMaps(body)
+    render(<MapPanel mode="transit" onModeChange={() => {}} />)
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalledWith(
+        [
+          [40.7378, -74.0002],
+          [40.732269, -73.987352],
+        ],
+        expect.objectContaining({ color: '#D8D8D8' }),
+      )
+    })
   })
 })

@@ -108,7 +108,12 @@ function readItinerary(value: unknown): TransitItinerary | undefined {
     if (!leg || typeof leg !== 'object') continue;
     const mode = (leg as { mode?: unknown }).mode;
     const encoded = (leg as { legGeometry?: { points?: unknown } }).legGeometry?.points;
-    const segment = typeof encoded === 'string' && encoded.length > 0 ? simplifyPath(decodePolyline(encoded, 6), 80) : [];
+    const precision = (leg as { legGeometry?: { precision?: unknown } }).legGeometry?.precision;
+    const decoded =
+      typeof encoded === 'string' && encoded.length > 0
+        ? decodePolyline(encoded, typeof precision === 'number' ? precision : 6)
+        : [];
+    const segment = segmentOrStops(decoded, (leg as { from?: unknown }).from, (leg as { to?: unknown }).to);
     if (mode === 'SUBWAY') {
       subway = true;
       const name = (leg as { routeShortName?: unknown }).routeShortName;
@@ -132,4 +137,22 @@ function readItinerary(value: unknown): TransitItinerary | undefined {
 
 function point(location: LatLng): string {
   return `${location.latitude},${location.longitude}`;
+}
+
+function segmentOrStops(decoded: LatLng[], from: unknown, to: unknown): LatLng[] {
+  const segment = decoded.length >= 2 ? simplifyPath(decoded, 80) : [];
+  if (segment.length >= 2) return segment;
+  const start = readStop(from);
+  const end = readStop(to);
+  if (start && end && !samePoint(start, end)) return [start, end];
+  return segment;
+}
+
+function readStop(value: unknown): LatLng | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const latitude = (value as { lat?: unknown }).lat;
+  const longitude = (value as { lon?: unknown }).lon;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number') return undefined;
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return undefined;
+  return { latitude, longitude };
 }

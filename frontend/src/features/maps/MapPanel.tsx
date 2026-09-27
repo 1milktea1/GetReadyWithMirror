@@ -58,24 +58,35 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     if (!map || !layers || !data) return
     layers.clearLayers()
     const selected = data.routes.find((item) => item.mode === mode)
-    const legs = (selected?.legs ?? []).filter((leg) => leg.path.length >= 2)
+    const origin = data.origin.location
+    const destination = data.destination.location
+    const legs = connectToPlaces(
+      origin,
+      destination,
+      (selected?.legs ?? []).filter((leg) => leg.path.length >= 2),
+    )
     if (legs.length > 0) {
       for (const leg of legs) {
         L.polyline(leg.path.map(toPair), {
           color: leg.color,
-          weight: leg.kind === 'subway' ? 5 : 2,
-          opacity: leg.kind === 'subway' ? 0.95 : 0.55,
+          weight: leg.kind === 'subway' ? 5 : 3,
+          opacity: leg.kind === 'subway' ? 0.95 : 0.85,
         }).addTo(layers)
       }
     } else if (selected && selected.path.length >= 2) {
-      L.polyline(selected.path.map(toPair), { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
+      const connected = connectPath(origin, destination, selected.path)
+      L.polyline(connected.map(toPair), { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
     }
-    const line = selected && selected.path.length >= 2 ? selected.path.map(toPair) : null
-    const origin = toPair(data.origin.location)
-    const destination = toPair(data.destination.location)
-    L.circleMarker(origin, markerStyle(false)).addTo(layers)
-    L.circleMarker(destination, markerStyle(true)).addTo(layers)
-    map.fitBounds(L.latLngBounds(line ?? [origin, destination]), { padding: [36, 36] })
+    const originPair = toPair(origin)
+    const destinationPair = toPair(destination)
+    const bounds = [originPair, destinationPair]
+    for (const leg of legs) bounds.push(...leg.path.map(toPair))
+    if (legs.length === 0 && selected && selected.path.length >= 2) {
+      bounds.push(...connectPath(origin, destination, selected.path).map(toPair))
+    }
+    L.circleMarker(originPair, markerStyle(false)).addTo(layers)
+    L.circleMarker(destinationPair, markerStyle(true)).addTo(layers)
+    map.fitBounds(L.latLngBounds(bounds), { padding: [36, 36] })
     const frame = requestAnimationFrame(() => map.invalidateSize())
     return () => cancelAnimationFrame(frame)
   }, [data, mode])
@@ -133,8 +144,45 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   )
 }
 
+const WALK_STROKE = '#D8D8D8'
+const PLACE_REACH_DEG = 0.0007
+
 function toPair(point: LatLng): L.LatLngExpression {
   return [point.latitude, point.longitude]
+}
+
+function near(a: LatLng, b: LatLng): boolean {
+  return Math.abs(a.latitude - b.latitude) < PLACE_REACH_DEG && Math.abs(a.longitude - b.longitude) < PLACE_REACH_DEG
+}
+
+function walkLeg(path: LatLng[]): RouteLeg {
+  return { kind: 'walk', color: WALK_STROKE, path }
+}
+
+/** Keep the colored subway legs, and walk any gap from the last station to the pin. */
+function connectToPlaces(origin: LatLng, destination: LatLng, legs: RouteLeg[]): RouteLeg[] {
+  if (legs.length === 0) return []
+  const connected: RouteLeg[] = []
+  for (const leg of legs) {
+    const previous = connected.at(-1)?.path.at(-1)
+    const start = leg.path[0]
+    if (previous && start && !near(previous, start)) connected.push(walkLeg([previous, start]))
+    connected.push(leg)
+  }
+  const first = connected[0]?.path[0]
+  if (first && !near(first, origin)) connected.unshift(walkLeg([origin, first]))
+  const last = connected.at(-1)?.path.at(-1)
+  if (last && !near(last, destination)) connected.push(walkLeg([last, destination]))
+  return connected
+}
+
+function connectPath(origin: LatLng, destination: LatLng, path: LatLng[]): LatLng[] {
+  const points = [...path]
+  const first = points[0]
+  const last = points.at(-1)
+  if (first && !near(first, origin)) points.unshift(origin)
+  if (last && !near(last, destination)) points.push(destination)
+  return points
 }
 
 function markerStyle(filled: boolean): L.CircleMarkerOptions {

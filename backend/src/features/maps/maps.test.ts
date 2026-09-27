@@ -275,13 +275,46 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
   assert.deepEqual(
     route?.legs?.map((leg) => ({ kind: leg.kind, line: leg.line, color: leg.color })),
     [
-      { kind: 'walk', line: undefined, color: '#8A8A8A' },
+      { kind: 'walk', line: undefined, color: '#D8D8D8' },
       { kind: 'subway', line: '1', color: '#EE352E' },
       { kind: 'subway', line: 'L', color: '#A7A9AC' },
     ],
   );
   assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-4);
   assert.equal(mapTransitRoute({ itineraries: [{ duration: 60, legs: [{ mode: 'BUS', routeShortName: 'M4' }] }] }), undefined);
+});
+
+test('an empty transfer walk still connects using the stop coordinates', () => {
+  const route = mapTransitRoute({
+    itineraries: [
+      {
+        duration: 40 * 60,
+        legs: [
+          {
+            mode: 'SUBWAY',
+            routeShortName: '1',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+            from: { lat: 40.8077, lon: -73.9641 },
+            to: { lat: 40.7378, lon: -74.0002 },
+          },
+          {
+            mode: 'WALK',
+            legGeometry: { points: '' },
+            from: { lat: 40.7378, lon: -74.0002 },
+            to: { lat: 40.732269, lon: -73.987352 },
+          },
+        ],
+      },
+    ],
+  });
+  assert.deepEqual(route?.legs?.at(-1), {
+    kind: 'walk',
+    color: '#D8D8D8',
+    path: [
+      { latitude: 40.7378, longitude: -74.0002 },
+      { latitude: 40.732269, longitude: -73.987352 },
+    ],
+  });
 });
 
 test('without a Google key, subway comes from Transitous and roads from Valhalla', async () => {
