@@ -1,5 +1,5 @@
 {
-  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). Today has a 10 AM Equinox gym, the 7 PM Soothr dinner, and a 12:00 AM late dinner (midnight tonight). Tomorrow repeats gym at Equinox East 92nd Street, then lunch at Soothr and a 5 PM Soothr dinner. After the last addressed event ends, the demo day rolls forward. Venue addresses are real so maps can route; the reservations themselves are synthetic.",
+  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). Today has a 10 AM Equinox gym, 2 PM lunch at Barney Greengrass, the 7 PM Soothr dinner, and a 12:00 AM late dinner (midnight tonight). Tomorrow repeats gym at Equinox East 92nd Street, then lunch at Soothr and a 5 PM Soothr dinner. After the last addressed event ends, the demo day rolls forward. Venue addresses are real so maps can route; the reservations themselves are synthetic.",
   "timeZone": "America/New_York",
   "events": [
     {
@@ -20,11 +20,12 @@
     },
     {
       "id": "fixture-office-hours",
-      "title": "Office hours",
+      "title": "Lunch",
       "dayOffset": 0,
       "startTime": "14:00",
       "durationMinutes": 60,
-      "venueName": "Columbia University"
+      "venueName": "Barney Greengrass",
+      "venueAddress": "541 Amsterdam Ave, New York, NY 10024"
     },
     {
       "id": "fixture-gym-today",

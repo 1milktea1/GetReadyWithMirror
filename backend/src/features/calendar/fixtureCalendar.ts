@@ -107,7 +107,7 @@ export type TravelEventResult =
 
 /**
  * The soonest event that has not ended and has a street address to travel to.
- * Campus items without an address (lunch, office hours) are not commutes.
+ * Campus items without an address (standup, study-group lunch) are not commutes.
  */
 export function getNextTravelEvent(now: Date): TravelEventResult {
   const calendar = getFixtureCalendar(now);

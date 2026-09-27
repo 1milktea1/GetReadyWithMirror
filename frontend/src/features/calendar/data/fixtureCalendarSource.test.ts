@@ -25,6 +25,26 @@ describe('demo fixture', () => {
       }),
     )
   })
+
+  it('puts 2 PM lunch at Barney Greengrass and keeps tomorrow’s 5 PM Soothr dinner', () => {
+    expect(demoDay.events).toContainEqual(
+      expect.objectContaining({
+        id: 'fixture-office-hours',
+        title: 'Lunch',
+        startTime: '14:00',
+        venueName: 'Barney Greengrass',
+        venueAddress: '541 Amsterdam Ave, New York, NY 10024',
+      }),
+    )
+    expect(demoDay.events).toContainEqual(
+      expect.objectContaining({
+        id: 'fixture-dinner-tomorrow',
+        startTime: '17:00',
+        venueName: 'Soothr',
+        venueAddress: '204 E 13th St, New York, NY 10003',
+      }),
+    )
+  })
 })
 
 describe('materializeFixture', () => {

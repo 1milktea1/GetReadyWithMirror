@@ -71,6 +71,13 @@ test('Equinox is a known demo venue so live subway can route there without Googl
 
 test('maps HTTP rejects a bad clock and follows the next addressed event', async () => {
   assert.equal((await handleMapsRequest(new URLSearchParams('now=bogus'))).status, 400);
+  const lunch = await handleMapsRequest(new URLSearchParams('now=2026-09-26T13:00:00-04:00'));
+  assert.equal(lunch.status, 200);
+  assert.equal(lunch.body.ok, true);
+  if (!lunch.body.ok) return;
+  assert.equal(lunch.body.data.destination.name, 'Lunch · Barney Greengrass');
+  assert.equal(lunch.body.data.destination.location.latitude, 40.7869);
+
   const dinner = await handleMapsRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
   assert.equal(dinner.status, 200);
   assert.equal(dinner.body.ok, true);

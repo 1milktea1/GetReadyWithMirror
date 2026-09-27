@@ -227,6 +227,11 @@ const DEMO_PLACES: readonly MapPlace[] = [
     address: '203 E 92nd St, New York, NY 10128',
     location: { latitude: 40.7824, longitude: -73.9508 },
   },
+  {
+    name: 'Barney Greengrass',
+    address: '541 Amsterdam Ave, New York, NY 10024',
+    location: { latitude: 40.7869, longitude: -73.9748 },
+  },
 ];
 
 function resolvePlace(address: string | undefined, fallback: MapPlace): MapPlace {

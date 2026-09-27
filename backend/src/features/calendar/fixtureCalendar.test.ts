@@ -3,7 +3,18 @@ import { test } from 'node:test';
 
 import { getNextTravelEvent } from './fixtureCalendar.ts';
 
-test('afternoon demo clock selects the Soothr dinner, not the campus events', () => {
+test('early afternoon routes to lunch at Barney Greengrass', () => {
+  const result = getNextTravelEvent(new Date('2026-09-26T13:00:00-04:00'));
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.event.id, 'fixture-office-hours');
+  assert.equal(result.event.title, 'Lunch');
+  assert.equal(result.event.venueName, 'Barney Greengrass');
+  assert.equal(result.event.venueAddress, '541 Amsterdam Ave, New York, NY 10024');
+  assert.equal(result.provenance, 'fixture');
+});
+
+test('afternoon demo clock selects the Soothr dinner after lunch', () => {
   const result = getNextTravelEvent(new Date('2026-09-26T16:00:00-04:00'));
   assert.equal(result.ok, true);
   if (!result.ok) return;
