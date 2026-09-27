@@ -62,7 +62,8 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           }
         }}
       >
-        <div className="planner__label">{leaveStatus(data)}</div>
+        <div className="planner__label">Leave by {formatTimeOfDay(new Date(data.leaveBy.at), data.timeZone)}</div>
+        <p className="planner__summary">{leaveStatus(data)}</p>
         <ol className="planner__tasks">
           {data.tasks.map((task) => (
             <li key={task.id} className={task.overruns ? 'planner__task planner__task--over' : 'planner__task'}>
