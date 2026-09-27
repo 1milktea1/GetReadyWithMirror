@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import './VoiceButton.css'
 import { commandAfterWake } from './wakePhrase'
 import { appendSpokenTurn, type ChatTurn } from './conversation'
-import { playAudioBlob, setVoiceBusy } from './voiceBusy'
+import { primeAudioBlob, setVoiceBusy } from './voiceBusy'
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
 
@@ -106,14 +107,28 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       const turn = await postJson('/api/assistant', { utterance, history: historyRef.current })
       const spoken = textOf(turn, 'spokenText')
       const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
-      eventsRef.current(events)
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
-      setPhaseNow('speaking')
-      setStatus(spoken)
-      try {
-        await play(spoken)
-      } catch {
-        // Grok already opened the module. Keep the spoken line if speakers fail.
+      let speech = null
+      if (spoken) {
+        try {
+          speech = await prepareSpeech(spoken)
+        } catch {
+          // Speakers may be unset. Still open the module with the spoken line.
+        }
+      }
+      // Open the module and start audio together so the shift is not silent.
+      // Transition duration is unchanged; we only wait for the reply to be ready.
+      flushSync(() => {
+        eventsRef.current(events)
+        setPhaseNow('speaking')
+        setStatus(spoken)
+      })
+      if (speech) {
+        try {
+          await speech.play()
+        } catch {
+          // The module is already open. Keep the spoken line if playback fails.
+        }
       }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Voice failed')
@@ -389,7 +404,7 @@ async function postJson(path: string, payload: unknown): Promise<JsonBody> {
   return body
 }
 
-async function play(text: string): Promise<void> {
+async function prepareSpeech(text: string) {
   const res = await fetch('/api/voice/speak', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -399,7 +414,7 @@ async function play(text: string): Promise<void> {
     const body = await readJson(res)
     throw new Error(messageOf(body) || 'Could not speak the reply.')
   }
-  await playAudioBlob(await res.blob())
+  return primeAudioBlob(await res.blob())
 }
 
 interface JsonBody {
