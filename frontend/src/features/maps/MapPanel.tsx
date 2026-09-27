@@ -68,19 +68,11 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     )
     if (legs.length > 0) {
       for (const leg of legs) {
-        const pairs = leg.path.map(toPair)
-        if (leg.kind !== 'subway') {
-          L.polyline(pairs, { color: '#000', weight: 7, opacity: 1 }).addTo(layers)
-        }
-        L.polyline(pairs, {
-          color: '#fff',
-          weight: leg.kind === 'subway' ? 5 : 4,
-          opacity: 1,
-        }).addTo(layers)
+        L.polyline(leg.path.map(toPair), LINE_STYLE).addTo(layers)
       }
     } else if (selected && selected.path.length >= 2) {
       const connected = connectPath(origin, destination, selected.path)
-      L.polyline(connected.map(toPair), { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
+      L.polyline(connected.map(toPair), LINE_STYLE).addTo(layers)
     }
     const originPair = toPair(origin)
     const destinationPair = toPair(destination)
@@ -145,6 +137,7 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   )
 }
 
+const LINE_STYLE = { color: '#fff', weight: 5, opacity: 1 } as const
 const WALK_STROKE = '#FFFFFF'
 const PLACE_REACH_DEG = 0.0007
 
