@@ -13,11 +13,10 @@ test('upcoming demo events keep the dinner and label the calendar as a fixture',
   assert.equal(dinner?.venueAddress, '204 E 13th St, New York, NY 10003');
 });
 
-test('events that already ended are left out', () => {
+test('after tonight’s dinner ends the next demo day still includes Soothr', () => {
   const result = getUpcomingEvents(new Date('2026-09-26T21:00:00-04:00'));
-  assert.equal(
-    result.data.events.some((event) => event.title === 'Dinner reservation'),
-    false,
-  );
-  assert.equal(result.data.events[0].title, 'Gym');
+  const dinner = result.data.events.find((event) => event.title === 'Dinner reservation');
+  assert.equal(dinner?.venueAddress, '204 E 13th St, New York, NY 10003');
+  assert.equal(dinner?.start, '2026-09-27T23:00:00.000Z');
+  assert.equal(result.data.events[0].title, 'Research group standup');
 });

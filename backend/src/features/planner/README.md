@@ -34,6 +34,7 @@ With those numbers the demo clock lands on the scenario matrix:
 | 4:00 PM | Comfortable |
 | 5:30 PM | Tight. Start now; the routine ends exactly at leave-by |
 | 6:00 PM | Conflict. 30 minutes short. Tasks stay on the plan |
+| After 8:30 PM | Tonight's dinner has ended, so the fixture rolls to tomorrow's 7 PM Soothr reservation |
 | 5:30 PM, hair 40 | Conflict. 20 minutes short. Shortening hair back to 20 resolves it |
 
 Slack is free minutes before the routine. 120 or more is relaxed, 30 or more is comfortable,

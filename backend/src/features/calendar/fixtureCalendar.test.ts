@@ -14,7 +14,11 @@ test('afternoon demo clock selects the Soothr dinner, not the campus events', ()
   assert.equal(result.provenance, 'fixture');
 });
 
-test('after the dinner has ended there is no address left to travel to', () => {
+test('after tonight’s dinner ends the next Soothr reservation is tomorrow', () => {
   const result = getNextTravelEvent(new Date('2026-09-26T21:00:00-04:00'));
-  assert.deepEqual(result.ok ? null : result.error.status, 'no-data');
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.event.id, 'fixture-dinner');
+  assert.equal(result.event.venueAddress, '204 E 13th St, New York, NY 10003');
+  assert.equal(result.event.start, '2026-09-27T23:00:00.000Z');
 });

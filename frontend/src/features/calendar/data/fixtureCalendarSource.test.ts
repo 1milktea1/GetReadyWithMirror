@@ -37,9 +37,15 @@ describe('materializeFixture', () => {
     expect(find(events, 'fixture-gym').start).toBe('2026-09-27T12:00:00.000Z')
   })
 
+  it('rolls the demo day forward after tonight’s dinner ends', () => {
+    // 9 PM Saturday in New York — the 7 PM reservation already ended.
+    const events = materializeFixture(demoDay, new Date('2026-09-27T01:00:00Z'))
+    expect(find(events, 'fixture-dinner').start).toBe('2026-09-27T23:00:00.000Z')
+  })
+
   it('uses the New York day late at night, when UTC and Tokyo have already rolled over', () => {
-    // 11:30 PM Saturday in New York; Sunday in both UTC and Tokyo.
-    const events = materializeFixture(demoDay, new Date('2026-09-27T03:30:00Z'))
+    // 4 PM Saturday in New York; UTC is still Saturday, Tokyo is already Sunday.
+    const events = materializeFixture(demoDay, new Date('2026-09-26T20:00:00Z'))
     expect(find(events, 'fixture-dinner').start).toBe('2026-09-26T23:00:00.000Z')
   })
 
