@@ -24,7 +24,7 @@ export interface GrokFunctionTool {
 const widgetParameter = {
   type: 'string',
   enum: [...WIDGETS],
-  description: 'Module to focus: weather, calendar, maps, or planner.',
+  description: 'Module to focus: weather, calendar, maps, planner, or unwind.',
 };
 
 export const GROK_TOOLS: readonly GrokFunctionTool[] = [
@@ -32,7 +32,7 @@ export const GROK_TOOLS: readonly GrokFunctionTool[] = [
     type: 'function',
     name: 'expandWidget',
     description:
-      'Open one module. Weather for the forecast, calendar for the afternoon, planner to get ready, maps for the trip. Phrase variants count. Use with an information tool when the user also wants a fact.',
+      'Open one module. Weather for the forecast, calendar for the afternoon, planner to get ready, maps for the trip, unwind for bedtime. Phrase variants count. Use with an information tool when the user also wants a fact.',
     parameters: {
       type: 'object',
       additionalProperties: false,
@@ -179,7 +179,7 @@ export function validateToolCall(name: string, args: unknown): { ok: true; call:
     const extra = unexpectedKey(args, ['widget']);
     if (extra) return { ok: false, message: extra };
     const widget = widgetName(args.widget);
-    if (!widget) return { ok: false, message: `${name} requires a widget of weather, calendar, maps, or planner.` };
+    if (!widget) return { ok: false, message: `${name} requires a widget of weather, calendar, maps, planner, or unwind.` };
     return { ok: true, call: { name, widget } };
   }
 

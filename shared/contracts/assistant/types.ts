@@ -1,7 +1,7 @@
 // Assistant turn shape, per ./README.md. Status: proposed with the Grok implementation, not yet agreed.
 // Type-only: imported by the backend assistant feature. No other feature should import the Grok adapter.
 
-export const WIDGETS = ['weather', 'calendar', 'maps', 'planner'] as const;
+export const WIDGETS = ['weather', 'calendar', 'maps', 'planner', 'unwind'] as const;
 export type WidgetName = (typeof WIDGETS)[number];
 
 // getPreferences is intentionally absent until someone owns preferences.
