@@ -218,7 +218,7 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal(conflict.body.data.status, 'schedule-conflict');
   assert.equal(conflict.body.data.pressure, 'conflict');
 
-  const afternoon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
+  const afternoon = await handlePlannerRequest(new URLSearchParams('now=2026-09-26T15:00:00-04:00'));
   assert.equal(afternoon.status, 200);
   if (!afternoon.body.ok) return;
   assert.equal(afternoon.body.data.pressure, 'relaxed');
