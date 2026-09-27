@@ -275,7 +275,7 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
   assert.deepEqual(
     route?.legs?.map((leg) => ({ kind: leg.kind, line: leg.line, color: leg.color })),
     [
-      { kind: 'walk', line: undefined, color: '#D8D8D8' },
+      { kind: 'walk', line: undefined, color: '#FFFFFF' },
       { kind: 'subway', line: '1', color: '#EE352E' },
       { kind: 'subway', line: 'L', color: '#A7A9AC' },
     ],
@@ -309,7 +309,7 @@ test('an empty transfer walk still connects using the stop coordinates', () => {
   });
   assert.deepEqual(route?.legs?.at(-1), {
     kind: 'walk',
-    color: '#D8D8D8',
+    color: '#FFFFFF',
     path: [
       { latitude: 40.7378, longitude: -74.0002 },
       { latitude: 40.732269, longitude: -73.987352 },

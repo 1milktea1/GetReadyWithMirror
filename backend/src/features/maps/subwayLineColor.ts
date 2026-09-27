@@ -32,7 +32,7 @@ const MTA_LINE_COLORS: Record<string, string> = {
   SIR: '#0078C6',
 };
 
-const WALK_COLOR = '#D8D8D8';
+const WALK_COLOR = '#FFFFFF';
 
 export function subwayLineColor(line: string, provided?: string): string {
   const hex = normalizeHex(provided);

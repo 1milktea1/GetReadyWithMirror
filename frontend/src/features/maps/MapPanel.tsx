@@ -69,8 +69,8 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
       for (const leg of legs) {
         L.polyline(leg.path.map(toPair), {
           color: leg.color,
-          weight: leg.kind === 'subway' ? 5 : 3,
-          opacity: leg.kind === 'subway' ? 0.95 : 0.85,
+          weight: leg.kind === 'subway' ? 5 : 4,
+          opacity: 1,
         }).addTo(layers)
       }
     } else if (selected && selected.path.length >= 2) {
@@ -144,7 +144,7 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   )
 }
 
-const WALK_STROKE = '#D8D8D8'
+const WALK_STROKE = '#FFFFFF'
 const PLACE_REACH_DEG = 0.0007
 
 function toPair(point: LatLng): L.LatLngExpression {
@@ -153,6 +153,10 @@ function toPair(point: LatLng): L.LatLngExpression {
 
 function near(a: LatLng, b: LatLng): boolean {
   return Math.abs(a.latitude - b.latitude) < PLACE_REACH_DEG && Math.abs(a.longitude - b.longitude) < PLACE_REACH_DEG
+}
+
+function collapsed(a: LatLng, b: LatLng): boolean {
+  return Math.abs(a.latitude - b.latitude) < 1e-4 && Math.abs(a.longitude - b.longitude) < 1e-4
 }
 
 function walkLeg(path: LatLng[]): RouteLeg {
@@ -164,10 +168,12 @@ function connectToPlaces(origin: LatLng, destination: LatLng, legs: RouteLeg[]):
   if (legs.length === 0) return []
   const connected: RouteLeg[] = []
   for (const leg of legs) {
-    const previous = connected.at(-1)?.path.at(-1)
     const start = leg.path[0]
-    if (previous && start && !near(previous, start)) connected.push(walkLeg([previous, start]))
-    connected.push(leg)
+    const end = leg.path.at(-1)
+    if (!start || !end || collapsed(start, end)) continue
+    const previous = connected.at(-1)?.path.at(-1)
+    if (previous && !near(previous, start)) connected.push(walkLeg([previous, start]))
+    connected.push(leg.kind === 'subway' ? leg : { ...leg, color: WALK_STROKE })
   }
   const first = connected[0]?.path[0]
   if (first && !near(first, origin)) connected.unshift(walkLeg([origin, first]))
