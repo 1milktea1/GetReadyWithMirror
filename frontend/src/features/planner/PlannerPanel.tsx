@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { TransportMode } from '@contracts/maps/types';
 import type { PreparationPlan, ScheduledTask } from '@contracts/planner/types';
-import { formatClock, formatTimeOfDay } from '../../shared/time/format';
+import { formatTimeOfDay } from '../../shared/time/format';
 import { buildPlannerQuery, usePlanner } from './usePlanner';
 import './planner.css';
 
@@ -15,14 +15,6 @@ interface PlannerPanelProps {
   /** Selected transportation. Defaults to subway. */
   mode?: TransportMode;
 }
-
-const MODE_LABEL: Record<TransportMode, string> = {
-  transit: 'Subway',
-  walking: 'Walk',
-  driving: 'Drive',
-  rideshare: 'Rideshare',
-  cycling: 'Cycling',
-};
 
 export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: PlannerPanelProps) {
   const [tasks, setTasks] = useState<string | undefined>();
@@ -50,7 +42,6 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
   }
 
   const { data } = state;
-  const leave = formatClock(new Date(data.leaveBy.at), data.timeZone);
   const hair = data.tasks.find((task) => task.id === 'hair');
   const hairExtended = (hair?.durationMinutes ?? 20) > 20;
 
@@ -71,16 +62,7 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           }
         }}
       >
-        <div className="planner__label">{data.feasible ? 'Leave by · On time' : 'Leave by · Late'}</div>
-        <div className="planner__clock">
-          <span className="planner__time">{leave.time}</span>
-          <span className="planner__period">{leave.period}</span>
-        </div>
-        <p className="planner__meta">
-          {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min · arrive by{' '}
-          {formatTimeOfDay(new Date(data.leaveBy.arriveBy), data.timeZone)}
-        </p>
-        <p className="planner__summary">{leaveStatus(data)}</p>
+        <div className="planner__label">{leaveStatus(data)}</div>
         <ol className="planner__tasks">
           {data.tasks.map((task) => (
             <li key={task.id} className={task.overruns ? 'planner__task planner__task--over' : 'planner__task'}>

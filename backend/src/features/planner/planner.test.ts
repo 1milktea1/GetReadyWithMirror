@@ -146,6 +146,7 @@ test('a 6 PM conflict keeps every task and does not move dinner', async () => {
   assert.equal(result.data.tasks[1].overruns, true);
   assert.equal(result.data.conflict?.adjustments.every((item) => !item.resolves), true);
   assert.equal(result.data.provenance.isFixture, true);
+  assert.equal(result.data.summary, 'Late');
 });
 
 test('5:30 PM with the default routine is tight but feasible', async () => {
@@ -156,6 +157,7 @@ test('5:30 PM with the default routine is tight but feasible', async () => {
   assert.equal(result.data.slackMinutes, 0);
   assert.equal(result.data.feasible, true);
   assert.equal(result.data.tasks[0].start, at('17:30').toISOString());
+  assert.equal(result.data.summary, '45 minutes remaining');
 });
 
 test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', async () => {
