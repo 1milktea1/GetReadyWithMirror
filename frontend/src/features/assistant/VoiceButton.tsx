@@ -13,9 +13,11 @@ export interface VoiceUiEvent {
 
 export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) => void }) {
   const [phase, setPhase] = useState<Phase>('idle')
-  const [notice, setNotice] = useState('')
+  const [status, setStatus] = useState('Say Hey Mirror')
   const [live, setLive] = useState('')
   const [scribe, setScribe] = useState('')
+  const [typed, setTyped] = useState('')
+  const [handsOn, setHandsOn] = useState(false)
   const phaseRef = useRef<Phase>('idle')
   const recorder = useRef<MediaRecorder | null>(null)
   const chunks = useRef<Blob[]>([])
@@ -51,12 +53,12 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
     if (phaseRef.current !== 'idle') return
     setPhaseNow('listening')
     setScribe('')
-    setNotice('')
+    setStatus('Listening')
     let stream: MediaStream
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch {
-      setNotice('Microphone access was denied')
+      setStatus('Microphone access was denied')
       setPhaseNow('idle')
       return
     }
@@ -80,7 +82,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
 
   async function finish(audio: Blob) {
     setPhaseNow('thinking')
-    setNotice('')
+    setStatus('Thinking')
     try {
       const transcript = await postAudio(audio)
       const afterWake = commandAfterWake(transcript)
@@ -89,34 +91,36 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       if (!heard) throw new Error('No words were recognized.')
       await answer(heard)
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Voice failed')
+      setStatus(err instanceof Error ? err.message : 'Voice failed')
       setPhaseNow('idle')
     }
   }
 
   async function answer(utterance: string) {
     setPhaseNow('thinking')
-    setNotice('')
+    setStatus('Thinking')
     try {
-      const turn = await postAssistant({ utterance, history: historyRef.current }, (events) => {
-        eventsRef.current(events)
-      })
+      const turn = await postJson('/api/assistant', { utterance, history: historyRef.current })
       const spoken = textOf(turn, 'spokenText')
+      const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
+      eventsRef.current(events)
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       setPhaseNow('speaking')
+      setStatus(spoken)
       try {
         await play(spoken)
       } catch {
-        // Grok already opened the module. Audio may fail in this browser.
+        // Grok already opened the module. Keep the spoken line if speakers fail.
       }
     } catch (err) {
-      setNotice(err instanceof Error ? err.message : 'Voice failed')
+      setStatus(err instanceof Error ? err.message : 'Voice failed')
     } finally {
       setPhaseNow('idle')
     }
   }
 
   useEffect(() => {
+    if (phase === 'thinking' || phase === 'speaking') return
     const recognition = startWakeListener({
       onTranscript: (text) => {
         if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
@@ -124,26 +128,26 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       },
       onWake: (command) => {
         if (phaseRef.current !== 'idle') return
-        setScribe(command)
+        setScribe('')
         if (command) void answer(command)
         else void recordCommand()
       },
       onDenied: () => {
-        if (phaseRef.current === 'idle') setNotice('Microphone access was denied')
+        setHandsOn(true)
+        if (phaseRef.current === 'idle') setStatus('Microphone access was denied')
       },
       onUnavailable: () => {
-        if (phaseRef.current === 'idle') setNotice('Tap to talk')
+        setHandsOn(true)
+        if (phaseRef.current === 'idle') setStatus('Tap to talk')
       },
     })
+    if (recognition) setStatus('Say Hey Mirror')
     return () => recognition?.stop()
-  }, [])
-
-  const phaseStatus = phase === 'listening' ? 'Listening' : phase === 'thinking' ? 'Thinking' : phase === 'speaking' ? 'Speaking' : ''
+  }, [phase])
 
   return (
     <div className="voice-dock">
       <div className="voice-captions" aria-live="polite">
-        {notice && <p className="voice-captions__line">{notice}</p>}
         {live && <p className="voice-captions__line">{live}</p>}
         {scribe && (
           <p className="voice-captions__scribe">
@@ -154,8 +158,38 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       </div>
       <button type="button" className={`voice voice--${phase}`} onClick={() => void toggle()}>
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
-        {phaseStatus && <span className="voice__status">{phaseStatus}</span>}
+        <span className="voice__status">{status}</span>
       </button>
+      {handsOn && (
+        <form
+          className="voice-type"
+          onSubmit={(event) => {
+            event.preventDefault()
+            const utterance = typed.trim()
+            if (!utterance || phaseRef.current !== 'idle') return
+            setTyped('')
+            setScribe(utterance)
+            void answer(utterance)
+          }}
+        >
+          <label className="voice-type__label" htmlFor="voice-type-input">
+            Type instead
+          </label>
+          <input
+            id="voice-type-input"
+            className="voice-type__input"
+            type="text"
+            autoComplete="off"
+            placeholder="What’s the weather for dinner?"
+            value={typed}
+            disabled={phase !== 'idle'}
+            onChange={(event) => setTyped(event.target.value)}
+          />
+          <button className="voice-type__ask" type="submit" disabled={phase !== 'idle' || !typed.trim()}>
+            Ask
+          </button>
+        </form>
+      )}
     </div>
   )
 }
@@ -186,7 +220,12 @@ function startWakeListener(handlers: {
   const fire = (command: string) => {
     window.clearTimeout(timer)
     if (closed) return
-    pending = ''
+    closed = true
+    try {
+      recognition.stop()
+    } catch {
+      // Already stopped.
+    }
     handlers.onWake(command)
   }
 
@@ -330,51 +369,15 @@ async function postAudio(audio: Blob): Promise<string> {
   return text
 }
 
-async function postAssistant(
-  payload: unknown,
-  onEvents: (events: VoiceUiEvent[]) => void,
-): Promise<JsonBody> {
-  const res = await fetch('/api/assistant', {
+async function postJson(path: string, payload: unknown): Promise<JsonBody> {
+  const res = await fetch(path, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  const type = res.headers && typeof res.headers.get === 'function' ? (res.headers.get('content-type') ?? '') : ''
-  const body = type.includes('ndjson') ? await readAssistantStream(res, onEvents) : await readJson(res)
+  const body = await readJson(res)
   if (!body.ok) throw new Error(messageOf(body) || 'The assistant could not answer.')
-  const events = Array.isArray(body.data?.uiEvents) ? (body.data.uiEvents as VoiceUiEvent[]) : []
-  if (events.length > 0 && !type.includes('ndjson')) onEvents(events)
   return body
-}
-
-async function readAssistantStream(
-  res: Response,
-  onEvents: (events: VoiceUiEvent[]) => void,
-): Promise<JsonBody> {
-  if (!res.body) return {}
-  const reader = res.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  let done: JsonBody = {}
-  while (true) {
-    const chunk = await reader.read()
-    buffer += decoder.decode(chunk.value ?? new Uint8Array(), { stream: !chunk.done })
-    let newline = buffer.indexOf('\n')
-    while (newline !== -1) {
-      const line = buffer.slice(0, newline).trim()
-      buffer = buffer.slice(newline + 1)
-      if (line) {
-        const message = JSON.parse(line) as { type?: string; uiEvents?: unknown } & JsonBody
-        if (message.type === 'ui' && Array.isArray(message.uiEvents)) {
-          onEvents(message.uiEvents as VoiceUiEvent[])
-        }
-        if (message.type === 'done' || message.ok !== undefined) done = message
-      }
-      newline = buffer.indexOf('\n')
-    }
-    if (chunk.done) break
-  }
-  return done
 }
 
 async function play(text: string): Promise<void> {

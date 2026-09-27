@@ -135,32 +135,6 @@ test('tool results go back to Grok before the spoken recommendation', async () =
   assert.match(JSON.stringify(followUp), /clear, 68F/);
 });
 
-test('expand events fire before weather and the spoken Grok follow-up', async () => {
-  const order: string[] = [];
-  const seen = scripted([
-    withCalls([
-      { name: 'getWeather', arguments: { units: 'imperial' } },
-      { name: 'expandWidget', arguments: { widget: 'weather' } },
-    ]),
-    message('Bring an umbrella for dinner.'),
-  ]);
-  const res = await turn({
-    fetchFn: seen.fetchFn,
-    onUiEvents: (events) => {
-      order.push(`ui:${events[0]?.target}`);
-    },
-    handlers: {
-      getWeather: async () => {
-        order.push('weather');
-        return { ok: true, data: { summary: 'rain' } };
-      },
-    },
-  });
-  assert.ok(res.ok);
-  assert.deepEqual(order, ['ui:weather', 'weather']);
-  assert.equal(res.data.spokenText, 'Bring an umbrella for dinner.');
-});
-
 test('an unknown tool is rejected and not executed', async () => {
   let weatherCalled = false;
   const seen = scripted([

@@ -1,10 +1,6 @@
-import type { UiEvent } from '../../../../shared/contracts/assistant/types.ts';
 import { runAssistantTurn, type ChatMessage } from '../assistant/assistantService.ts';
 
-export async function handleAssistantTurn(
-  payload: unknown,
-  hooks?: { onUiEvents?: (events: UiEvent[]) => void },
-): Promise<{ status: number; body: unknown }> {
+export async function handleAssistantTurn(payload: unknown): Promise<{ status: number; body: unknown }> {
   const utterance = payload && typeof payload === 'object' ? (payload as { utterance?: unknown }).utterance : undefined;
   if (typeof utterance !== 'string') {
     return {
@@ -21,7 +17,7 @@ export async function handleAssistantTurn(
     };
   }
   const history = readHistory(payload);
-  const result = await runAssistantTurn({ utterance, now, history, onUiEvents: hooks?.onUiEvents });
+  const result = await runAssistantTurn({ utterance, now, history });
   if (!result.ok) {
     const status = result.error.status === 'input-invalid' ? 400 : result.error.status === 'not-configured' ? 503 : 502;
     return { status, body: result };
