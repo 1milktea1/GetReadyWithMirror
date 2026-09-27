@@ -121,7 +121,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       flushSync(() => {
         eventsRef.current(events)
         setPhaseNow('speaking')
-        setStatus(spoken)
+        setStatus('Thinking')
       })
       if (speech) {
         try {
@@ -147,9 +147,13 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       },
       onWake: (command) => {
         if (phaseRef.current !== 'idle') return
-        setScribe('')
-        if (command) void answer(command)
-        else void recordCommand()
+        if (command) {
+          setScribe(command)
+          void answer(command)
+        } else {
+          setScribe('')
+          void recordCommand()
+        }
       },
       onDenied: () => {
         setHandsOn(true)

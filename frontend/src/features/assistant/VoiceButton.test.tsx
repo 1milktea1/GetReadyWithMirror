@@ -37,6 +37,53 @@ describe('VoiceButton', () => {
     await waitFor(() =>
       expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'maps' }]),
     )
+    expect(screen.getByText('Heard')).toBeInTheDocument()
+    expect(screen.getByText('see my route')).toBeInTheDocument()
+    expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
+  })
+
+  it('shows Thinking and Heard without the agent reply text', async () => {
+    const onEvents = vi.fn<(events: VoiceUiEvent[]) => void>()
+    let releaseAssistant: (() => void) | undefined
+    const assistantReady = new Promise<void>((resolve) => {
+      releaseAssistant = resolve
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (String(input).includes('/api/assistant')) {
+          await assistantReady
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              data: {
+                spokenText: 'Here is your route.',
+                uiEvents: [{ action: 'expandWidget', target: 'maps' }],
+              },
+            }),
+          }
+        }
+        return { ok: false, json: async () => ({ ok: false, error: { status: 'not-configured' } }) }
+      }),
+    )
+
+    render(<VoiceButton onEvents={onEvents} />)
+    fireEvent.change(screen.getByLabelText('Type instead'), { target: { value: 'see my route' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+
+    expect(await screen.findByText('Thinking')).toBeInTheDocument()
+    expect(screen.getByText('Heard')).toBeInTheDocument()
+    expect(screen.getByText('see my route')).toBeInTheDocument()
+    expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
+    expect(onEvents).not.toHaveBeenCalled()
+
+    releaseAssistant?.()
+    await waitFor(() =>
+      expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'maps' }]),
+    )
+    expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
+    expect(screen.getByText('Heard')).toBeInTheDocument()
   })
 
   it('opens the panel only after speech is ready so the shift and voice start together', async () => {
