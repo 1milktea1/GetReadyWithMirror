@@ -4,6 +4,7 @@ import { isMirrorCommand, publishMirrorCommand, subscribeMirrorCommands } from '
 describe('mirror commands', () => {
   it('accepts expand map and show overview, and rejects anything else', () => {
     expect(isMirrorCommand({ action: 'expandWidget', widget: 'map' })).toBe(true)
+    expect(isMirrorCommand({ action: 'expandWidget', widget: 'unwind' })).toBe(true)
     expect(isMirrorCommand({ action: 'showOverview' })).toBe(true)
     expect(isMirrorCommand({ action: 'expandWidget', widget: 'fridge' })).toBe(false)
     expect(isMirrorCommand({ action: 'say', widget: 'map' })).toBe(false)

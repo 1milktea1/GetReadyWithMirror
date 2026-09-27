@@ -12,12 +12,14 @@ import './weather.css';
 
 interface WeatherPanelProps {
   expanded: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
   /** Optional clock for tests. The overview does not pass this. */
   now?: string;
+  /** Forecast only. Omits clothing and packing suggestions. */
+  brief?: boolean;
 }
 
-export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
+export function WeatherPanel({ expanded, onToggle, now, brief = false }: WeatherPanelProps) {
   const { settings, update } = useWeatherSettings();
   const { state, retry } = useWeather(weatherQuery(settings, now));
   // In the expanded view, settings replace the hourly table so the column never overflows.
@@ -33,7 +35,7 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
 
   if (state.status === 'loading') {
     return (
-      <div className="weather weather--status" onClick={onToggle}>
+      <div className={`weather weather--status${brief ? ' weather--brief' : ''}`} onClick={brief ? undefined : onToggle}>
         Loading weather…
       </div>
     );
@@ -41,7 +43,7 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
 
   if (state.status === 'error') {
     return (
-      <div className="weather weather--status" role="alert" onClick={onToggle}>
+      <div className={`weather weather--status${brief ? ' weather--brief' : ''}`} role="alert" onClick={brief ? undefined : onToggle}>
         <div className="weather-status-title">Weather unavailable</div>
         <div className="weather-status-detail">{state.error.message}</div>
         <button
@@ -54,12 +56,19 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
           Retry
         </button>
         {/* Always reachable here, so a location that fails can be changed back. */}
-        {settingsPanel}
+        {!brief && settingsPanel}
       </div>
     );
   }
 
   const { data } = state;
+  if (brief) {
+    return (
+      <div className="weather weather--brief" aria-label="Weather">
+        <Summary data={data} />
+      </div>
+    );
+  }
   return (
     <div className={`weather ${expanded ? 'weather--expanded' : ''}`}>
       <div
@@ -67,8 +76,8 @@ export function WeatherPanel({ expanded, onToggle, now }: WeatherPanelProps) {
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
-        onClick={onToggle}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onToggle()}
+        onClick={() => onToggle?.()}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onToggle?.()}
       >
         <Summary data={data} />
         <Suggestions data={data} limit={expanded ? undefined : 2} />

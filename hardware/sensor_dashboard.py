@@ -1,5 +1,9 @@
+import os
+import json
 import serial
 import time
+import urllib.error
+import urllib.request
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -10,6 +14,10 @@ from matplotlib.animation import FuncAnimation
 
 PORT = "COM3"      # CHANGE THIS to your Pico COM port
 BAUD = 115200
+MIRROR_GESTURE_URL = os.environ.get(
+    "MIRROR_GESTURE_URL",
+    "http://127.0.0.1:3001/api/hardware/gesture",
+)
 
 ser = serial.Serial(PORT, BAUD, timeout=0.01)
 
@@ -121,6 +129,21 @@ def process_line(line):
 
         gesture_message = line
         gesture_time = time.time()
+        forward_swipe(line)
+
+
+def forward_swipe(line):
+    payload = json.dumps({"line": line}).encode()
+    request = urllib.request.Request(
+        MIRROR_GESTURE_URL,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        urllib.request.urlopen(request, timeout=0.4)
+    except (urllib.error.URLError, TimeoutError, OSError):
+        pass
 
 
 # =======================================================

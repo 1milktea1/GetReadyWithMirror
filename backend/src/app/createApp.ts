@@ -7,6 +7,7 @@ import express from 'express';
 import type { Express, Request, Response } from 'express';
 import { handleAssistantTurn } from '../features/assistant/assistantHttp.ts';
 import { parseRushRequest, writeRushLine } from '../features/assistant/rushLine.ts';
+import { handleGesturePost, handleGestureStream } from '../features/hardware/hardwareHttp.ts';
 import { handleMapsRequest } from '../features/maps/mapsHttp.ts';
 import { handlePlannerRequest } from '../features/planner/plannerHttp.ts';
 import { handleSpeak, handleTranscribe, readLimitedBody } from '../features/voice/voiceHttp.ts';
@@ -44,6 +45,12 @@ export function createApp(): Express {
   mount(app, '/api/weather/locations', handleLocationSearch);
   mount(app, '/api/maps', handleMapsRequest);
   mount(app, '/api/planner', handlePlannerRequest);
+  app.get('/api/hardware/gestures', handleGestureStream);
+  app.post('/api/hardware/gesture', async (req: Request, res: Response) => {
+    const payload = await readJson(req, res);
+    if (payload === undefined) return;
+    handleGesturePost(payload, res);
+  });
   mountVoice(app);
 
   return app;

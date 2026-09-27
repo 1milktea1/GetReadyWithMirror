@@ -95,6 +95,31 @@ describe('overview map', () => {
     expect(await screen.findByLabelText('Getting ready')).toBeInTheDocument()
   })
 
+  it('opens the unwind screen from a left swipe and returns on showOverview', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/planner')) {
+          return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No plan' } }) }
+        }
+        return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }) }
+      }),
+    )
+    render(<App />)
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'unwind' })
+    expect(await screen.findByRole('region', { name: 'Alarm' })).toHaveTextContent('Alarm set')
+    expect(screen.getByText('8:00')).toBeInTheDocument()
+    expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument()
+
+    window.mirrorCommand?.({ action: 'showOverview' })
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Alarm' })).not.toBeInTheDocument()
+  })
+
   it('opens the existing map, weather, and calendar screens from a voice turn', async () => {
     vi.stubGlobal(
       'fetch',
@@ -137,7 +162,7 @@ describe('overview map', () => {
 
     ask('expand weather')
     await waitFor(() => expect(screen.queryByText('Upcoming')).not.toBeInTheDocument())
-    expect(screen.getByText('No weather')).toBeInTheDocument()
+    expect(await screen.findByText('No weather')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(await screen.findByText('Upcoming')).toBeInTheDocument()
