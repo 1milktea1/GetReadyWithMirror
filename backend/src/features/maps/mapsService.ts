@@ -66,7 +66,8 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
   const destination = namedPlace(resolvePlace(destinationAddress, fixture.destination), options.destinationName);
   const googleKey = live ? googleMapsApiKey() : undefined;
   const canLive = Boolean(live && (googleKey || (located(origin.location) && located(destination.location))));
-  if (!demoPair && !canLive) {
+  const knownPins = located(origin.location) && located(destination.location);
+  if (!demoPair && !canLive && !knownPins) {
     return {
       ok: false,
       error: {
@@ -76,7 +77,10 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
     };
   }
 
-  const cacheKey = live && !options.fetchFn ? `${originAddress ?? ''}|${destinationAddress ?? ''}` : undefined;
+  const cacheKey =
+    live && !options.fetchFn
+      ? `${originAddress ?? ''}|${destinationAddress ?? ''}|${options.destinationName ?? ''}`
+      : undefined;
   if (cacheKey) {
     const hit = cache.get(cacheKey);
     if (hit && Date.now() - hit.at < CACHE_MS) return hit.value;
@@ -161,6 +165,19 @@ export async function getCommute(options: GetCommuteOptions = {}): Promise<MapsR
   const list = [...routes.values()];
   const recommended = list.find((route) => route.mode === fixture.recommendedMode) ?? list[0];
   if (!recommended) {
+    if (knownPins) {
+      return {
+        ok: true,
+        data: {
+          origin,
+          destination,
+          routes: [],
+          recommendedMode: fixture.recommendedMode,
+          retrievedAt: (options.now ?? new Date()).toISOString(),
+          provenance: { source: 'fixture', isFixture: true },
+        },
+      };
+    }
     return {
       ok: false,
       error: { status: 'no-data', message: 'No route is available for that trip.' },

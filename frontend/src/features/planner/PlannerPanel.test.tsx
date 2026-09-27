@@ -87,6 +87,7 @@ describe('PlannerPanel', () => {
     expect(screen.getByText('Shower')).toBeInTheDocument();
     expect(screen.getByText('Hair')).toBeInTheDocument();
     expect(screen.getByText('Get dressed')).toBeInTheDocument();
+    expect(screen.getByText('255 minutes remaining')).toBeInTheDocument();
     expect(screen.queryByText('Plenty of time before you leave for Soothr.')).not.toBeInTheDocument();
     expect(screen.getByText('3:30 PM – 3:45 PM')).toBeInTheDocument();
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument();
@@ -117,6 +118,7 @@ describe('PlannerPanel', () => {
     );
     render(<PlannerPanel expanded onToggle={() => {}} />);
     expect(await screen.findByText('Leave by · Late')).toBeInTheDocument();
+    expect(screen.getByText('Late')).toBeInTheDocument();
     expect(screen.queryByText('30 minutes short of finishing before you need to leave for Soothr.')).not.toBeInTheDocument();
     expect(screen.queryByText(/conflict/i)).not.toBeInTheDocument();
     expect(screen.getByText('Shower')).toBeInTheDocument();

@@ -81,7 +81,9 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   }, [data, mode])
 
   const badge = provenanceLabel(route)
-  const places = data ? `${data.origin.name} → ${data.destination.name}` : 'Columbia University → next event'
+  const places = data
+    ? `${data.origin.name} → ${data.destination.name}`
+    : 'Columbia University → next calendar event'
   const subwayLines = uniqueSubwayLines(route?.legs)
 
   return (

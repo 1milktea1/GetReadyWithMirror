@@ -8,7 +8,13 @@ export type MapsState =
 
 export function buildMapsQuery(now?: string): string {
   const params = new URLSearchParams()
-  if (now) params.set('now', now)
+  if (now) {
+    const clock = new Date(now)
+    if (!Number.isNaN(clock.getTime())) {
+      clock.setUTCSeconds(0, 0)
+      params.set('now', clock.toISOString())
+    }
+  }
   return params.toString()
 }
 

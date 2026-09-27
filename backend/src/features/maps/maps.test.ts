@@ -75,16 +75,32 @@ test('maps HTTP rejects a bad clock and follows the next addressed event', async
   assert.equal(dinner.status, 200);
   assert.equal(dinner.body.ok, true);
   if (!dinner.body.ok) return;
-  assert.equal(dinner.body.data.destination.name, 'Soothr');
+  assert.equal(dinner.body.data.destination.name, 'Dinner reservation · Soothr');
 
   const late = await handleMapsRequest(new URLSearchParams('now=2026-09-26T21:00:00-04:00'));
   assert.equal(late.status, 200);
   assert.equal(late.body.ok, true);
   if (!late.body.ok) return;
-  assert.equal(late.body.data.destination.name, 'Soothr');
+  assert.equal(late.body.data.destination.name, 'Late dinner · Soothr');
+  assert.notEqual(late.body.data.destination.name, dinner.body.ok ? dinner.body.data.destination.name : '');
 
   const gym = await handleMapsRequest(new URLSearchParams('now=2026-09-27T08:00:00-04:00'));
-  assert.equal(gym.body.ok, false);
+  assert.equal(gym.body.ok, true);
+  if (!gym.body.ok) return;
+  assert.equal(gym.body.data.destination.name, 'Gym · Equinox East 92nd Street');
+  assert.equal(gym.body.data.destination.location.latitude, 40.7824);
+});
+
+test('a known next-event venue still pins when live maps is off', async () => {
+  const result = await getCommute({
+    destinationAddress: '203 E 92nd St, New York, NY 10128',
+    destinationName: 'Gym · Equinox East 92nd Street',
+    live: false,
+  });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.data.destination.name, 'Gym · Equinox East 92nd Street');
+  assert.equal(result.data.destination.location.latitude, 40.7824);
 });
 
 test('subway line colors follow MTA trunks: 1 is red and L is gray', () => {

@@ -2,8 +2,10 @@
 // Other features are reached only through handlers or their public services — never their adapters.
 
 import type { AssistantResponse, ToolOutcome, UiEvent, ValidatedToolCall } from '../../../../shared/contracts/assistant/types.ts';
+import { getNextTravelEvent, travelDestinationLabel } from '../calendar/fixtureCalendar.ts';
 import { getUpcomingEvents } from '../calendar/fixtureEvents.ts';
-import { getSampleCommute } from '../maps/sampleCommute.ts';
+import { getCommute } from '../maps/mapsService.ts';
+import type { MapsResponse } from '../../../../shared/contracts/maps/types.ts';
 import { getWeather } from '../weather/weatherService.ts';
 import { loadAssistantEnv } from './envFile.ts';
 import { createResponse, ProviderError } from './grokAdapter.ts';
@@ -269,16 +271,18 @@ function eventsForSpeech(result: ReturnType<typeof getUpcomingEvents>) {
   };
 }
 
-function commuteForSpeech(result: ReturnType<typeof getSampleCommute>) {
-  const { origin, destination, recommendedMode, durationMinutes, routes } = result.data;
+function commuteForSpeech(result: MapsResponse) {
+  if (!result.ok) return result;
+  const recommended =
+    result.data.routes.find((route) => route.mode === result.data.recommendedMode) ?? result.data.routes[0];
   return {
     ok: true as const,
     data: {
-      origin,
-      destination,
-      recommendedMode,
-      durationMinutes,
-      routes: routes.map(({ mode, durationMinutes: minutes }) => ({ mode, durationMinutes: minutes })),
+      origin: result.data.origin,
+      destination: result.data.destination,
+      recommendedMode: result.data.recommendedMode,
+      durationMinutes: recommended?.durationMinutes,
+      routes: result.data.routes.map(({ mode, durationMinutes: minutes }) => ({ mode, durationMinutes: minutes })),
     },
   };
 }
@@ -287,7 +291,17 @@ function defaultHandlers(weatherFetch?: typeof fetch): AssistantHandlers {
   return {
     getWeather: (args, ctx) => getWeather({ units: args.units, now: ctx.now, fetchFn: weatherFetch }),
     getUpcomingEvent: (ctx) => Promise.resolve(eventsForSpeech(getUpcomingEvents(ctx.now))),
-    getCommute: () => Promise.resolve(commuteForSpeech(getSampleCommute())),
+    getCommute: async (ctx) => {
+      const clock = ctx.now ?? new Date();
+      const next = getNextTravelEvent(clock);
+      return commuteForSpeech(
+        await getCommute({
+          destinationAddress: next.ok ? next.event.venueAddress : undefined,
+          destinationName: next.ok ? travelDestinationLabel(next.event) : undefined,
+          now: clock,
+        }),
+      );
+    },
     generatePreparationPlan: handleGeneratePreparationPlan,
     updateTaskDuration: handleUpdateTaskDuration,
     markTaskComplete: handleMarkTaskComplete,

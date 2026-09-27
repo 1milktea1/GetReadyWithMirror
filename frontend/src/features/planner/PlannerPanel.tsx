@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { TransportMode } from '@contracts/maps/types';
-import type { ScheduledTask } from '@contracts/planner/types';
+import type { PreparationPlan, ScheduledTask } from '@contracts/planner/types';
 import { formatClock, formatTimeOfDay } from '../../shared/time/format';
 import { buildPlannerQuery, usePlanner } from './usePlanner';
 import './planner.css';
@@ -80,6 +80,7 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min · arrive by{' '}
           {formatTimeOfDay(new Date(data.leaveBy.arriveBy), data.timeZone)}
         </p>
+        <p className="planner__summary">{leaveStatus(data)}</p>
         <ol className="planner__tasks">
           {data.tasks.map((task) => (
             <li key={task.id} className={task.overruns ? 'planner__task planner__task--over' : 'planner__task'}>
@@ -139,6 +140,13 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
       </div>
     </section>
   );
+}
+
+function leaveStatus(data: PreparationPlan): string {
+  const remaining = Math.floor((Date.parse(data.leaveBy.at) - Date.parse(data.now)) / 60_000);
+  if (!data.feasible || remaining < 0) return 'Late';
+  if (remaining === 0) return 'On time';
+  return remaining === 1 ? '1 minute remaining' : `${remaining} minutes remaining`;
 }
 
 function taskWindow(task: ScheduledTask, timeZone: string): string {

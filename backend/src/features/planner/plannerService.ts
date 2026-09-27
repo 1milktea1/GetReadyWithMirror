@@ -1,7 +1,7 @@
 // Planner public service. Composes the calendar and maps public results, then runs
 // the deterministic schedule. This feature makes no external requests of its own.
 
-import { getNextTravelEvent } from '../calendar/fixtureCalendar.ts';
+import { getNextTravelEvent, travelDestinationLabel } from '../calendar/fixtureCalendar.ts';
 import { getCommute } from '../maps/mapsService.ts';
 import type { TransportMode } from '../../../../shared/contracts/maps/types.ts';
 import type { PlannerResponse, PreparationTask } from '../../../../shared/contracts/planner/types.ts';
@@ -37,6 +37,7 @@ export async function generatePreparationPlan(options: GeneratePlanOptions = {})
 
   const maps = await getCommute({
     destinationAddress: calendar.event.venueAddress,
+    destinationName: travelDestinationLabel(calendar.event),
     now,
     live: options.live,
     fetchFn: options.fetchFn,

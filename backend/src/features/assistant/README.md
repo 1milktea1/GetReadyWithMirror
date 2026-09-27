@@ -46,7 +46,7 @@ Grok **requests** named tools. The backend **validates and executes** them.
   React owns the animation.
 
 An action and an information request can occur in the same turn. Weather, the fixture
-calendar, the sample commute, and the planner are wired. Planner follow-ups
+calendar, the next-event commute, and the planner are wired. Planner follow-ups
 (`updateTaskDuration`, `markTaskComplete`) reuse the last named routine in memory.
 
 `POST /api/assistant` is mounted on the laptop Express app at port 3001.

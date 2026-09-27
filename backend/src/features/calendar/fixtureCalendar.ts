@@ -123,3 +123,9 @@ export function getNextTravelEvent(now: Date): TravelEventResult {
   }
   return { ok: true, event, timeZone: calendar.timeZone, provenance: 'fixture' };
 }
+
+/** Map / planner label: "Late dinner · Soothr", "Gym · Equinox East 92nd Street". */
+export function travelDestinationLabel(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
+}

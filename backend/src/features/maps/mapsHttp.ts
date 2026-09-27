@@ -4,7 +4,7 @@
 //   now          — optional ISO 8601 demo/test-time override. Stamps retrievedAt.
 //                Google uses it as departure_time only when it is not in the past.
 
-import { getNextTravelEvent } from '../calendar/fixtureCalendar.ts';
+import { getNextTravelEvent, travelDestinationLabel } from '../calendar/fixtureCalendar.ts';
 import { getCommute } from './mapsService.ts';
 import type { MapsError, MapsErrorStatus, MapsResponse } from '../../../../shared/contracts/maps/types.ts';
 
@@ -35,7 +35,7 @@ export async function handleMapsRequest(query: URLSearchParams): Promise<HttpRes
   const result = await getCommute({
     originAddress: query.get('origin') ?? undefined,
     destinationAddress: destinationQuery ?? (next?.ok ? next.event.venueAddress : undefined),
-    destinationName: destinationQuery ? undefined : next?.ok ? next.event.venueName : undefined,
+    destinationName: destinationQuery ? undefined : next?.ok ? travelDestinationLabel(next.event) : undefined,
     now,
   });
   return { status: result.ok ? 200 : HTTP_STATUS[result.error.status], body: result };

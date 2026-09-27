@@ -135,6 +135,14 @@ describe('MapPanel', () => {
     polyline.mockClear()
   })
 
+  it('floors the clock to the minute so the next-event route is not refetched every second', async () => {
+    const fetchMock = vi.fn(async () => ({ json: async () => ({ ok: true, data: mapsResult(false) }) }))
+    vi.stubGlobal('fetch', fetchMock)
+    render(<MapPanel mode="transit" onModeChange={() => {}} now="2026-09-26T16:00:42.880Z" />)
+    expect(await screen.findByText('Columbia University → Soothr')).toBeInTheDocument()
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('now=2026-09-26T16%3A00%3A00.000Z')
+  })
+
   it('defaults the visible choice to subway and labels a fixture route', async () => {
     mockMaps(mapsResult(false))
     render(<MapPanel mode="transit" onModeChange={() => {}} now="2026-09-26T16:00:00.000Z" />)

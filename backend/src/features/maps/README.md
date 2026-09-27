@@ -37,7 +37,9 @@ Rideshare is not a Directions or Valhalla mode. It copies the driving route and 
 
 Omitted origin uses Columbia. Omitted destination on `getCommute` uses the fixture Soothr
 pin. `GET /api/maps` fills a missing destination from the next calendar event with a street
-address (Soothr tonight, Equinox East 92nd Street tomorrow morning). `now` stamps
+address, labeled with the event title (Dinner reservation · Soothr this afternoon,
+Late dinner · Soothr after 8:30 PM, Gym · Equinox East 92nd Street tomorrow morning).
+A known venue still pins on the map when live routing is off. `now` stamps
 `retrievedAt`. Google also uses it as `departure_time` when it is not more than a minute in
 the past.
 
