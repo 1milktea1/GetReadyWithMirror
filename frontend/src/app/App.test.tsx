@@ -192,6 +192,66 @@ describe('overview map', () => {
     expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
   })
 
+  it('opens the unwind screen with the morning alarm, the clock, and weather without suggestions', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('/api/planner')) {
+          return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No plan' } }) }
+        }
+        return {
+          json: async () => ({
+            ok: true,
+            data: {
+              location: { name: 'Columbia University', latitude: 40.8, longitude: -73.96, timeZone: 'America/New_York' },
+              units: { system: 'imperial', temperature: '°F', windSpeed: 'mph', precipitation: 'in', snowfall: 'in' },
+              retrievedAt: '2026-09-26T23:00:00-04:00',
+              timeZone: 'America/New_York',
+              window: { start: '2026-09-26T23:00:00-04:00', end: '2026-09-27T08:00:00-04:00' },
+              current: {
+                temperature: 64,
+                feelsLike: 62,
+                condition: 'clear',
+                precipitationProbability: 10,
+                uvIndex: 0,
+                windSpeed: 4,
+              },
+              hourly: [],
+              summary: {
+                high: 66,
+                low: 58,
+                minFeelsLike: 56,
+                maxUvIndex: 0,
+                maxPrecipitationProbability: 20,
+                totalPrecipitation: 0,
+                totalSnowfall: 0,
+              },
+              suggestions: [{ item: 'umbrella', reason: 'Rain later', trigger: { metric: 'precipitation', value: 1, time: '2026-09-27T01:00:00-04:00' } }],
+              provenance: { source: 'fixture', isFixture: true },
+            },
+          }),
+        }
+      }),
+    )
+    window.history.replaceState(null, '', '/?expand=unwind')
+    render(<App />)
+
+    expect(screen.getByRole('region', { name: 'Alarm' })).toHaveTextContent('Alarm set')
+    expect(screen.getByText('8:00')).toBeInTheDocument()
+    expect(screen.getByText('Tomorrow')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
+    expect(screen.getByText(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/)).toBeInTheDocument()
+    expect(await screen.findByText('Columbia University')).toBeInTheDocument()
+    expect(screen.getByText('64°')).toBeInTheDocument()
+    expect(screen.queryByText('Umbrella')).not.toBeInTheDocument()
+    expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+  })
+
   it('keeps the real clock when the URL has ?now=', async () => {
     vi.stubGlobal(
       'fetch',

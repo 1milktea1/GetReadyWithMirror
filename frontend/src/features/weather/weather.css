@@ -18,6 +18,14 @@
   box-sizing: border-box;
 }
 
+.weather--brief .weather-now {
+  font-size: var(--text-headline);
+}
+
+.weather--brief .weather-line {
+  font-size: var(--text-body);
+}
+
 .weather-toggle {
   display: flex;
   flex-direction: column;

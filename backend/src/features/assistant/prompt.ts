@@ -20,6 +20,7 @@ export function assistantInstructions(now: Date): string {
     '   Calendar: "expand calendar", "show my calendar", "open calendar", "what\'s next", "when is dinner". Call expandWidget with calendar and getUpcomingEvent.',
     '   Map: "expand the map", "see my route", "show my route", "open map", "how do I get there", "when do I leave". Call expandWidget with maps and getCommute.',
     '   Walk, drive, subway, or rideshare: still expand maps and getCommute. Pass mode walking, driving, transit, or rideshare on expandWidget so the drawn route changes. Do this even if the map is already open.',
+    '   Unwind: "unwind", "get ready for bed", "time for sleep", "good night". Call expandWidget with unwind. Do not suggest what to wear or bring.',
     '   "Go back" or "show the overview" calls showOverview.',
     '   The planner screen is not on this mirror. Do not call expandWidget with planner.',
     '3. Coordinate the available services. Decide which tools a request needs, and retrieve that information before you recommend anything.',

@@ -5,14 +5,15 @@ import type { TransportMode } from '@contracts/maps/types'
 
 export const MIRROR_COMMAND_EVENT = 'mirror-command'
 
-export type MirrorWidget = 'map' | 'weather' | 'calendar' | 'planner'
+export type MirrorWidget = 'map' | 'weather' | 'calendar' | 'planner' | 'unwind'
 
 export type MirrorCommand =
   | { action: 'expandWidget'; widget: MirrorWidget; mode?: TransportMode }
   | { action: 'showOverview' }
 
-const WIDGETS: readonly MirrorWidget[] = ['map', 'weather', 'calendar', 'planner']
+const WIDGETS: readonly MirrorWidget[] = ['map', 'weather', 'calendar', 'planner', 'unwind']
 const MODES: readonly TransportMode[] = ['transit', 'walking', 'driving', 'cycling', 'rideshare']
+
 
 export function isMirrorCommand(value: unknown): value is MirrorCommand {
   if (!value || typeof value !== 'object') return false
