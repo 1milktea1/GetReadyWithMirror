@@ -6,6 +6,9 @@ import { playAudioBlob, setVoiceBusy } from './voiceBusy'
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
 
+/** After the wake phrase, keep listening this long for the rest of the request. */
+const WAKE_HOLD_MS = 3000
+
 export interface VoiceUiEvent {
   action: 'expandWidget' | 'collapseWidget' | 'showOverview'
   target?: string
@@ -125,6 +128,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       onTranscript: (text) => {
         if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
         setLive(text)
+        if (commandAfterWake(text) !== null && phaseRef.current === 'idle') setStatus('Listening')
       },
       onWake: (command) => {
         if (phaseRef.current !== 'idle') return
@@ -216,6 +220,7 @@ function startWakeListener(handlers: {
   let closed = false
   let timer = 0
   let pending = ''
+  let holding = false
 
   const fire = (command: string) => {
     window.clearTimeout(timer)
@@ -229,20 +234,24 @@ function startWakeListener(handlers: {
     handlers.onWake(command)
   }
 
+  const holdForCommand = (command: string) => {
+    pending = command
+    holding = true
+    window.clearTimeout(timer)
+    // Wait after "hey mirror" so the request can follow. Reset on each new phrase.
+    timer = window.setTimeout(() => fire(pending), WAKE_HOLD_MS)
+  }
+
   recognition.onresult = (event) => {
     const latest = latestTranscript(event)
     if (latest) handlers.onTranscript(latest)
-    const text = transcriptFrom(event)
-    const command = commandAfterWake(text)
-    if (command === null) return
-    pending = command
-    const final = event.results[event.results.length - 1]?.isFinal
-    if (final) {
-      fire(command)
+    const afterWake = commandAfterWake(transcriptFrom(event))
+    if (afterWake !== null) {
+      holdForCommand(afterWake)
       return
     }
-    window.clearTimeout(timer)
-    timer = window.setTimeout(() => fire(pending), 700)
+    // A new SpeechRecognition session drops "hey mirror". Keep the follow-up.
+    if (holding && latest) holdForCommand(latest)
   }
   recognition.onerror = (event) => {
     if (event.error === 'not-allowed' || event.error === 'service-not-allowed') handlers.onDenied()
