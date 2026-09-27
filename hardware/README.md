@@ -1,20 +1,13 @@
-# Hardware (optional)
+# Hardware
 
-**Status:** Scaffold only — no firmware, no device code.
 
-## The core demo needs no extra hardware
 
-Everything required for the hackathon demo runs on the laptop: the React interface, the
-backend, Grok orchestration, and the voice flow. The laptop sends video over HDMI to a
-monitor mounted behind a two-way mirror, and uses its **built-in microphone and speakers** for
-voice input and output.
 
-**Do not assume a JBL speaker or a Raspberry Pi computer.** Do not make any additional
-hardware a requirement for the core demo.
 
-## Raspberry Pi Pico (optional)
 
-A **Raspberry Pi Pico**, if integrated, connects to the laptop over **USB serial** and handles
+## Raspberry Pi Pico
+
+A **Raspberry Pi Pico**, connects to the laptop over **USB serial** and handles
 optional physical input or output — an activation button, or an indicator light.
 
 The Pico **does not host** the frontend or the backend. It is an accessory to a system that
