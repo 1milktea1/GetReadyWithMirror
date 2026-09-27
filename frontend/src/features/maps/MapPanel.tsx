@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import type { LatLng, RouteAlternative, RouteLeg, TransportMode } from '@contracts/maps/types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { formatSubwayDirections } from './subwayDirections'
 import { buildMapsQuery, useMaps } from './useMaps'
 import './map.css'
 
@@ -72,7 +73,7 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
           L.polyline(pairs, { color: '#000', weight: 7, opacity: 1 }).addTo(layers)
         }
         L.polyline(pairs, {
-          color: leg.color,
+          color: '#fff',
           weight: leg.kind === 'subway' ? 5 : 4,
           opacity: 1,
         }).addTo(layers)
@@ -99,21 +100,17 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   const places = data
     ? `${data.origin.name} → ${data.destination.name}`
     : 'Columbia University → next calendar event'
-  const subwayLines = uniqueSubwayLines(route?.legs)
+  const directions = mode === 'transit' ? formatSubwayDirections(route?.legs) : ''
 
   return (
     <section className="map-panel" aria-label="Route map">
       <div ref={canvasRef} className="map-panel__canvas" />
       <div className="map-panel__bar">
         <div className="map-panel__places">{places}</div>
-        {subwayLines.length > 0 && (
-          <div className="map-panel__lines" aria-label="Subway lines">
-            {subwayLines.map((leg) => (
-              <span key={leg.line} className="map-panel__line" style={{ borderColor: leg.color, color: leg.color }}>
-                {leg.line}
-              </span>
-            ))}
-          </div>
+        {directions && (
+          <p className="map-panel__directions" aria-label="Subway lines">
+            {directions}
+          </p>
         )}
         <div className="map-panel__modes" role="group" aria-label="Transportation">
           {CHOICES.map((choice) => {
@@ -205,17 +202,6 @@ function markerStyle(filled: boolean): L.CircleMarkerOptions {
     fillColor: filled ? '#fff' : '#000',
     fillOpacity: 1,
   }
-}
-
-function uniqueSubwayLines(legs: RouteLeg[] | undefined): { line: string; color: string }[] {
-  const seen = new Set<string>()
-  const lines: { line: string; color: string }[] = []
-  for (const leg of legs ?? []) {
-    if (leg.kind !== 'subway' || !leg.line || seen.has(leg.line)) continue
-    seen.add(leg.line)
-    lines.push({ line: leg.line, color: leg.color })
-  }
-  return lines
 }
 
 function provenanceLabel(route: RouteAlternative | undefined): string | undefined {

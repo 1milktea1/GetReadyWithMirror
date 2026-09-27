@@ -65,6 +65,7 @@ function mapsResult(walkingLive: boolean): MapsResult {
                 kind: 'subway',
                 line: '1',
                 color: '#EE352E',
+                toStop: '14 St',
                 path: [
                   { latitude: 40.8075, longitude: -73.9641 },
                   { latitude: 40.737, longitude: -74.0 },
@@ -74,6 +75,7 @@ function mapsResult(walkingLive: boolean): MapsResult {
                 kind: 'subway',
                 line: 'L',
                 color: '#A7A9AC',
+                fromStop: '14 St',
                 path: [
                   { latitude: 40.737, longitude: -74.0 },
                   { latitude: 40.732269, longitude: -73.987352 },
@@ -179,19 +181,19 @@ describe('MapPanel', () => {
     expect(onModeChange).toHaveBeenCalledWith('driving')
   })
 
-  it('draws subway legs in MTA line colors', async () => {
+  it('draws subway in white and names the lines and transfer', async () => {
     mockMaps(mapsResult(true))
     render(<MapPanel mode="transit" onModeChange={() => {}} />)
-    expect(await screen.findByLabelText('Subway lines')).toBeInTheDocument()
-    expect(screen.getByText('1')).toBeInTheDocument()
-    expect(screen.getByText('L')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Subway lines')).toHaveTextContent(
+      '1, L. transfer at station 14 St.',
+    )
     await vi.waitFor(() => {
       expect(polyline).toHaveBeenCalledWith(
         [
           [40.8075, -73.9641],
           [40.737, -74.0],
         ],
-        expect.objectContaining({ color: '#EE352E' }),
+        expect.objectContaining({ color: '#fff' }),
       )
     })
     expect(polyline).toHaveBeenCalledWith(
@@ -199,7 +201,7 @@ describe('MapPanel', () => {
         [40.737, -74.0],
         [40.732269, -73.987352],
       ],
-      expect.objectContaining({ color: '#A7A9AC' }),
+      expect.objectContaining({ color: '#fff' }),
     )
   })
 
@@ -227,7 +229,7 @@ describe('MapPanel', () => {
           [40.7378, -74.0002],
           [40.732269, -73.987352],
         ],
-        expect.objectContaining({ color: '#EE352E' }),
+        expect.objectContaining({ color: '#fff' }),
       )
     })
   })

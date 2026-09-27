@@ -4,7 +4,9 @@ import { commandForVoiceEvent } from '../features/assistant/voiceEvents'
 import { App } from './App'
 
 vi.mock('../features/maps/MapPanel', () => ({
-  MapPanel: () => <section aria-label="Route map">Map open</section>,
+  MapPanel: ({ mode }: { mode: string }) => (
+    <section aria-label="Route map">Map open · {mode}</section>
+  ),
 }))
 
 describe('overview map', () => {
@@ -34,6 +36,11 @@ describe('overview map', () => {
 
     window.mirrorCommand?.({ action: 'expandWidget', widget: 'map' })
     expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
+    expect(screen.getByText('Map open · transit')).toBeInTheDocument()
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'map', mode: 'walking' })
+    expect(screen.getByText('Map open · walking')).toBeInTheDocument()
+    window.mirrorCommand?.({ action: 'expandWidget', widget: 'map', mode: 'driving' })
+    expect(screen.getByText('Map open · driving')).toBeInTheDocument()
     expect(screen.queryByText('No weather')).not.toBeInTheDocument()
     expect(screen.queryByText('Upcoming')).not.toBeInTheDocument()
     expect(screen.getByRole('region', { name: 'Time' })).toBeInTheDocument()
@@ -165,6 +172,16 @@ describe('overview map', () => {
     expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps' })).toEqual({
       action: 'expandWidget',
       widget: 'map',
+    })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps', mode: 'walking' })).toEqual({
+      action: 'expandWidget',
+      widget: 'map',
+      mode: 'walking',
+    })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps', mode: 'driving' })).toEqual({
+      action: 'expandWidget',
+      widget: 'map',
+      mode: 'driving',
     })
     expect(commandForVoiceEvent({ action: 'showOverview' })).toEqual({ action: 'showOverview' })
 

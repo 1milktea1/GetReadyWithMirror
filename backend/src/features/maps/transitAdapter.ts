@@ -124,6 +124,8 @@ function readItinerary(value: unknown): TransitItinerary | undefined {
           kind: 'subway',
           line: typeof name === 'string' ? name : undefined,
           color: subwayLineColor(typeof name === 'string' ? name : '', typeof tint === 'string' ? tint : undefined),
+          fromStop: stopName((leg as { from?: unknown }).from),
+          toStop: stopName((leg as { to?: unknown }).to),
           path: segment,
         });
       }
@@ -155,4 +157,11 @@ function readStop(value: unknown): LatLng | undefined {
   if (typeof latitude !== 'number' || typeof longitude !== 'number') return undefined;
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return undefined;
   return { latitude, longitude };
+}
+
+function stopName(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const name = (value as { name?: unknown }).name;
+  const trimmed = typeof name === 'string' ? name.trim() : '';
+  return trimmed || undefined;
 }

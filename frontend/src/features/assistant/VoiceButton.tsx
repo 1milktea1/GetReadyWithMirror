@@ -13,6 +13,7 @@ const WAKE_HOLD_MS = 3000
 export interface VoiceUiEvent {
   action: 'expandWidget' | 'collapseWidget' | 'showOverview'
   target?: string
+  mode?: 'transit' | 'walking' | 'driving' | 'rideshare'
 }
 
 export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) => void }) {

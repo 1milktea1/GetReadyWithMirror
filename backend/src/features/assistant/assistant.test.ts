@@ -160,6 +160,27 @@ test('an unknown tool is rejected and not executed', async () => {
   assert.equal(String(output?.output).includes('process.exit'), false);
 });
 
+test('expandWidget can pass a walk or drive mode for the map', async () => {
+  const seen = scripted([
+    withCalls([{ name: 'expandWidget', arguments: { widget: 'maps', mode: 'walking' } }, { name: 'getCommute', arguments: {} }]),
+    message('Here is the walking route.'),
+  ]);
+  const res = await turn({
+    fetchFn: seen.fetchFn,
+    handlers: {
+      getCommute: async () => ({ ok: true, data: { recommendedMode: 'walking' } }),
+    },
+  });
+  assert.ok(res.ok);
+  assert.deepEqual(res.data.uiEvents[0], {
+    action: 'expandWidget',
+    target: 'maps',
+    mode: 'walking',
+    requestId: 'req_1',
+    timestamp: NOW.toISOString(),
+  });
+});
+
 test('invalid widget arguments are rejected, including unexpected fields', async () => {
   const seen = scripted([
     withCalls([

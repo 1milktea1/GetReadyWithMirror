@@ -268,8 +268,20 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
         duration: 54 * 60,
         legs: [
           { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
-          { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
-          { mode: 'SUBWAY', routeShortName: 'L', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+          {
+            mode: 'SUBWAY',
+            routeShortName: '1',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+            from: { name: '116 St–Columbia University', lat: 40.8077, lon: -73.9641 },
+            to: { name: '14 St', lat: 40.7378, lon: -74.0002 },
+          },
+          {
+            mode: 'SUBWAY',
+            routeShortName: 'L',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC' },
+            from: { name: '14 St', lat: 40.7378, lon: -74.0002 },
+            to: { name: '3 Av', lat: 40.7328, lon: -73.9861 },
+          },
         ],
       },
     ],
@@ -280,11 +292,11 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
   assert.equal(route?.provenance.source, 'transitous');
   assert.ok(route && route.path.length >= 3);
   assert.deepEqual(
-    route?.legs?.map((leg) => ({ kind: leg.kind, line: leg.line, color: leg.color })),
+    route?.legs?.map((leg) => ({ kind: leg.kind, line: leg.line, color: leg.color, toStop: leg.toStop, fromStop: leg.fromStop })),
     [
-      { kind: 'walk', line: undefined, color: '#FFFFFF' },
-      { kind: 'subway', line: '1', color: '#EE352E' },
-      { kind: 'subway', line: 'L', color: '#A7A9AC' },
+      { kind: 'walk', line: undefined, color: '#FFFFFF', toStop: undefined, fromStop: undefined },
+      { kind: 'subway', line: '1', color: '#EE352E', toStop: '14 St', fromStop: '116 St–Columbia University' },
+      { kind: 'subway', line: 'L', color: '#A7A9AC', toStop: '3 Av', fromStop: '14 St' },
     ],
   );
   assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-4);

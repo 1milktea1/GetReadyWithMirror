@@ -46,21 +46,13 @@
   pointer-events: none;
 }
 
-.map-panel__lines {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.map-panel__line {
-  min-width: 1.6rem;
-  padding: 0.15rem 0.5rem;
-  border: 2px solid;
-  border-radius: 999px;
+.map-panel__directions {
+  margin: 0;
+  max-width: 22rem;
+  padding: 0.2rem 0.45rem;
   background: #000;
-  font-size: var(--text-micro);
-  font-weight: var(--weight-strong);
-  text-align: center;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
 }
 
 .map-panel__places,

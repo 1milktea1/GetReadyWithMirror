@@ -115,15 +115,25 @@ function readGoogleTransitLegs(steps: unknown): RouteLeg[] {
     if (path.length < 2) continue;
     const mode = (step as { travel_mode?: unknown }).travel_mode;
     if (mode === 'TRANSIT') {
-      const line = (step as { transit_details?: { line?: { short_name?: unknown; color?: unknown; vehicle?: { type?: unknown } } } })
-        .transit_details?.line;
+      const details = (step as {
+        transit_details?: {
+          line?: { short_name?: unknown; color?: unknown; vehicle?: { type?: unknown } };
+          departure_stop?: { name?: unknown };
+          arrival_stop?: { name?: unknown };
+        };
+      }).transit_details;
+      const line = details?.line;
       const name = typeof line?.short_name === 'string' ? line.short_name : undefined;
       const vehicle = typeof line?.vehicle?.type === 'string' ? line.vehicle.type : '';
       const subway = vehicle === 'SUBWAY' || Boolean(name);
+      const fromStop = typeof details?.departure_stop?.name === 'string' ? details.departure_stop.name.trim() : '';
+      const toStop = typeof details?.arrival_stop?.name === 'string' ? details.arrival_stop.name.trim() : '';
       legs.push({
         kind: subway ? 'subway' : 'other',
         line: name,
         color: subway && name ? subwayLineColor(name, typeof line?.color === 'string' ? line.color : undefined) : walkLegColor(),
+        fromStop: fromStop || undefined,
+        toStop: toStop || undefined,
         path,
       });
       continue;

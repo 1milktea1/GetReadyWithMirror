@@ -60,6 +60,7 @@ export function App() {
         setExpanded(null)
         return
       }
+      if (command.mode) setMode(command.mode)
       if (
         command.widget === 'map' ||
         command.widget === 'weather' ||

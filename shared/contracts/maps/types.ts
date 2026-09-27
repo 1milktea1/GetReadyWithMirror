@@ -23,6 +23,10 @@ export interface RouteLeg {
   line?: string;
   /** Hex stroke for the map, MTA line color when `kind` is subway. */
   color: string;
+  /** Boarding stop name when the router provided one. */
+  fromStop?: string;
+  /** Alighting stop name when the router provided one. */
+  toStop?: string;
   path: LatLng[];
 }
 

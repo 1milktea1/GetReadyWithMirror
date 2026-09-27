@@ -75,6 +75,7 @@ async function executeCall(
       requestId,
       timestamp,
       ...(call.name === 'showOverview' ? {} : { target: call.widget }),
+      ...(call.name === 'expandWidget' && call.mode ? { mode: call.mode } : {}),
     };
     return {
       event,
@@ -82,8 +83,11 @@ async function executeCall(
         callId,
         name: call.name,
         status: 'executed',
-        arguments: call.name === 'showOverview' ? {} : { widget: call.widget },
-        result: { ok: true, data: { action: event.action, target: event.target } },
+        arguments:
+          call.name === 'showOverview'
+            ? {}
+            : { widget: call.widget, ...(call.name === 'expandWidget' && call.mode ? { mode: call.mode } : {}) },
+        result: { ok: true, data: { action: event.action, target: event.target, mode: event.mode } },
       },
     };
   }
