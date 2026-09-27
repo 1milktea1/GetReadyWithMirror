@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { commandForVoiceEvent } from '../features/assistant/voiceEvents'
 import { App } from './App'
 
 vi.mock('../features/maps/MapPanel', () => ({
@@ -92,6 +93,34 @@ describe('overview map', () => {
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(await screen.findByLabelText('Getting ready')).toBeInTheDocument()
+  })
+
+  it('maps Grok expand events onto the existing weather, calendar, and map screens', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }),
+      })),
+    )
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'weather' })).toEqual({
+      action: 'expandWidget',
+      widget: 'weather',
+    })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'calendar' })).toEqual({
+      action: 'expandWidget',
+      widget: 'calendar',
+    })
+    expect(commandForVoiceEvent({ action: 'expandWidget', target: 'maps' })).toEqual({
+      action: 'expandWidget',
+      widget: 'map',
+    })
+    expect(commandForVoiceEvent({ action: 'showOverview' })).toEqual({ action: 'showOverview' })
+
+    render(<App />)
+    const command = commandForVoiceEvent({ action: 'expandWidget', target: 'maps' })
+    expect(command).not.toBeNull()
+    if (command) window.mirrorCommand?.(command)
+    expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
   })
 
   it('keeps the real clock when the URL has ?now=', async () => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { TransportMode } from '@contracts/maps/types'
 import { RushReminders } from '../features/assistant/RushReminders'
 import { VoiceButton, type VoiceUiEvent } from '../features/assistant/VoiceButton'
+import { commandForVoiceEvent } from '../features/assistant/voiceEvents'
 import { CalendarModule, createFixtureCalendarSource } from '../features/calendar'
 import { MapPanel } from '../features/maps/MapPanel'
 import {
@@ -29,14 +30,6 @@ function screenClass(expanded: ExpandedModule): string {
   if (expanded === 'weather') return 'mirror mirror--weather'
   if (expanded === 'calendar') return 'mirror mirror--calendar'
   return 'mirror'
-}
-
-function screenForVoice(event: VoiceUiEvent): ExpandedModule | 'overview' | null {
-  if (event.action === 'showOverview' || event.action === 'collapseWidget') return 'overview'
-  if (event.action !== 'expandWidget') return null
-  if (event.target === 'weather' || event.target === 'calendar' || event.target === 'planner') return event.target
-  if (event.target === 'maps' || event.target === 'map') return 'map'
-  return null
 }
 
 export function App() {
@@ -82,9 +75,8 @@ export function App() {
 
   function applyVoiceEvents(events: VoiceUiEvent[]) {
     for (const event of events) {
-      const screen = screenForVoice(event)
-      if (screen === 'overview') setExpanded(null)
-      else if (screen) setExpanded(screen)
+      const command = commandForVoiceEvent(event)
+      if (command) publishMirrorCommand(command)
     }
   }
 

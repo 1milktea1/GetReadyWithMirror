@@ -18,9 +18,14 @@ npm run dev          # http://localhost:5173
 Weather, the getting-ready plan, and **Hey Mirror** call `/api`, which Vite proxies to
 `http://localhost:3001`. Start the backend first (`npm run dev` from `backend/`). Put
 `XAI_API_KEY` and `ELEVENLABS_API_KEY` in `backend/.env` so Grok and ElevenLabs can run.
+
+Expand is hands-free: say **Hey Mirror**, then “expand weather”, “show my calendar”, or
+“see my route”. Grok calls `expandWidget`; the existing weather, calendar, and map screens
+open. There is no separate no-key phrase matcher. Type-instead only appears if the
+microphone or browser wake listener is unavailable.
+
 Without the backend, weather and the planner show an unavailable state; the calendar still
-renders from its fixture. You can type a request under the voice button if the microphone
-is unavailable.
+renders from its fixture.
 
 | Command | What it does |
 |---|---|

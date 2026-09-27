@@ -14,5 +14,9 @@ describe('commandAfterWake', () => {
   it('keeps the request that follows the phrase', () => {
     expect(commandAfterWake('Hey Mirror, should I bring an umbrella?')).toBe('should I bring an umbrella?')
     expect(commandAfterWake('okay hey mirror open the calendar')).toBe('open the calendar')
+    expect(commandAfterWake('hey mirror expand weather')).toBe('expand weather')
+    expect(commandAfterWake('Hey Mirror show my calendar')).toBe('show my calendar')
+    expect(commandAfterWake('hey mirror see my route')).toBe('see my route')
+    expect(commandAfterWake('Hey Mirror, expand the map')).toBe('expand the map')
   })
 })
