@@ -104,11 +104,11 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       const spoken = textOf(turn, 'spokenText')
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       setPhaseNow('speaking')
-      setStatus(spoken)
+      setStatus('')
       try {
         await play(spoken)
       } catch {
-        // Grok already opened the module. Keep the spoken line if speakers fail.
+        // Grok already opened the module. Audio may fail in this browser.
       }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Voice failed')
@@ -125,7 +125,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       },
       onWake: (command) => {
         if (phaseRef.current !== 'idle') return
-        setScribe('')
+        setScribe(command)
         if (command) void answer(command)
         else void recordCommand()
       },

@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { sayHeyMirror, stubWakeRecognition } from '../../test/stubWakeRecognition'
 import { VoiceButton, type VoiceUiEvent } from './VoiceButton'
@@ -44,6 +44,8 @@ describe('VoiceButton', () => {
     await waitFor(() =>
       expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'maps' }]),
     )
+    expect(screen.getByText('see my route')).toBeInTheDocument()
+    expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
   })
 
   it('opens the screen from a streamed expand line before the spoken reply finishes', async () => {
@@ -82,5 +84,7 @@ describe('VoiceButton', () => {
     await waitFor(() =>
       expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'weather' }]),
     )
+    expect(screen.getByText('expand weather')).toBeInTheDocument()
+    expect(screen.queryByText('Rain this evening.')).not.toBeInTheDocument()
   })
 })
