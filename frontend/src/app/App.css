@@ -82,14 +82,17 @@
   padding: 0.35rem 0.15rem 0.35rem 0.8rem;
 }
 
-/* Expanded weather or calendar: the panel sits in the center. Time and date stay top-right. */
+/* Expanded weather or calendar: the panel sits high in the center. Time and date stay top-right.
+   Bottom padding keeps the spoken voice line from covering the panel. */
 .mirror.mirror--weather,
 .mirror.mirror--calendar {
+  --mirror-voice-reserve: clamp(10.5rem, 28vmin, 15rem);
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
   grid-template-areas:
     'clock'
     'focus';
+  padding-bottom: var(--mirror-voice-reserve);
 }
 
 .mirror--weather .mirror__region--top-right,
@@ -109,9 +112,24 @@
 .mirror__region--calendar {
   grid-area: focus;
   justify-self: center;
-  align-self: center;
+  align-self: start;
+  margin-top: clamp(0.5rem, 4vh, 2.75rem);
   width: max-content;
-  max-width: min(42rem, 92vw);
+  max-width: min(36rem, 86vw);
+  max-height: 100%;
+  overflow: auto;
+}
+
+.mirror__region--calendar .calendar__agenda {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.mirror--weather .mirror__region--voice,
+.mirror--calendar .mirror__region--voice {
+  padding: 1.5rem 1.25rem 0;
+  background: linear-gradient(to top, #000 58%, rgb(0 0 0 / 0));
 }
 
 .calendar--agenda {
