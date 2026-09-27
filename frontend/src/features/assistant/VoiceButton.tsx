@@ -16,8 +16,6 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
   const [status, setStatus] = useState('Say Hey Mirror')
   const [live, setLive] = useState('')
   const [scribe, setScribe] = useState('')
-  const [typed, setTyped] = useState('')
-  const [handsOn, setHandsOn] = useState(false)
   const phaseRef = useRef<Phase>('idle')
   const recorder = useRef<MediaRecorder | null>(null)
   const chunks = useRef<Blob[]>([])
@@ -120,7 +118,6 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
   }
 
   useEffect(() => {
-    if (phase === 'thinking' || phase === 'speaking') return
     const recognition = startWakeListener({
       onTranscript: (text) => {
         if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
@@ -133,17 +130,14 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
         else void recordCommand()
       },
       onDenied: () => {
-        setHandsOn(true)
         if (phaseRef.current === 'idle') setStatus('Microphone access was denied')
       },
       onUnavailable: () => {
-        setHandsOn(true)
         if (phaseRef.current === 'idle') setStatus('Tap to talk')
       },
     })
-    if (recognition) setStatus('Say Hey Mirror')
     return () => recognition?.stop()
-  }, [phase])
+  }, [])
 
   return (
     <div className="voice-dock">
@@ -160,36 +154,6 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
         <span className="voice__status">{status}</span>
       </button>
-      {handsOn && (
-        <form
-          className="voice-type"
-          onSubmit={(event) => {
-            event.preventDefault()
-            const utterance = typed.trim()
-            if (!utterance || phaseRef.current !== 'idle') return
-            setTyped('')
-            setScribe(utterance)
-            void answer(utterance)
-          }}
-        >
-          <label className="voice-type__label" htmlFor="voice-type-input">
-            Type instead
-          </label>
-          <input
-            id="voice-type-input"
-            className="voice-type__input"
-            type="text"
-            autoComplete="off"
-            placeholder="What’s the weather for dinner?"
-            value={typed}
-            disabled={phase !== 'idle'}
-            onChange={(event) => setTyped(event.target.value)}
-          />
-          <button className="voice-type__ask" type="submit" disabled={phase !== 'idle' || !typed.trim()}>
-            Ask
-          </button>
-        </form>
-      )}
     </div>
   )
 }
@@ -220,12 +184,7 @@ function startWakeListener(handlers: {
   const fire = (command: string) => {
     window.clearTimeout(timer)
     if (closed) return
-    closed = true
-    try {
-      recognition.stop()
-    } catch {
-      // Already stopped.
-    }
+    pending = ''
     handlers.onWake(command)
   }
 

@@ -1,5 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { sayHeyMirror, stubWakeRecognition } from '../../test/stubWakeRecognition'
 import { VoiceButton, type VoiceUiEvent } from './VoiceButton'
 
 describe('VoiceButton', () => {
@@ -29,9 +30,9 @@ describe('VoiceButton', () => {
       }),
     )
 
+    stubWakeRecognition()
     render(<VoiceButton onEvents={onEvents} />)
-    fireEvent.change(screen.getByLabelText('Type instead'), { target: { value: 'see my route' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+    await waitFor(() => sayHeyMirror('see my route'))
 
     await waitFor(() =>
       expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'maps' }]),
