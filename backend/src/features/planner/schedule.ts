@@ -57,11 +57,34 @@ function pressureFor(slackMinutes: number): PlanPressure {
   return 'relaxed';
 }
 
-function summaryFor(now: Date, leaveByMs: number, feasible: boolean): string {
+function summaryFor(
+  now: Date,
+  leaveByMs: number,
+  feasible: boolean,
+  event: { title: string; venueName?: string },
+): string {
   const remaining = Math.floor((leaveByMs - now.getTime()) / MINUTE_MS);
   if (!feasible || remaining < 0) return 'Late';
   if (remaining === 0) return 'On time';
-  return remaining === 1 ? '1 minute remaining' : `${remaining} minutes remaining`;
+  const destination = eventDestination(event);
+  const duration = remainingDuration(remaining);
+  return destination ? `${duration} for ${destination}` : duration;
+}
+
+function remainingDuration(totalMinutes: number): string {
+  if (totalMinutes === 1) return '1 minute remaining';
+  if (totalMinutes < 60) return `${totalMinutes} minutes remaining`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const hourPart = hours === 1 ? '1 hour' : `${hours} hours`;
+  if (minutes === 0) return `${hourPart} remaining`;
+  const minutePart = minutes === 1 ? '1 minute' : `${minutes} minutes`;
+  return `${hourPart} ${minutePart} remaining`;
+}
+
+function eventDestination(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
 }
 
 function adjustmentsFor(
@@ -209,7 +232,7 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
     slackMinutes,
     feasible,
     pressure,
-    summary: summaryFor(input.now, leaveByMs, feasible),
+    summary: summaryFor(input.now, leaveByMs, feasible, input.event),
     conflict: feasible
       ? null
       : {

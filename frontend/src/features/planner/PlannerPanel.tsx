@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { TransportMode } from '@contracts/maps/types';
 import type { PreparationPlan, ScheduledTask } from '@contracts/planner/types';
-import { formatTimeOfDay } from '../../shared/time/format';
+import { formatRemainingDuration, formatTimeOfDay } from '../../shared/time/format';
 import { buildPlannerQuery, usePlanner } from './usePlanner';
 import './planner.css';
 
@@ -129,7 +129,14 @@ function leaveStatus(data: PreparationPlan): string {
   const remaining = Math.floor((Date.parse(data.leaveBy.at) - Date.parse(data.now)) / 60_000);
   if (!data.feasible || remaining < 0) return 'Late';
   if (remaining === 0) return 'On time';
-  return remaining === 1 ? '1 minute remaining' : `${remaining} minutes remaining`;
+  const destination = eventDestination(data.event);
+  const duration = formatRemainingDuration(remaining);
+  return destination ? `${duration} for ${destination}` : duration;
+}
+
+function eventDestination(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
 }
 
 function taskWindow(task: ScheduledTask, timeZone: string): string {

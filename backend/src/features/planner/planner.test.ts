@@ -157,7 +157,7 @@ test('5:30 PM with the default routine is tight but feasible', async () => {
   assert.equal(result.data.slackMinutes, 0);
   assert.equal(result.data.feasible, true);
   assert.equal(result.data.tasks[0].start, at('17:30').toISOString());
-  assert.equal(result.data.summary, '45 minutes remaining');
+  assert.equal(result.data.summary, '45 minutes remaining for Dinner reservation · Soothr');
 });
 
 test('twenty more minutes of hair at 5:30 PM conflicts and offers to undo it', async () => {
@@ -223,6 +223,7 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   if (!afternoon.body.ok) return;
   assert.equal(afternoon.body.data.pressure, 'relaxed');
   assert.equal(afternoon.body.data.leaveBy.at, at('18:15').toISOString());
+  assert.equal(afternoon.body.data.summary, '3 hours 15 minutes remaining for Dinner reservation · Soothr');
 
   assert.equal((await handlePlannerRequest(new URLSearchParams('now=bogus'))).status, 400);
   assert.equal((await handlePlannerRequest(new URLSearchParams('buffer=-5'))).status, 400);

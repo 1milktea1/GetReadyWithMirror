@@ -81,7 +81,7 @@ describe('PlannerPanel', () => {
     mockPlan(plan());
     render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" />);
     expect(await screen.findByText('Leave by 4:15 PM')).toBeInTheDocument();
-    expect(screen.getByText('255 minutes remaining')).toBeInTheDocument();
+    expect(screen.getByText('4 hours 15 minutes remaining for Dinner reservation · Soothr')).toBeInTheDocument();
     expect(screen.queryByText(/Subway · 35 min/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText('Leave by reminder')).not.toBeInTheDocument();
     expect(screen.getByText('Shower')).toBeInTheDocument();
@@ -154,7 +154,7 @@ describe('PlannerPanel', () => {
       }),
     );
     rerender(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T20:05:00.000Z" />);
-    expect(await screen.findByText('10 minutes remaining')).toBeInTheDocument();
+    expect(await screen.findByText('10 minutes remaining for Dinner reservation · Soothr')).toBeInTheDocument();
   });
 
   it('asks the planner for the selected transportation mode', async () => {
@@ -175,7 +175,7 @@ describe('PlannerPanel', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" mode="walking" />);
     expect(await screen.findByText('Leave by 3:05 PM')).toBeInTheDocument();
-    expect(screen.getByText('185 minutes remaining')).toBeInTheDocument();
+    expect(screen.getByText('3 hours 5 minutes remaining for Dinner reservation · Soothr')).toBeInTheDocument();
     expect(screen.queryByText(/Walk · 105 min/)).not.toBeInTheDocument();
     const urls = fetchMock.mock.calls.map((call) => String(call[0]));
     expect(urls.some((url) => url.includes('mode=walking'))).toBe(true);
