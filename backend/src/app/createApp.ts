@@ -69,8 +69,26 @@ function mountVoice(app: Express): void {
     const payload = await readJson(req, res);
     if (payload === undefined) return;
     try {
-      const { status, body } = await handleAssistantTurn(payload);
-      res.status(status).json(body);
+      let streaming = false;
+      const write = (line: unknown) => {
+        if (!streaming) {
+          streaming = true;
+          res.status(200);
+          res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('X-Accel-Buffering', 'no');
+        }
+        res.write(`${JSON.stringify(line)}\n`);
+      };
+      const { status, body } = await handleAssistantTurn(payload, {
+        onUiEvents: (uiEvents) => write({ type: 'ui', uiEvents }),
+      });
+      if (!streaming) {
+        res.status(status).json(body);
+        return;
+      }
+      write({ type: 'done', ...(body as object) });
+      res.end();
     } catch (err) {
       fail(res, err);
     }

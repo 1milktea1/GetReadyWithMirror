@@ -98,10 +98,10 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
     setPhaseNow('thinking')
     setStatus('Thinking')
     try {
-      const turn = await postJson('/api/assistant', { utterance, history: historyRef.current })
+      const turn = await postAssistant({ utterance, history: historyRef.current }, (events) => {
+        eventsRef.current(events)
+      })
       const spoken = textOf(turn, 'spokenText')
-      const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
-      eventsRef.current(events)
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       setPhaseNow('speaking')
       setStatus(spoken)
@@ -328,15 +328,51 @@ async function postAudio(audio: Blob): Promise<string> {
   return text
 }
 
-async function postJson(path: string, payload: unknown): Promise<JsonBody> {
-  const res = await fetch(path, {
+async function postAssistant(
+  payload: unknown,
+  onEvents: (events: VoiceUiEvent[]) => void,
+): Promise<JsonBody> {
+  const res = await fetch('/api/assistant', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
   })
-  const body = await readJson(res)
+  const type = res.headers && typeof res.headers.get === 'function' ? (res.headers.get('content-type') ?? '') : ''
+  const body = type.includes('ndjson') ? await readAssistantStream(res, onEvents) : await readJson(res)
   if (!body.ok) throw new Error(messageOf(body) || 'The assistant could not answer.')
+  const events = Array.isArray(body.data?.uiEvents) ? (body.data.uiEvents as VoiceUiEvent[]) : []
+  if (events.length > 0 && !type.includes('ndjson')) onEvents(events)
   return body
+}
+
+async function readAssistantStream(
+  res: Response,
+  onEvents: (events: VoiceUiEvent[]) => void,
+): Promise<JsonBody> {
+  if (!res.body) return {}
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let done: JsonBody = {}
+  while (true) {
+    const chunk = await reader.read()
+    buffer += decoder.decode(chunk.value ?? new Uint8Array(), { stream: !chunk.done })
+    let newline = buffer.indexOf('\n')
+    while (newline !== -1) {
+      const line = buffer.slice(0, newline).trim()
+      buffer = buffer.slice(newline + 1)
+      if (line) {
+        const message = JSON.parse(line) as { type?: string; uiEvents?: unknown } & JsonBody
+        if (message.type === 'ui' && Array.isArray(message.uiEvents)) {
+          onEvents(message.uiEvents as VoiceUiEvent[])
+        }
+        if (message.type === 'done' || message.ok !== undefined) done = message
+      }
+      newline = buffer.indexOf('\n')
+    }
+    if (chunk.done) break
+  }
+  return done
 }
 
 async function play(text: string): Promise<void> {

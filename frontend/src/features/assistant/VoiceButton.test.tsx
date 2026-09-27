@@ -38,4 +38,42 @@ describe('VoiceButton', () => {
       expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'maps' }]),
     )
   })
+
+  it('opens the screen from a streamed expand line before the spoken reply finishes', async () => {
+    const onEvents = vi.fn<(events: VoiceUiEvent[]) => void>()
+    const encoder = new TextEncoder()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (!String(input).includes('/api/assistant')) {
+          return { ok: false, json: async () => ({ ok: false, error: { status: 'not-configured' } }) }
+        }
+        const stream = new ReadableStream({
+          start(controller) {
+            controller.enqueue(
+              encoder.encode(
+                `${JSON.stringify({ type: 'ui', uiEvents: [{ action: 'expandWidget', target: 'weather' }] })}\n`,
+              ),
+            )
+            queueMicrotask(() => {
+              controller.enqueue(
+                encoder.encode(
+                  `${JSON.stringify({ type: 'done', ok: true, data: { spokenText: 'Rain this evening.', uiEvents: [] } })}\n`,
+                ),
+              )
+              controller.close()
+            })
+          },
+        })
+        return new Response(stream, { headers: { 'content-type': 'application/x-ndjson' } })
+      }),
+    )
+
+    stubWakeRecognition()
+    render(<VoiceButton onEvents={onEvents} />)
+    await waitFor(() => sayHeyMirror('expand weather'))
+    await waitFor(() =>
+      expect(onEvents).toHaveBeenCalledWith([{ action: 'expandWidget', target: 'weather' }]),
+    )
+  })
 })

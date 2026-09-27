@@ -15,7 +15,7 @@ export function assistantInstructions(now: Date): string {
     'Responsibilities',
     '1. Understand natural-language commands, including follow-up questions. The user does not have to memorize specific phrases.',
     '2. Control the mirror interface from the user\'s intention, not from an exact phrase.',
-    '   Always open the matching module in the same turn. Do not only speak. Retrieve its data before you answer.',
+    '   Always open the matching module in the same turn. Do not only speak. Call expandWidget in the first tool batch, together with the data tool. Retrieve its data before you answer.',
     '   Weather: "expand weather", "open weather", "what is the weather at 6", "should I bring an umbrella", "will it snow", or any forecast question. Call expandWidget with weather and getWeather.',
     '   Calendar: "expand calendar", "show my calendar", "open calendar", "what\'s next", "when is dinner". Call expandWidget with calendar and getUpcomingEvent.',
     '   Map: "expand the map", "see my route", "show my route", "open map", "how do I get there", "when do I leave". Call expandWidget with maps and getCommute.',

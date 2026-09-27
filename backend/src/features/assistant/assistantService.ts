@@ -39,6 +39,8 @@ export interface RunAssistantTurnOptions {
   handlers?: AssistantHandlers;
   clock?: () => Date;
   requestId?: string;
+  /** Fired as soon as Grok's expand/collapse is executed, before the spoken follow-up. */
+  onUiEvents?: (events: UiEvent[]) => void;
 }
 
 function sanitizeHistory(history: ChatMessage[] | undefined): ChatMessage[] {
@@ -191,7 +193,7 @@ export async function runAssistantTurn(options: RunAssistantTurnOptions): Promis
 
       const outputs = [];
       const replays = [];
-      for (const toolCall of round.toolCalls) {
+      for (const toolCall of uiToolsFirst(round.toolCalls)) {
         if (toolCall.parseError) {
           const error = { status: 'input-invalid' as const, message: toolCall.parseError };
           const trace: ToolOutcome = {
@@ -225,7 +227,10 @@ export async function runAssistantTurn(options: RunAssistantTurnOptions): Promis
 
         const executed = await executeCall(validated.call, handlers, now, requestId, timestamp, toolCall.callId);
         tools.push(executed.trace);
-        if (executed.event) uiEvents.push(executed.event);
+        if (executed.event) {
+          uiEvents.push(executed.event);
+          options.onUiEvents?.([executed.event]);
+        }
         replays.push(toolCall.replayItem);
         outputs.push({
           type: 'function_call_output',
@@ -243,6 +248,14 @@ export async function runAssistantTurn(options: RunAssistantTurnOptions): Promis
   }
 
   return { ok: false, error: { status: 'external-provider-unavailable', message: 'Grok did not finish the turn.' } };
+}
+
+function isUiTool(name: string): boolean {
+  return name === 'expandWidget' || name === 'collapseWidget' || name === 'showOverview';
+}
+
+function uiToolsFirst<T extends { name: string }>(calls: T[]): T[] {
+  return [...calls].sort((left, right) => Number(isUiTool(right.name)) - Number(isUiTool(left.name)));
 }
 
 function eventsForSpeech(result: ReturnType<typeof getUpcomingEvents>) {
