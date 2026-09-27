@@ -175,8 +175,9 @@ describe('MapPanel', () => {
         [40.75, -73.97],
         [40.732269, -73.987352],
       ],
-      expect.not.objectContaining({ dashArray: expect.anything() }),
+      expect.objectContaining({ color: '#fff' }),
     )
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
     fireEvent.click(screen.getByRole('button', { name: 'Drive · 30 min' }))
     expect(onModeChange).toHaveBeenCalledWith('driving')
   })
@@ -203,6 +204,7 @@ describe('MapPanel', () => {
       ],
       expect.objectContaining({ color: '#fff' }),
     )
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
   })
 
   it('walks the last subway stop to the destination pin when the colored legs stop short', async () => {
@@ -232,5 +234,6 @@ describe('MapPanel', () => {
         expect.objectContaining({ color: '#fff' }),
       )
     })
+    expect(polyline.mock.calls.every((call) => call[1]?.color === '#fff')).toBe(true)
   })
 })
