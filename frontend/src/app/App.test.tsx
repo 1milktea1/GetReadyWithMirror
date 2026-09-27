@@ -134,7 +134,7 @@ describe('overview map', () => {
 
     await waitFor(() => sayHeyMirror('expand weather'))
     await waitFor(() => expect(screen.queryByText('Upcoming')).not.toBeInTheDocument())
-    expect(screen.getByText('No weather')).toBeInTheDocument()
+    expect(await screen.findByText('No weather')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: 'Escape' })
     expect(await screen.findByText('Upcoming')).toBeInTheDocument()

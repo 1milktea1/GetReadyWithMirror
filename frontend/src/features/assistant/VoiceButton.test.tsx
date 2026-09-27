@@ -48,6 +48,38 @@ describe('VoiceButton', () => {
     expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
   })
 
+  it('shows Thinking on the button and keeps the heard line while Grok works', async () => {
+    let release!: () => void
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        if (!String(input).includes('/api/assistant')) {
+          return { ok: false, json: async () => ({ ok: false, error: { status: 'not-configured' } }) }
+        }
+        await blocked
+        return {
+          ok: true,
+          json: async () => ({
+            ok: true,
+            data: { spokenText: 'Here is your route.', uiEvents: [] },
+          }),
+        }
+      }),
+    )
+    stubWakeRecognition()
+    render(<VoiceButton onEvents={() => {}} />)
+    await waitFor(() => sayHeyMirror('see my route'))
+    expect(await screen.findByText('Thinking')).toBeInTheDocument()
+    expect(screen.getByText('see my route')).toBeInTheDocument()
+    expect(screen.getByText('hey mirror see my route')).toBeInTheDocument()
+    expect(screen.queryByText('Here is your route.')).not.toBeInTheDocument()
+    release()
+    await waitFor(() => expect(screen.queryByText('Thinking')).not.toBeInTheDocument())
+  })
+
   it('opens the screen from a streamed expand line before the spoken reply finishes', async () => {
     const onEvents = vi.fn<(events: VoiceUiEvent[]) => void>()
     const encoder = new TextEncoder()

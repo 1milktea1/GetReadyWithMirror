@@ -13,7 +13,7 @@ export interface VoiceUiEvent {
 
 export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) => void }) {
   const [phase, setPhase] = useState<Phase>('idle')
-  const [status, setStatus] = useState('')
+  const [notice, setNotice] = useState('')
   const [live, setLive] = useState('')
   const [scribe, setScribe] = useState('')
   const phaseRef = useRef<Phase>('idle')
@@ -51,12 +51,12 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
     if (phaseRef.current !== 'idle') return
     setPhaseNow('listening')
     setScribe('')
-    setStatus('Listening')
+    setNotice('')
     let stream: MediaStream
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch {
-      setStatus('Microphone access was denied')
+      setNotice('Microphone access was denied')
       setPhaseNow('idle')
       return
     }
@@ -80,7 +80,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
 
   async function finish(audio: Blob) {
     setPhaseNow('thinking')
-    setStatus('Thinking')
+    setNotice('')
     try {
       const transcript = await postAudio(audio)
       const afterWake = commandAfterWake(transcript)
@@ -89,14 +89,14 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       if (!heard) throw new Error('No words were recognized.')
       await answer(heard)
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Voice failed')
+      setNotice(err instanceof Error ? err.message : 'Voice failed')
       setPhaseNow('idle')
     }
   }
 
   async function answer(utterance: string) {
     setPhaseNow('thinking')
-    setStatus('Thinking')
+    setNotice('')
     try {
       const turn = await postAssistant({ utterance, history: historyRef.current }, (events) => {
         eventsRef.current(events)
@@ -104,14 +104,13 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       const spoken = textOf(turn, 'spokenText')
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       setPhaseNow('speaking')
-      setStatus('')
       try {
         await play(spoken)
       } catch {
         // Grok already opened the module. Audio may fail in this browser.
       }
     } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Voice failed')
+      setNotice(err instanceof Error ? err.message : 'Voice failed')
     } finally {
       setPhaseNow('idle')
     }
@@ -130,19 +129,21 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
         else void recordCommand()
       },
       onDenied: () => {
-        if (phaseRef.current === 'idle') setStatus('Microphone access was denied')
+        if (phaseRef.current === 'idle') setNotice('Microphone access was denied')
       },
       onUnavailable: () => {
-        if (phaseRef.current === 'idle') setStatus('Tap to talk')
+        if (phaseRef.current === 'idle') setNotice('Tap to talk')
       },
     })
     return () => recognition?.stop()
   }, [])
 
+  const phaseStatus = phase === 'listening' ? 'Listening' : phase === 'thinking' ? 'Thinking' : phase === 'speaking' ? 'Speaking' : ''
+
   return (
     <div className="voice-dock">
       <div className="voice-captions" aria-live="polite">
-        {status && <p className="voice-captions__line">{status}</p>}
+        {notice && <p className="voice-captions__line">{notice}</p>}
         {live && <p className="voice-captions__line">{live}</p>}
         {scribe && (
           <p className="voice-captions__scribe">
@@ -153,6 +154,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       </div>
       <button type="button" className={`voice voice--${phase}`} onClick={() => void toggle()}>
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
+        {phaseStatus && <span className="voice__status">{phaseStatus}</span>}
       </button>
     </div>
   )
