@@ -55,6 +55,22 @@ test('speak requests Flash audio for the reply', async () => {
   assert.match(body, /Bring a jacket/);
 });
 
+test('a quota error surfaces the ElevenLabs message', async () => {
+  const fetchFn = (async () =>
+    new Response(
+      JSON.stringify({
+        detail: { code: 'quota_exceeded', message: 'This request exceeds your quota of 10000.' },
+      }),
+      { status: 401 },
+    )) as typeof fetch;
+  const result = await speak('Hi.', { apiKey: 'k', fetchFn });
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.error.status, 'external-provider-unavailable');
+    assert.match(result.error.message, /quota of 10000/);
+  }
+});
+
 test('a rush line keeps the same voice and uses the expressive model', async () => {
   let url = '';
   let body = '';

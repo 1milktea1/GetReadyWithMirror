@@ -43,7 +43,7 @@ export async function transcribeAudio(
   } catch (err) {
     throw new VoiceProviderError(`ElevenLabs request failed: ${(err as Error).message}`);
   }
-  if (!res.ok) throw new VoiceProviderError(`ElevenLabs returned HTTP ${res.status}`);
+  if (!res.ok) throw new VoiceProviderError(await providerMessage(res));
   const payload = (await res.json()) as { text?: unknown };
   return typeof payload.text === 'string' ? payload.text.trim() : '';
 }
@@ -70,8 +70,20 @@ export async function synthesizeSpeech(
   } catch (err) {
     throw new VoiceProviderError(`ElevenLabs request failed: ${(err as Error).message}`);
   }
-  if (!res.ok) throw new VoiceProviderError(`ElevenLabs returned HTTP ${res.status}`);
+  if (!res.ok) throw new VoiceProviderError(await providerMessage(res));
   return new Uint8Array(await res.arrayBuffer());
+}
+
+async function providerMessage(res: Response): Promise<string> {
+  const fallback = `ElevenLabs returned HTTP ${res.status}`;
+  try {
+    const payload = (await res.json()) as { detail?: { message?: unknown; code?: unknown } };
+    const message = payload.detail?.message;
+    if (typeof message === 'string' && message.trim()) return message.trim();
+  } catch {
+    // Body was not JSON.
+  }
+  return fallback;
 }
 
 function concat(...parts: Uint8Array[]): Uint8Array {

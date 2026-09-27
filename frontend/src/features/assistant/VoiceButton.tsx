@@ -110,11 +110,12 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
       historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       let speech = null
+      let speakError = ''
       if (spoken) {
         try {
           speech = await prepareSpeech(spoken)
-        } catch {
-          // Speakers may be unset. Still open the module with the spoken line.
+        } catch (err) {
+          speakError = err instanceof Error ? err.message : 'Could not speak the reply.'
         }
       }
       // Open the module and start audio together so the shift is not silent.
@@ -122,15 +123,16 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       flushSync(() => {
         eventsRef.current(events)
         setPhaseNow('speaking')
-        setStatus('Thinking')
+        setStatus(speech ? 'Speaking' : 'Thinking')
       })
       if (speech) {
         try {
           await speech.play()
         } catch {
-          // The module is already open. Keep the spoken line if playback fails.
+          speakError = speakError || 'Could not play the reply.'
         }
       }
+      if (speakError) setStatus(speakError)
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Voice failed')
     } finally {
