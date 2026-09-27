@@ -107,7 +107,7 @@ export type TravelEventResult =
 
 /**
  * The soonest event that has not ended and has a street address to travel to.
- * Campus items without an address (lunch, office hours) are not commutes.
+ * Campus items without an address (standup, study-group lunch) are not commutes.
  */
 export function getNextTravelEvent(now: Date): TravelEventResult {
   const calendar = getFixtureCalendar(now);
@@ -122,4 +122,10 @@ export function getNextTravelEvent(now: Date): TravelEventResult {
     };
   }
   return { ok: true, event, timeZone: calendar.timeZone, provenance: 'fixture' };
+}
+
+/** Map / planner label: "Late dinner · Soothr", "Gym · Equinox East 92nd Street". */
+export function travelDestinationLabel(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
 }

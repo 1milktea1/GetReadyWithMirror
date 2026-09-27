@@ -12,7 +12,7 @@
 |---|---|---|
 | Origin | `origin` `{ name, address, location }` | Columbia University for the demo |
 | Destination | `destination` `{ name, address, location }` | Soothr, 204 E 13th St |
-| Alternatives | `routes[]` `{ mode, durationMinutes, summary, disruptions, path, provenance }` | Whole minutes. `path` may be empty. |
+| Alternatives | `routes[]` `{ mode, durationMinutes, summary, disruptions, path, legs, provenance }` | Whole minutes. `path` may be empty. `legs` carry subway line colors. |
 | Recommended mode | `recommendedMode` | `transit` for the demo |
 | Retrieved at | `retrievedAt` | ISO instant |
 | Provenance | `provenance` `{ source, isFixture }` | Provenance of the recommended route. `source` is `google`, `valhalla`, `transitous`, or `fixture`. |
@@ -26,7 +26,9 @@ A pair the fixture does not cover, with no Google key, is
 
 ## HTTP
 
-`GET /api/maps` — optional `origin`, `destination`, and `now`.
+`GET /api/maps` — optional `origin`, `destination`, and `now`. When `destination` is omitted,
+the next calendar event with a venue address is used (Soothr tonight, Equinox after the late
+dinner ends).
 
 ## Resolved for the demo, still open for the team
 

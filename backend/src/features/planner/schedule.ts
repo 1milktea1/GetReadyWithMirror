@@ -57,31 +57,34 @@ function pressureFor(slackMinutes: number): PlanPressure {
   return 'relaxed';
 }
 
-function where(event: PlanEventInput): string {
-  return event.venueName ?? 'your event';
+function summaryFor(
+  now: Date,
+  leaveByMs: number,
+  feasible: boolean,
+  event: { title: string; venueName?: string },
+): string {
+  const remaining = Math.floor((leaveByMs - now.getTime()) / MINUTE_MS);
+  if (!feasible || remaining < 0) return 'Late';
+  if (remaining === 0) return 'On time';
+  const destination = eventDestination(event);
+  const duration = remainingDuration(remaining);
+  return destination ? `${duration} for ${destination}` : duration;
 }
 
-function summaryFor(
-  event: PlanEventInput,
-  pressure: PlanPressure,
-  slackMinutes: number,
-  eventStarted: boolean,
-): string {
-  if (eventStarted) return `${event.title} has already started.`;
-  if (pressure === 'conflict') {
-    const shortfall = -slackMinutes;
-    const unit = shortfall === 1 ? 'minute' : 'minutes';
-    return `${shortfall} ${unit} short of finishing before you need to leave for ${where(event)}.`;
-  }
-  if (pressure === 'tight' && slackMinutes === 0) {
-    return `Start getting ready now — no spare time before you leave for ${where(event)}.`;
-  }
-  if (pressure === 'tight') {
-    const unit = slackMinutes === 1 ? 'minute' : 'minutes';
-    return `${slackMinutes} ${unit} to spare before you leave for ${where(event)}.`;
-  }
-  if (pressure === 'comfortable') return `On track to leave for ${where(event)}.`;
-  return `Plenty of time before you leave for ${where(event)}.`;
+function remainingDuration(totalMinutes: number): string {
+  if (totalMinutes === 1) return '1 minute remaining';
+  if (totalMinutes < 60) return `${totalMinutes} minutes remaining`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const hourPart = hours === 1 ? '1 hour' : `${hours} hours`;
+  if (minutes === 0) return `${hourPart} remaining`;
+  const minutePart = minutes === 1 ? '1 minute' : `${minutes} minutes`;
+  return `${hourPart} ${minutePart} remaining`;
+}
+
+function eventDestination(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
 }
 
 function adjustmentsFor(
@@ -229,7 +232,7 @@ export function buildPlan(input: BuildPlanInput): PreparationPlan {
     slackMinutes,
     feasible,
     pressure,
-    summary: summaryFor(input.event, pressure, slackMinutes, eventStarted),
+    summary: summaryFor(input.now, leaveByMs, feasible, input.event),
     conflict: feasible
       ? null
       : {

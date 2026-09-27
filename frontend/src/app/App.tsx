@@ -19,6 +19,12 @@ import './App.css'
 
 const calendarSource = createFixtureCalendarSource()
 
+function floorToMinute(date: Date): string {
+  const clock = new Date(date)
+  clock.setUTCSeconds(0, 0)
+  return clock.toISOString()
+}
+
 type ExpandedModule = 'weather' | 'calendar' | 'planner' | 'map' | 'unwind' | null
 
 function expandFromLocation(): ExpandedModule {
@@ -58,6 +64,7 @@ export function App() {
         setExpanded(null)
         return
       }
+      if (command.mode) setMode(command.mode)
       if (
         command.widget === 'map' ||
         command.widget === 'weather' ||
@@ -89,7 +96,7 @@ export function App() {
     <main className={screenClass(expanded)}>
       {mapOpen && (
         <div className="mirror__region mirror__region--map">
-          <MapPanel mode={mode} onModeChange={setMode} />
+          <MapPanel mode={mode} onModeChange={setMode} now={floorToMinute(now)} />
         </div>
       )}
       {weatherOpen && (
@@ -116,6 +123,7 @@ export function App() {
           <PlannerPanel
             expanded={expanded === 'planner'}
             onToggle={() => setExpanded(expanded === 'planner' ? null : 'planner')}
+            now={floorToMinute(now)}
             mode={mode}
           />
         </div>

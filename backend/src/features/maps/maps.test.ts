@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { decodePolyline, mapGoogleRoute } from './googleDirectionsAdapter.ts';
 import { handleMapsRequest } from './mapsHttp.ts';
 import { getCommute } from './mapsService.ts';
+import { subwayLineColor } from './subwayLineColor.ts';
 import { mapTransitRoute, transitAccessPoint } from './transitAdapter.ts';
 import { mapValhallaRoute } from './valhallaAdapter.ts';
 
@@ -33,11 +34,86 @@ test('an address the fixture does not cover is no-data, not a guessed duration',
   assert.deepEqual(result.ok ? null : result.error.status, 'no-data');
 });
 
-test('maps HTTP rejects a bad clock and serves the fixture by default', async () => {
+test('Equinox is a known demo venue so live subway can route there without Google', async () => {
+  const previous = process.env.GOOGLE_MAPS_API_KEY;
+  delete process.env.GOOGLE_MAPS_API_KEY;
+  try {
+    const result = await getCommute({
+      destinationAddress: '203 E 92nd St, New York, NY 10128',
+      destinationName: 'Equinox East 92nd Street',
+      live: true,
+      fetchFn: async (input) => {
+        const url = new URL(String(input));
+        if (url.hostname === 'api.transitous.org') {
+          assert.match(url.searchParams.get('toPlace') ?? '', /^40\.782/);
+          return Response.json({
+            itineraries: [
+              {
+                duration: 20 * 60,
+                legs: [{ mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } }],
+              },
+            ],
+          });
+        }
+        return Response.json({
+          trip: { status: 0, summary: { time: 12 * 60 }, legs: [{ shape: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' }] },
+        });
+      },
+    });
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.data.destination.name, 'Equinox East 92nd Street');
+    assert.equal(result.data.routes.find((route) => route.mode === 'transit')?.legs?.[0]?.color, '#EE352E');
+  } finally {
+    restoreKey(previous);
+  }
+});
+
+test('maps HTTP rejects a bad clock and follows the next addressed event', async () => {
   assert.equal((await handleMapsRequest(new URLSearchParams('now=bogus'))).status, 400);
-  const ok = await handleMapsRequest(new URLSearchParams());
-  assert.equal(ok.status, 200);
-  assert.equal(ok.body.ok, true);
+  const lunch = await handleMapsRequest(new URLSearchParams('now=2026-09-26T13:00:00-04:00'));
+  assert.equal(lunch.status, 200);
+  assert.equal(lunch.body.ok, true);
+  if (!lunch.body.ok) return;
+  assert.equal(lunch.body.data.destination.name, 'Lunch · Barney Greengrass');
+  assert.equal(lunch.body.data.destination.location.latitude, 40.7869);
+
+  const dinner = await handleMapsRequest(new URLSearchParams('now=2026-09-26T16:00:00-04:00'));
+  assert.equal(dinner.status, 200);
+  assert.equal(dinner.body.ok, true);
+  if (!dinner.body.ok) return;
+  assert.equal(dinner.body.data.destination.name, 'Dinner reservation · Soothr');
+
+  const late = await handleMapsRequest(new URLSearchParams('now=2026-09-26T21:00:00-04:00'));
+  assert.equal(late.status, 200);
+  assert.equal(late.body.ok, true);
+  if (!late.body.ok) return;
+  assert.equal(late.body.data.destination.name, 'Late dinner · Soothr');
+  assert.notEqual(late.body.data.destination.name, dinner.body.ok ? dinner.body.data.destination.name : '');
+
+  const gym = await handleMapsRequest(new URLSearchParams('now=2026-09-27T08:00:00-04:00'));
+  assert.equal(gym.body.ok, true);
+  if (!gym.body.ok) return;
+  assert.equal(gym.body.data.destination.name, 'Gym · Equinox East 92nd Street');
+  assert.equal(gym.body.data.destination.location.latitude, 40.7824);
+});
+
+test('a known next-event venue still pins when live maps is off', async () => {
+  const result = await getCommute({
+    destinationAddress: '203 E 92nd St, New York, NY 10128',
+    destinationName: 'Gym · Equinox East 92nd Street',
+    live: false,
+  });
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.data.destination.name, 'Gym · Equinox East 92nd Street');
+  assert.equal(result.data.destination.location.latitude, 40.7824);
+});
+
+test('subway line colors follow MTA trunks: 1 is red and L is gray', () => {
+  assert.equal(subwayLineColor('1'), '#EE352E');
+  assert.equal(subwayLineColor('L'), '#A7A9AC');
+  assert.equal(subwayLineColor('1', 'ee352e'), '#EE352E');
 });
 
 test('planner scenario assumptions use this fixture\'s transit duration', async () => {
@@ -85,7 +161,27 @@ test('maps a Google directions body onto a live route', () => {
         {
           overview_polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
           warnings: ['Trip may take longer'],
-          legs: [{ duration: { value: 22 * 60 } }],
+          legs: [
+            {
+              duration: { value: 22 * 60 },
+              steps: [
+                {
+                  travel_mode: 'WALKING',
+                  polyline: { points: '_p~iF~ps|U_ulLnnqC' },
+                },
+                {
+                  travel_mode: 'TRANSIT',
+                  polyline: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+                  transit_details: { line: { short_name: '1', color: '#EE352E', vehicle: { type: 'SUBWAY' } } },
+                },
+                {
+                  travel_mode: 'TRANSIT',
+                  polyline: { points: '_p~iF~ps|U_ulLnnqC' },
+                  transit_details: { line: { short_name: 'L', vehicle: { type: 'SUBWAY' } } },
+                },
+              ],
+            },
+          ],
         },
       ],
     },
@@ -94,8 +190,11 @@ test('maps a Google directions body onto a live route', () => {
   assert.equal(route?.durationMinutes, 22);
   assert.equal(route?.provenance.source, 'google');
   assert.equal(route?.provenance.isFixture, false);
-  assert.equal(route?.path.length, 3);
+  assert.equal(route?.summary, 'Subway 1 · L');
+  assert.ok(route && route.path.length >= 3);
   assert.deepEqual(route?.disruptions, ['Trip may take longer']);
+  assert.equal(route?.legs?.[1]?.color, '#EE352E');
+  assert.equal(route?.legs?.[2]?.color, '#A7A9AC');
   assert.equal(mapGoogleRoute({ status: 'ZERO_RESULTS', routes: [] }, 'transit'), undefined);
 });
 
@@ -168,9 +267,21 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
       {
         duration: 54 * 60,
         legs: [
-          { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U' } },
-          { mode: 'SUBWAY', routeShortName: '1', legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' } },
-          { mode: 'SUBWAY', routeShortName: 'L', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+          { mode: 'WALK', legGeometry: { points: '_p~iF~ps|U_ulLnnqC' } },
+          {
+            mode: 'SUBWAY',
+            routeShortName: '1',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+            from: { name: '116 St–Columbia University', lat: 40.8077, lon: -73.9641 },
+            to: { name: '14 St', lat: 40.7378, lon: -74.0002 },
+          },
+          {
+            mode: 'SUBWAY',
+            routeShortName: 'L',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC' },
+            from: { name: '14 St', lat: 40.7378, lon: -74.0002 },
+            to: { name: '3 Av', lat: 40.7328, lon: -73.9861 },
+          },
         ],
       },
     ],
@@ -180,8 +291,49 @@ test('maps a subway itinerary onto a path instead of a straight pin line', () =>
   assert.equal(route?.summary, 'Subway 1 · L');
   assert.equal(route?.provenance.source, 'transitous');
   assert.ok(route && route.path.length >= 3);
+  assert.deepEqual(
+    route?.legs?.map((leg) => ({ kind: leg.kind, line: leg.line, color: leg.color, toStop: leg.toStop, fromStop: leg.fromStop })),
+    [
+      { kind: 'walk', line: undefined, color: '#FFFFFF', toStop: undefined, fromStop: undefined },
+      { kind: 'subway', line: '1', color: '#EE352E', toStop: '14 St', fromStop: '116 St–Columbia University' },
+      { kind: 'subway', line: 'L', color: '#A7A9AC', toStop: '3 Av', fromStop: '14 St' },
+    ],
+  );
   assert.ok(route && Math.abs(route.path[0]!.latitude - 3.85) < 1e-4);
   assert.equal(mapTransitRoute({ itineraries: [{ duration: 60, legs: [{ mode: 'BUS', routeShortName: 'M4' }] }] }), undefined);
+});
+
+test('an empty transfer walk still connects using the stop coordinates', () => {
+  const route = mapTransitRoute({
+    itineraries: [
+      {
+        duration: 40 * 60,
+        legs: [
+          {
+            mode: 'SUBWAY',
+            routeShortName: '1',
+            legGeometry: { points: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+            from: { lat: 40.8077, lon: -73.9641 },
+            to: { lat: 40.7378, lon: -74.0002 },
+          },
+          {
+            mode: 'WALK',
+            legGeometry: { points: '' },
+            from: { lat: 40.7378, lon: -74.0002 },
+            to: { lat: 40.732269, lon: -73.987352 },
+          },
+        ],
+      },
+    ],
+  });
+  assert.deepEqual(route?.legs?.at(-1), {
+    kind: 'walk',
+    color: '#FFFFFF',
+    path: [
+      { latitude: 40.7378, longitude: -74.0002 },
+      { latitude: 40.732269, longitude: -73.987352 },
+    ],
+  });
 });
 
 test('without a Google key, subway comes from Transitous and roads from Valhalla', async () => {

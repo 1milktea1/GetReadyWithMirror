@@ -55,6 +55,18 @@ export function formatDayLabel(date: Date, now: Date, timeZone: string): string 
   return formatter(`weekday:${timeZone}`, { timeZone, weekday: 'long' }).format(date)
 }
 
+/** `45 minutes remaining`, or `4 hours 15 minutes remaining` past 59 minutes. */
+export function formatRemainingDuration(totalMinutes: number): string {
+  if (totalMinutes === 1) return '1 minute remaining'
+  if (totalMinutes < 60) return `${totalMinutes} minutes remaining`
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  const hourPart = hours === 1 ? '1 hour' : `${hours} hours`
+  if (minutes === 0) return `${hourPart} remaining`
+  const minutePart = minutes === 1 ? '1 minute' : `${minutes} minutes`
+  return `${hourPart} ${minutePart} remaining`
+}
+
 /** Compact countdown such as `in 45 min` or `in 2 hr 5 min`. */
 export function formatCountdown(target: Date, now: Date): string {
   const totalMinutes = Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 60_000))

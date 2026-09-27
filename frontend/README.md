@@ -21,8 +21,8 @@ Weather, the getting-ready plan, and **Hey Mirror** call `/api`, which Vite prox
 
 Expand is hands-free: say **Hey Mirror**, then “expand weather”, “show my calendar”, or
 “see my route”. Grok calls `expandWidget`; the existing weather, calendar, and map screens
-open. There is no separate no-key phrase matcher. Type-instead only appears if the
-microphone or browser wake listener is unavailable.
+open. There is no separate no-key phrase matcher. The Hey Mirror button still shows the
+spoken reply; there is no type-in bar.
 
 Without the backend, weather and the planner show an unavailable state; the calendar still
 renders from its fixture.

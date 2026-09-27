@@ -4,6 +4,7 @@ import {
   formatCountdown,
   formatDayLabel,
   formatLongDate,
+  formatRemainingDuration,
   formatTimeOfDay,
 } from './format'
 import { MIRROR_TIME_ZONE as NY } from './zonedTime'
@@ -49,6 +50,22 @@ describe('formatDayLabel', () => {
 
   it('uses the weekday for anything further out', () => {
     expect(formatDayLabel(new Date('2026-09-28T14:30:00Z'), saturdayMorning, NY)).toBe('Monday')
+  })
+})
+
+describe('formatRemainingDuration', () => {
+  it('keeps minutes under an hour', () => {
+    expect(formatRemainingDuration(1)).toBe('1 minute remaining')
+    expect(formatRemainingDuration(45)).toBe('45 minutes remaining')
+    expect(formatRemainingDuration(59)).toBe('59 minutes remaining')
+  })
+
+  it('switches to hours and minutes at 60', () => {
+    expect(formatRemainingDuration(60)).toBe('1 hour remaining')
+    expect(formatRemainingDuration(61)).toBe('1 hour 1 minute remaining')
+    expect(formatRemainingDuration(90)).toBe('1 hour 30 minutes remaining')
+    expect(formatRemainingDuration(120)).toBe('2 hours remaining')
+    expect(formatRemainingDuration(255)).toBe('4 hours 15 minutes remaining')
   })
 })
 

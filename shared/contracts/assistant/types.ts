@@ -26,9 +26,13 @@ export interface AssistantError {
 }
 
 // What the assistant emits for React. Transport is still undecided; this is the payload only.
+export type TransportUiMode = 'transit' | 'walking' | 'driving' | 'rideshare';
+
 export interface UiEvent {
   action: 'expandWidget' | 'collapseWidget' | 'showOverview';
   target?: WidgetName;
+  /** When opening maps, the route the user asked to see. */
+  mode?: TransportUiMode;
   requestId: string;
   timestamp: string;
 }
@@ -57,7 +61,8 @@ export interface PreparationTaskInput {
 }
 
 export type ValidatedToolCall =
-  | { name: 'expandWidget' | 'collapseWidget'; widget: WidgetName }
+  | { name: 'expandWidget'; widget: WidgetName; mode?: TransportUiMode }
+  | { name: 'collapseWidget'; widget: WidgetName }
   | { name: 'showOverview' }
   | { name: 'getWeather'; units?: 'imperial' | 'metric' }
   | { name: 'getUpcomingEvent' }

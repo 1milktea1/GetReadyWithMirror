@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import type { TransportMode } from '@contracts/maps/types';
-import type { ScheduledTask } from '@contracts/planner/types';
-import { formatClock, formatTimeOfDay } from '../../shared/time/format';
+import type { PreparationPlan, ScheduledTask } from '@contracts/planner/types';
+import { formatRemainingDuration, formatTimeOfDay } from '../../shared/time/format';
 import { buildPlannerQuery, usePlanner } from './usePlanner';
 import './planner.css';
 
@@ -15,14 +15,6 @@ interface PlannerPanelProps {
   /** Selected transportation. Defaults to subway. */
   mode?: TransportMode;
 }
-
-const MODE_LABEL: Record<TransportMode, string> = {
-  transit: 'Subway',
-  walking: 'Walk',
-  driving: 'Drive',
-  rideshare: 'Rideshare',
-  cycling: 'Cycling',
-};
 
 export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: PlannerPanelProps) {
   const [tasks, setTasks] = useState<string | undefined>();
@@ -50,7 +42,6 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
   }
 
   const { data } = state;
-  const leave = formatClock(new Date(data.leaveBy.at), data.timeZone);
   const hair = data.tasks.find((task) => task.id === 'hair');
   const hairExtended = (hair?.durationMinutes ?? 20) > 20;
 
@@ -71,16 +62,8 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           }
         }}
       >
-        <div className="planner__label">{data.feasible ? 'Leave by' : 'Leave by · conflict'}</div>
-        <div className="planner__clock">
-          <span className="planner__time">{leave.time}</span>
-          <span className="planner__period">{leave.period}</span>
-        </div>
-        <p className="planner__meta">
-          {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min · arrive by{' '}
-          {formatTimeOfDay(new Date(data.leaveBy.arriveBy), data.timeZone)}
-        </p>
-        <p className="planner__summary">{data.summary}</p>
+        <div className="planner__label">Leave by {formatTimeOfDay(new Date(data.leaveBy.at), data.timeZone)}</div>
+        <p className="planner__summary">{leaveStatus(data)}</p>
         <ol className="planner__tasks">
           {data.tasks.map((task) => (
             <li key={task.id} className={task.overruns ? 'planner__task planner__task--over' : 'planner__task'}>
@@ -90,17 +73,6 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           ))}
         </ol>
         {data.provenance.isFixture && <div className="planner__badge">Sample route — not live</div>}
-      </div>
-
-      <div className="leave-by" role="status" aria-label="Leave by reminder">
-        <div className="leave-by__label">{data.feasible ? 'Leave by' : 'Leave by · conflict'}</div>
-        <div className="leave-by__clock">
-          <span className="leave-by__time">{leave.time}</span>
-          <span className="leave-by__period">{leave.period}</span>
-        </div>
-        <div className="leave-by__meta">
-          {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min
-        </div>
       </div>
 
       <div className="planner__details" aria-hidden={!expanded} inert={!expanded}>
@@ -151,6 +123,20 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
       </div>
     </section>
   );
+}
+
+function leaveStatus(data: PreparationPlan): string {
+  const remaining = Math.floor((Date.parse(data.leaveBy.at) - Date.parse(data.now)) / 60_000);
+  if (!data.feasible || remaining < 0) return 'Late';
+  if (remaining === 0) return 'On time';
+  const destination = eventDestination(data.event);
+  const duration = formatRemainingDuration(remaining);
+  return destination ? `${duration} for ${destination}` : duration;
+}
+
+function eventDestination(event: { title: string; venueName?: string }): string {
+  const venue = event.venueName?.trim();
+  return venue ? `${event.title} · ${venue}` : event.title;
 }
 
 function taskWindow(task: ScheduledTask, timeZone: string): string {

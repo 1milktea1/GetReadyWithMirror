@@ -5,6 +5,7 @@ import {
   TOOL_NAMES,
   WIDGETS,
   type ToolName,
+  type TransportUiMode,
   type ValidatedToolCall,
   type WidgetName,
 } from '../../../../shared/contracts/assistant/types.ts';
@@ -32,11 +33,18 @@ export const GROK_TOOLS: readonly GrokFunctionTool[] = [
     type: 'function',
     name: 'expandWidget',
     description:
-      'Open one module. Weather for the forecast, calendar for the afternoon, planner to get ready, maps for the trip, unwind for bedtime. Phrase variants count. Use with an information tool when the user also wants a fact.',
+      'Open one module. Weather for the forecast, calendar for the afternoon, planner to get ready, maps for the trip. Phrase variants count. Use with an information tool when the user also wants a fact. For walk, drive, subway, or rideshare, pass maps and mode so the drawn route changes.',
     parameters: {
       type: 'object',
       additionalProperties: false,
-      properties: { widget: widgetParameter },
+      properties: {
+        widget: widgetParameter,
+        mode: {
+          type: 'string',
+          enum: ['transit', 'walking', 'driving', 'rideshare'],
+          description: 'Route to draw on maps: transit is subway. Omit unless the user asked for a mode.',
+        },
+      },
       required: ['widget'],
     },
   },
@@ -154,6 +162,11 @@ function widgetName(value: unknown): WidgetName | null {
   return typeof value === 'string' && (WIDGETS as readonly string[]).includes(value) ? (value as WidgetName) : null;
 }
 
+function transportMode(value: unknown): TransportUiMode | null {
+  if (value === 'transit' || value === 'walking' || value === 'driving' || value === 'rideshare') return value;
+  return null;
+}
+
 function taskName(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const name = value.trim();
@@ -175,12 +188,23 @@ export function validateToolCall(name: string, args: unknown): { ok: true; call:
     return { ok: false, message: `${name} arguments must be an object.` };
   }
 
-  if (name === 'expandWidget' || name === 'collapseWidget') {
+  if (name === 'collapseWidget') {
     const extra = unexpectedKey(args, ['widget']);
     if (extra) return { ok: false, message: extra };
     const widget = widgetName(args.widget);
     if (!widget) return { ok: false, message: `${name} requires a widget of weather, calendar, maps, planner, or unwind.` };
     return { ok: true, call: { name, widget } };
+  }
+
+  if (name === 'expandWidget') {
+    const extra = unexpectedKey(args, ['widget', 'mode']);
+    if (extra) return { ok: false, message: extra };
+    const widget = widgetName(args.widget);
+    if (!widget) return { ok: false, message: `${name} requires a widget of weather, calendar, maps, or planner.` };
+    if (args.mode === undefined) return { ok: true, call: { name, widget } };
+    const mode = transportMode(args.mode);
+    if (!mode) return { ok: false, message: 'expandWidget mode must be transit, walking, driving, or rideshare.' };
+    return { ok: true, call: { name, widget, mode } };
   }
 
   if (name === 'showOverview' || name === 'getUpcomingEvent' || name === 'getCommute') {

@@ -46,6 +46,15 @@
   pointer-events: none;
 }
 
+.map-panel__directions {
+  margin: 0;
+  max-width: 22rem;
+  padding: 0.2rem 0.45rem;
+  background: #000;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+}
+
 .map-panel__places,
 .map-panel__note,
 .map-panel__status {
