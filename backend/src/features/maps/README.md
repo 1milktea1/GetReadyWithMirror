@@ -33,12 +33,16 @@ Rideshare is not a Directions or Valhalla mode. It copies the driving route and 
 
 ## Public API
 
-`getCommute({ originAddress?, destinationAddress?, now?, live?, fetchFn? })` → `MapsResponse`
+`getCommute({ originAddress?, destinationAddress?, destinationName?, now?, live?, fetchFn? })` → `MapsResponse`
 
-Omitted addresses use the fixture pair (Columbia → Soothr). `now` stamps `retrievedAt`.
-Google also uses it as `departure_time` when it is not more than a minute in the past.
+Omitted origin uses Columbia. Omitted destination on `getCommute` uses the fixture Soothr
+pin. `GET /api/maps` fills a missing destination from the next calendar event with a street
+address (Soothr tonight, Equinox East 92nd Street tomorrow morning). `now` stamps
+`retrievedAt`. Google also uses it as `departure_time` when it is not more than a minute in
+the past.
 
-`GET /api/maps` accepts `origin`, `destination`, and `now`.
+`GET /api/maps` accepts `origin`, `destination`, and `now`. Live subway legs include MTA
+line colors (red for the 1, gray for the L).
 
 Default recommendation is **transit**. Without a key that is the fixture's 35 minutes.
 The fixture also includes cycling (28), driving (30), and walking (105).
@@ -52,7 +56,8 @@ The fixture also includes cycling (28), driving (30), and walking (105).
 | `transitAdapter.ts` | Public subway itineraries and their geometry. |
 | `valhallaAdapter.ts` | Public road router for walking, driving, and cycling. |
 | `fixtureAdapter.ts` | Reads and validates the fixture. |
-| `mapsHttp.ts` | `GET /api/maps`. |
+| `subwayLineColor.ts` | Official MTA trunk colors when a router names a line. |
+| `mapsHttp.ts` | `GET /api/maps`. Defaults destination to the next addressed event. |
 | `maps.test.ts` | Fixture, polyline, and faked Google / Valhalla responses. |
 
 ## Error states

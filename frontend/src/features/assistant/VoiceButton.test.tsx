@@ -8,6 +8,13 @@ describe('VoiceButton', () => {
     vi.unstubAllGlobals()
   })
 
+  it('labels the idle button Hey Mirror without a say-this prompt', () => {
+    stubWakeRecognition()
+    const { getByRole, queryByText } = render(<VoiceButton onEvents={() => {}} />)
+    expect(getByRole('button', { name: 'Hey Mirror' })).toBeInTheDocument()
+    expect(queryByText('Say Hey Mirror')).not.toBeInTheDocument()
+  })
+
   it('applies Grok expand events from a Hey Mirror turn', async () => {
     const onEvents = vi.fn<(events: VoiceUiEvent[]) => void>()
     vi.stubGlobal(

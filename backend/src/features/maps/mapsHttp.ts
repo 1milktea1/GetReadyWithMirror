@@ -1,9 +1,10 @@
 // GET /api/maps
 //   origin       — optional address; defaults to Columbia University
-//   destination  — optional address; defaults to Soothr, 204 E 13th St
+//   destination  — optional address; defaults to the next calendar event with a venue
 //   now          — optional ISO 8601 demo/test-time override. Stamps retrievedAt.
 //                Google uses it as departure_time only when it is not in the past.
 
+import { getNextTravelEvent } from '../calendar/fixtureCalendar.ts';
 import { getCommute } from './mapsService.ts';
 import type { MapsError, MapsErrorStatus, MapsResponse } from '../../../../shared/contracts/maps/types.ts';
 
@@ -29,9 +30,12 @@ export async function handleMapsRequest(query: URLSearchParams): Promise<HttpRes
     if (Number.isNaN(now.getTime())) return invalid(`Invalid "now" override: ${nowParam}`);
   }
 
+  const destinationQuery = query.get('destination') ?? undefined;
+  const next = destinationQuery ? undefined : getNextTravelEvent(now ?? new Date());
   const result = await getCommute({
     originAddress: query.get('origin') ?? undefined,
-    destinationAddress: query.get('destination') ?? undefined,
+    destinationAddress: destinationQuery ?? (next?.ok ? next.event.venueAddress : undefined),
+    destinationName: destinationQuery ? undefined : next?.ok ? next.event.venueName : undefined,
     now,
   });
   return { status: result.ok ? 200 : HTTP_STATUS[result.error.status], body: result };

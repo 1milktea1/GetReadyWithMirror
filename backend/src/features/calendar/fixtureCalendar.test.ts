@@ -14,20 +14,19 @@ test('afternoon demo clock selects the Soothr dinner, not the campus events', ()
   assert.equal(result.provenance, 'fixture');
 });
 
-test('after the 7 PM dinner ends the 10:30 PM Soothr dinner is next', () => {
+test('after the 7 PM dinner ends the 12 AM Soothr dinner is next', () => {
   const result = getNextTravelEvent(new Date('2026-09-26T21:00:00-04:00'));
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.event.id, 'fixture-dinner-late');
   assert.equal(result.event.venueAddress, '204 E 13th St, New York, NY 10003');
-  assert.equal(result.event.start, '2026-09-27T02:30:00.000Z');
+  assert.equal(result.event.start, '2026-09-27T04:00:00.000Z');
 });
 
-test('tomorrow’s Equinox gym is the next addressed event after the late dinner', () => {
-  const result = getNextTravelEvent(new Date('2026-09-26T23:45:00-04:00'));
+test('tomorrow morning the Equinox gym is the next addressed event', () => {
+  const result = getNextTravelEvent(new Date('2026-09-27T08:00:00-04:00'));
   assert.equal(result.ok, true);
   if (!result.ok) return;
-  assert.equal(result.event.id, 'fixture-gym');
   assert.equal(result.event.venueName, 'Equinox East 92nd Street');
   assert.equal(result.event.venueAddress, '203 E 92nd St, New York, NY 10128');
   assert.equal(result.event.start, '2026-09-27T14:00:00.000Z');

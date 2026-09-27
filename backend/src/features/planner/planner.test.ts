@@ -234,12 +234,12 @@ test('HTTP planner: conflict is 200, bad input is 400, and the clock is honored'
   assert.equal(hair.body.data.conflict?.shortfallMinutes, 20);
 });
 
-test('after the 7 PM dinner ends the planner uses the 10:30 PM Soothr dinner', async () => {
+test('after the 7 PM dinner ends the planner uses the 12 AM Soothr dinner', async () => {
   const result = await generatePreparationPlan({ now: at('21:00') });
   assert.equal(result.ok, true);
   if (!result.ok) return;
   assert.equal(result.data.event.title, 'Late dinner');
-  assert.equal(result.data.event.start, '2026-09-27T02:30:00.000Z');
+  assert.equal(result.data.event.start, '2026-09-27T04:00:00.000Z');
   assert.equal(result.data.feasible, true);
   assert.equal((await handlePlannerRequest(new URLSearchParams('now=2026-09-26T21:00:00-04:00'))).status, 200);
 });

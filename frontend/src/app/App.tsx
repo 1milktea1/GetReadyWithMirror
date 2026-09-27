@@ -84,7 +84,7 @@ export function App() {
     <main className={screenClass(expanded)}>
       {mapOpen && (
         <div className="mirror__region mirror__region--map">
-          <MapPanel mode={mode} onModeChange={setMode} />
+          <MapPanel mode={mode} onModeChange={setMode} now={now.toISOString()} />
         </div>
       )}
       {weatherOpen && (

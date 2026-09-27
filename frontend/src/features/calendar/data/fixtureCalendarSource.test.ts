@@ -34,15 +34,16 @@ describe('materializeFixture', () => {
       start: '2026-09-26T23:00:00.000Z',
       end: '2026-09-27T00:30:00.000Z',
     })
+    expect(find(events, 'fixture-gym-today').start).toBe('2026-09-26T14:00:00.000Z')
     expect(find(events, 'fixture-gym').start).toBe('2026-09-27T14:00:00.000Z')
-    expect(find(events, 'fixture-dinner-late').start).toBe('2026-09-27T02:30:00.000Z')
+    expect(find(events, 'fixture-dinner-late').start).toBe('2026-09-27T04:00:00.000Z')
     expect(find(events, 'fixture-lunch-soothr').start).toBe('2026-09-27T17:30:00.000Z')
     expect(find(events, 'fixture-dinner-tomorrow').start).toBe('2026-09-27T21:00:00.000Z')
   })
 
-  it('keeps the 10:30 PM dinner after the 7 PM reservation ends', () => {
+  it('keeps the 12 AM dinner after the 7 PM reservation ends', () => {
     const events = materializeFixture(demoDay, new Date('2026-09-27T01:00:00Z'))
-    expect(find(events, 'fixture-dinner-late').start).toBe('2026-09-27T02:30:00.000Z')
+    expect(find(events, 'fixture-dinner-late').start).toBe('2026-09-27T04:00:00.000Z')
     expect(find(events, 'fixture-gym').venueAddress).toBe('203 E 92nd St, New York, NY 10128')
   })
 

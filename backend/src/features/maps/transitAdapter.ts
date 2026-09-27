@@ -2,8 +2,9 @@
 // It returns the walk-to-station, train, and walk-to-door geometry. It is not a
 // straight line between the two pins. Google Directions is preferred when a key is set.
 
-import type { LatLng, RouteAlternative } from '../../../../shared/contracts/maps/types.ts';
+import type { LatLng, RouteAlternative, RouteLeg } from '../../../../shared/contracts/maps/types.ts';
 import { decodePolyline, simplifyPath } from './googleDirectionsAdapter.ts';
+import { subwayLineColor, walkLegColor } from './subwayLineColor.ts';
 
 const TRANSIT_URL = 'https://api.transitous.org/api/v6/plan';
 
@@ -79,6 +80,7 @@ export function mapTransitRoute(body: unknown): RouteAlternative | undefined {
     summary: best.lines.length > 0 ? `Subway ${best.lines.join(' · ')}` : 'Live subway',
     disruptions: [],
     path: simplifyPath(best.path, 120),
+    legs: best.legs,
     provenance: { source: 'transitous', isFixture: false },
   };
 }
@@ -88,6 +90,7 @@ interface TransitItinerary {
   subway: boolean;
   lines: string[];
   path: LatLng[];
+  legs: RouteLeg[];
 }
 
 function readItinerary(value: unknown): TransitItinerary | undefined {
@@ -99,20 +102,32 @@ function readItinerary(value: unknown): TransitItinerary | undefined {
 
   const lines: string[] = [];
   const path: LatLng[] = [];
+  const colored: RouteLeg[] = [];
   let subway = false;
   for (const leg of legs) {
     if (!leg || typeof leg !== 'object') continue;
     const mode = (leg as { mode?: unknown }).mode;
+    const encoded = (leg as { legGeometry?: { points?: unknown } }).legGeometry?.points;
+    const segment = typeof encoded === 'string' && encoded.length > 0 ? simplifyPath(decodePolyline(encoded, 6), 80) : [];
     if (mode === 'SUBWAY') {
       subway = true;
       const name = (leg as { routeShortName?: unknown }).routeShortName;
+      const tint = (leg as { routeColor?: unknown }).routeColor;
       if (typeof name === 'string' && name && lines.at(-1) !== name) lines.push(name);
+      if (segment.length >= 2) {
+        colored.push({
+          kind: 'subway',
+          line: typeof name === 'string' ? name : undefined,
+          color: subwayLineColor(typeof name === 'string' ? name : '', typeof tint === 'string' ? tint : undefined),
+          path: segment,
+        });
+      }
+    } else if (segment.length >= 2) {
+      colored.push({ kind: mode === 'WALK' ? 'walk' : 'other', color: walkLegColor(), path: segment });
     }
-    const encoded = (leg as { legGeometry?: { points?: unknown } }).legGeometry?.points;
-    if (typeof encoded !== 'string' || encoded.length === 0) continue;
-    path.push(...decodePolyline(encoded, 6));
+    if (segment.length > 0) path.push(...segment);
   }
-  return { durationSeconds: seconds, subway, lines, path };
+  return { durationSeconds: seconds, subway, lines, path, legs: colored };
 }
 
 function point(location: LatLng): string {

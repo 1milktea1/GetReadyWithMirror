@@ -13,7 +13,7 @@ export interface VoiceUiEvent {
 
 export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) => void }) {
   const [phase, setPhase] = useState<Phase>('idle')
-  const [status, setStatus] = useState('Say Hey Mirror')
+  const [status, setStatus] = useState('')
   const [live, setLive] = useState('')
   const [scribe, setScribe] = useState('')
   const phaseRef = useRef<Phase>('idle')
@@ -152,7 +152,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       </div>
       <button type="button" className={`voice voice--${phase}`} onClick={() => void toggle()}>
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
-        <span className="voice__status">{status}</span>
+        {status ? <span className="voice__status">{status}</span> : null}
       </button>
     </div>
   )

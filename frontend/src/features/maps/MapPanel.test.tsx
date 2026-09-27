@@ -51,10 +51,39 @@ function mapsResult(walkingLive: boolean): MapsResult {
       {
         mode: 'transit',
         durationMinutes: 35,
-        summary: 'Rehearsal estimate',
+        summary: walkingLive ? 'Subway 1 · L' : 'Rehearsal estimate',
         disruptions: [],
-        path: [],
-        provenance: { source: 'fixture', isFixture: true },
+        path: walkingLive
+          ? [
+              { latitude: 40.8, longitude: -73.96 },
+              { latitude: 40.73, longitude: -73.99 },
+            ]
+          : [],
+        legs: walkingLive
+          ? [
+              {
+                kind: 'subway',
+                line: '1',
+                color: '#EE352E',
+                path: [
+                  { latitude: 40.8075, longitude: -73.9641 },
+                  { latitude: 40.737, longitude: -74.0 },
+                ],
+              },
+              {
+                kind: 'subway',
+                line: 'L',
+                color: '#A7A9AC',
+                path: [
+                  { latitude: 40.737, longitude: -74.0 },
+                  { latitude: 40.732269, longitude: -73.987352 },
+                ],
+              },
+            ]
+          : undefined,
+        provenance: walkingLive
+          ? { source: 'transitous', isFixture: false }
+          : { source: 'fixture', isFixture: true },
       },
       {
         mode: 'walking',
@@ -139,5 +168,29 @@ describe('MapPanel', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Drive · 30 min' }))
     expect(onModeChange).toHaveBeenCalledWith('driving')
+  })
+
+  it('draws subway legs in MTA line colors', async () => {
+    mockMaps(mapsResult(true))
+    render(<MapPanel mode="transit" onModeChange={() => {}} />)
+    expect(await screen.findByLabelText('Subway lines')).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument()
+    expect(screen.getByText('L')).toBeInTheDocument()
+    await vi.waitFor(() => {
+      expect(polyline).toHaveBeenCalledWith(
+        [
+          [40.8075, -73.9641],
+          [40.737, -74.0],
+        ],
+        expect.objectContaining({ color: '#EE352E' }),
+      )
+    })
+    expect(polyline).toHaveBeenCalledWith(
+      [
+        [40.737, -74.0],
+        [40.732269, -73.987352],
+      ],
+      expect.objectContaining({ color: '#A7A9AC' }),
+    )
   })
 })

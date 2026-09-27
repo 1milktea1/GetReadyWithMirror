@@ -1,7 +1,7 @@
 // Left-side route map. Draws the backend path; it does not estimate travel time.
 
 import { useEffect, useRef } from 'react'
-import type { LatLng, RouteAlternative, TransportMode } from '@contracts/maps/types'
+import type { LatLng, RouteAlternative, RouteLeg, TransportMode } from '@contracts/maps/types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { buildMapsQuery, useMaps } from './useMaps'
@@ -58,10 +58,19 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
     if (!map || !layers || !data) return
     layers.clearLayers()
     const selected = data.routes.find((item) => item.mode === mode)
-    const line = selected && selected.path.length >= 2 ? selected.path.map(toPair) : null
-    if (line) {
-      L.polyline(line, { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
+    const legs = (selected?.legs ?? []).filter((leg) => leg.path.length >= 2)
+    if (legs.length > 0) {
+      for (const leg of legs) {
+        L.polyline(leg.path.map(toPair), {
+          color: leg.color,
+          weight: leg.kind === 'subway' ? 5 : 2,
+          opacity: leg.kind === 'subway' ? 0.95 : 0.55,
+        }).addTo(layers)
+      }
+    } else if (selected && selected.path.length >= 2) {
+      L.polyline(selected.path.map(toPair), { color: '#fff', weight: 3, opacity: 0.95 }).addTo(layers)
     }
+    const line = selected && selected.path.length >= 2 ? selected.path.map(toPair) : null
     const origin = toPair(data.origin.location)
     const destination = toPair(data.destination.location)
     L.circleMarker(origin, markerStyle(false)).addTo(layers)
@@ -72,13 +81,23 @@ export function MapPanel({ mode, onModeChange, now }: MapPanelProps) {
   }, [data, mode])
 
   const badge = provenanceLabel(route)
-  const places = data ? `${data.origin.name} → ${data.destination.name}` : 'Columbia University → Soothr'
+  const places = data ? `${data.origin.name} → ${data.destination.name}` : 'Columbia University → next event'
+  const subwayLines = uniqueSubwayLines(route?.legs)
 
   return (
     <section className="map-panel" aria-label="Route map">
       <div ref={canvasRef} className="map-panel__canvas" />
       <div className="map-panel__bar">
         <div className="map-panel__places">{places}</div>
+        {subwayLines.length > 0 && (
+          <div className="map-panel__lines" aria-label="Subway lines">
+            {subwayLines.map((leg) => (
+              <span key={leg.line} className="map-panel__line" style={{ borderColor: leg.color, color: leg.color }}>
+                {leg.line}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="map-panel__modes" role="group" aria-label="Transportation">
           {CHOICES.map((choice) => {
             const minutes = data?.routes.find((item) => item.mode === choice.mode)?.durationMinutes
@@ -124,6 +143,17 @@ function markerStyle(filled: boolean): L.CircleMarkerOptions {
     fillColor: filled ? '#fff' : '#000',
     fillOpacity: 1,
   }
+}
+
+function uniqueSubwayLines(legs: RouteLeg[] | undefined): { line: string; color: string }[] {
+  const seen = new Set<string>()
+  const lines: { line: string; color: string }[] = []
+  for (const leg of legs ?? []) {
+    if (leg.kind !== 'subway' || !leg.line || seen.has(leg.line)) continue
+    seen.add(leg.line)
+    lines.push({ line: leg.line, color: leg.color })
+  }
+  return lines
 }
 
 function provenanceLabel(route: RouteAlternative | undefined): string | undefined {

@@ -1,7 +1,8 @@
 // Google Directions. The API key stays in this process; responses are mapped to the
 // maps contract before they leave the adapter. Rideshare is not a Directions mode.
 
-import type { LatLng, RouteAlternative, TransportMode } from '../../../../shared/contracts/maps/types.ts';
+import type { LatLng, RouteAlternative, RouteLeg, TransportMode } from '../../../../shared/contracts/maps/types.ts';
+import { subwayLineColor, walkLegColor } from './subwayLineColor.ts';
 
 const GOOGLE_MODE: Partial<Record<TransportMode, string>> = {
   transit: 'transit',
@@ -90,14 +91,46 @@ export function mapGoogleRoute(body: unknown, mode: TransportMode): RouteAlterna
 
   const encoded = (route as { overview_polyline?: { points?: unknown } }).overview_polyline?.points;
   const warnings = (route as { warnings?: unknown[] }).warnings;
+  const legs = mode === 'transit' ? readGoogleTransitLegs((leg as { steps?: unknown }).steps) : [];
+  const lines = legs.filter((item) => item.kind === 'subway' && item.line).map((item) => item.line as string);
+  const path = legs.length > 0 ? legs.flatMap((item) => item.path) : simplifyPath(typeof encoded === 'string' ? decodePolyline(encoded) : []);
   return {
     mode,
     durationMinutes: Math.max(1, Math.round(seconds / 60)),
-    summary: 'Live directions',
+    summary: lines.length > 0 ? `Subway ${lines.join(' · ')}` : 'Live directions',
     disruptions: Array.isArray(warnings) ? warnings.filter((item): item is string => typeof item === 'string') : [],
-    path: simplifyPath(typeof encoded === 'string' ? decodePolyline(encoded) : []),
+    path,
+    legs: legs.length > 0 ? legs : undefined,
     provenance: { source: 'google', isFixture: false },
   };
+}
+
+function readGoogleTransitLegs(steps: unknown): RouteLeg[] {
+  if (!Array.isArray(steps)) return [];
+  const legs: RouteLeg[] = [];
+  for (const step of steps) {
+    if (!step || typeof step !== 'object') continue;
+    const encoded = (step as { polyline?: { points?: unknown } }).polyline?.points;
+    const path = typeof encoded === 'string' ? simplifyPath(decodePolyline(encoded), 60) : [];
+    if (path.length < 2) continue;
+    const mode = (step as { travel_mode?: unknown }).travel_mode;
+    if (mode === 'TRANSIT') {
+      const line = (step as { transit_details?: { line?: { short_name?: unknown; color?: unknown; vehicle?: { type?: unknown } } } })
+        .transit_details?.line;
+      const name = typeof line?.short_name === 'string' ? line.short_name : undefined;
+      const vehicle = typeof line?.vehicle?.type === 'string' ? line.vehicle.type : '';
+      const subway = vehicle === 'SUBWAY' || Boolean(name);
+      legs.push({
+        kind: subway ? 'subway' : 'other',
+        line: name,
+        color: subway && name ? subwayLineColor(name, typeof line?.color === 'string' ? line.color : undefined) : walkLegColor(),
+        path,
+      });
+      continue;
+    }
+    legs.push({ kind: 'walk', color: walkLegColor(), path });
+  }
+  return legs;
 }
 
 function departureSeconds(now: Date | undefined): number | undefined {

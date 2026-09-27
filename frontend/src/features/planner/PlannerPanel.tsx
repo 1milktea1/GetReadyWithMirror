@@ -71,7 +71,7 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           }
         }}
       >
-        <div className="planner__label">{data.feasible ? 'Leave by' : 'Leave by · conflict'}</div>
+        <div className="planner__label">{data.feasible ? 'Leave by · On time' : 'Leave by · Late'}</div>
         <div className="planner__clock">
           <span className="planner__time">{leave.time}</span>
           <span className="planner__period">{leave.period}</span>
@@ -80,7 +80,6 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min · arrive by{' '}
           {formatTimeOfDay(new Date(data.leaveBy.arriveBy), data.timeZone)}
         </p>
-        <p className="planner__summary">{data.summary}</p>
         <ol className="planner__tasks">
           {data.tasks.map((task) => (
             <li key={task.id} className={task.overruns ? 'planner__task planner__task--over' : 'planner__task'}>
@@ -90,17 +89,6 @@ export function PlannerPanel({ expanded, onToggle, now, mode = 'transit' }: Plan
           ))}
         </ol>
         {data.provenance.isFixture && <div className="planner__badge">Sample route — not live</div>}
-      </div>
-
-      <div className="leave-by" role="status" aria-label="Leave by reminder">
-        <div className="leave-by__label">{data.feasible ? 'Leave by' : 'Leave by · conflict'}</div>
-        <div className="leave-by__clock">
-          <span className="leave-by__time">{leave.time}</span>
-          <span className="leave-by__period">{leave.period}</span>
-        </div>
-        <div className="leave-by__meta">
-          {MODE_LABEL[data.leaveBy.transportMode]} · {data.leaveBy.travelMinutes} min
-        </div>
       </div>
 
       <div className="planner__details" aria-hidden={!expanded} inert={!expanded}>

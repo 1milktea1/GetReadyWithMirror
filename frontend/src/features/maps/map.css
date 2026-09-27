@@ -46,6 +46,23 @@
   pointer-events: none;
 }
 
+.map-panel__lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.map-panel__line {
+  min-width: 1.6rem;
+  padding: 0.15rem 0.5rem;
+  border: 2px solid;
+  border-radius: 999px;
+  background: #000;
+  font-size: var(--text-micro);
+  font-weight: var(--weight-strong);
+  text-align: center;
+}
+
 .map-panel__places,
 .map-panel__note,
 .map-panel__status {

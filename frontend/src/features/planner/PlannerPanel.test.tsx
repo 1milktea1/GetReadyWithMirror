@@ -80,14 +80,14 @@ describe('PlannerPanel', () => {
   it('shows leave-by and the getting-ready timeline from the backend plan', async () => {
     mockPlan(plan());
     render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" />);
-    expect(await screen.findAllByText('4:15')).toHaveLength(2);
-    expect(screen.getAllByText('PM')).toHaveLength(2);
-    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('Subway');
-    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('35 min');
+    expect(await screen.findByText('4:15')).toBeInTheDocument();
+    expect(screen.getByText('Leave by · On time')).toBeInTheDocument();
+    expect(screen.getByText(/Subway · 35 min/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Leave by reminder')).not.toBeInTheDocument();
     expect(screen.getByText('Shower')).toBeInTheDocument();
     expect(screen.getByText('Hair')).toBeInTheDocument();
     expect(screen.getByText('Get dressed')).toBeInTheDocument();
-    expect(screen.getByText('Plenty of time before you leave for Soothr.')).toBeInTheDocument();
+    expect(screen.queryByText('Plenty of time before you leave for Soothr.')).not.toBeInTheDocument();
     expect(screen.getByText('3:30 PM – 3:45 PM')).toBeInTheDocument();
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument();
   });
@@ -116,8 +116,9 @@ describe('PlannerPanel', () => {
       }),
     );
     render(<PlannerPanel expanded onToggle={() => {}} />);
-    expect(await screen.findByText('30 minutes short of finishing before you need to leave for Soothr.')).toBeInTheDocument();
-    expect(screen.getAllByText('Leave by · conflict')).toHaveLength(2);
+    expect(await screen.findByText('Leave by · Late')).toBeInTheDocument();
+    expect(screen.queryByText('30 minutes short of finishing before you need to leave for Soothr.')).not.toBeInTheDocument();
+    expect(screen.queryByText(/conflict/i)).not.toBeInTheDocument();
     expect(screen.getByText('Shower')).toBeInTheDocument();
     expect(screen.getByText('Shorten Hair from 20 to 5 minutes — saves 15, still 15 short.')).toBeInTheDocument();
     expect(screen.getByText('Sample route — not live')).toBeInTheDocument();
@@ -151,8 +152,8 @@ describe('PlannerPanel', () => {
     }));
     vi.stubGlobal('fetch', fetchMock);
     render(<PlannerPanel expanded={false} onToggle={() => {}} now="2026-09-26T16:00:00.000Z" mode="walking" />);
-    expect(await screen.findByLabelText('Leave by reminder')).toHaveTextContent('Walk');
-    expect(screen.getByLabelText('Leave by reminder')).toHaveTextContent('3:05');
+    expect(await screen.findByText('3:05')).toBeInTheDocument();
+    expect(screen.getByText(/Walk · 105 min/)).toBeInTheDocument();
     const urls = fetchMock.mock.calls.map((call) => String(call[0]));
     expect(urls.some((url) => url.includes('mode=walking'))).toBe(true);
   });

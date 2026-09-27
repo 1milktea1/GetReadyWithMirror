@@ -1,5 +1,5 @@
 {
-  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). Today has the 7 PM Soothr dinner plus a 10:30 PM dinner for evening testing. Tomorrow is gym at Equinox East 92nd Street, lunch at Soothr, and a 5 PM Soothr dinner. After the last addressed event ends, the demo day rolls forward. Venue addresses are real so maps can route; the reservations themselves are synthetic.",
+  "description": "SYNTHETIC DEMO CALENDAR - not real data. Times are wall-clock times in timeZone, placed relative to the current day (dayOffset 0 = today). Today has a 10 AM Equinox gym, the 7 PM Soothr dinner, and a 12:00 AM late dinner (midnight tonight). Tomorrow repeats gym at Equinox East 92nd Street, then lunch at Soothr and a 5 PM Soothr dinner. After the last addressed event ends, the demo day rolls forward. Venue addresses are real so maps can route; the reservations themselves are synthetic.",
   "timeZone": "America/New_York",
   "events": [
     {
@@ -27,6 +27,15 @@
       "venueName": "Columbia University"
     },
     {
+      "id": "fixture-gym-today",
+      "title": "Gym",
+      "dayOffset": 0,
+      "startTime": "10:00",
+      "durationMinutes": 60,
+      "venueName": "Equinox East 92nd Street",
+      "venueAddress": "203 E 92nd St, New York, NY 10128"
+    },
+    {
       "id": "fixture-dinner",
       "title": "Dinner reservation",
       "dayOffset": 0,
@@ -38,8 +47,8 @@
     {
       "id": "fixture-dinner-late",
       "title": "Late dinner",
-      "dayOffset": 0,
-      "startTime": "22:30",
+      "dayOffset": 1,
+      "startTime": "00:00",
       "durationMinutes": 60,
       "venueName": "Soothr",
       "venueAddress": "204 E 13th St, New York, NY 10003"
