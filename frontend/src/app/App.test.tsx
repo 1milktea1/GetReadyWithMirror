@@ -95,6 +95,58 @@ describe('overview map', () => {
     expect(await screen.findByLabelText('Getting ready')).toBeInTheDocument()
   })
 
+  it('opens the existing map, weather, and calendar screens from a voice turn', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url.includes('/api/assistant')) {
+          const utterance = String((JSON.parse(String(init?.body ?? '{}')) as { utterance?: string }).utterance ?? '')
+          const target = /route|map/i.test(utterance) ? 'maps' : /calendar/i.test(utterance) ? 'calendar' : 'weather'
+          return {
+            ok: true,
+            json: async () => ({
+              ok: true,
+              data: {
+                spokenText: `Opening ${target}.`,
+                uiEvents: [{ action: 'expandWidget', target }],
+              },
+            }),
+          }
+        }
+        if (url.includes('/api/voice/speak')) {
+          return { ok: false, json: async () => ({ ok: false, error: { status: 'not-configured' } }) }
+        }
+        if (url.includes('/api/planner')) {
+          return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No plan' } }) }
+        }
+        return { json: async () => ({ ok: false, error: { status: 'no-data', message: 'No weather' } }) }
+      }),
+    )
+    render(<App />)
+    const ask = (text: string) => {
+      fireEvent.change(screen.getByLabelText('Type instead'), { target: { value: text } })
+      fireEvent.click(screen.getByRole('button', { name: 'Ask' }))
+    }
+
+    ask('see my route')
+    expect(await screen.findByRole('region', { name: 'Route map' })).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Route map' })).not.toBeInTheDocument())
+
+    ask('expand weather')
+    await waitFor(() => expect(screen.queryByText('Upcoming')).not.toBeInTheDocument())
+    expect(screen.getByText('No weather')).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: 'Escape' })
+    expect(await screen.findByText('Upcoming')).toBeInTheDocument()
+
+    ask('show my calendar')
+    await waitFor(() => expect(screen.queryByLabelText('Getting ready')).not.toBeInTheDocument())
+    expect(screen.getByRole('region', { name: 'Calendar' })).toBeInTheDocument()
+  })
+
   it('maps Grok expand events onto the existing weather, calendar, and map screens', async () => {
     vi.stubGlobal(
       'fetch',
