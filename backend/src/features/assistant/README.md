@@ -41,14 +41,14 @@ Grok **requests** named tools. The backend **validates and executes** them.
 
 - Spoken text, taken from Grok only after tool results have been sent back.
 - Validated tool outcomes.
-- UI events for `expandWidget`, `collapseWidget`, and `showOverview`. React owns the animation.
-  Nothing here is delivered to the browser yet; event transport is still undecided.
+- UI events for `expandWidget`, `collapseWidget`, and `showOverview`. The voice button applies
+  those events to the overview. React owns the animation.
 
-An action and an information request can occur in the same turn. Weather is called through
-`getWeather` in the weather feature. Calendar, maps, and planner handlers are unwired: those
-tools return `not-configured` and do not invent an event, a route, or a schedule.
+An action and an information request can occur in the same turn. Weather, the fixture
+calendar, the sample commute, and the planner are wired. Planner follow-ups
+(`updateTaskDuration`, `markTaskComplete`) reuse the last named routine in memory.
 
-There is no `/api/assistant` route yet. That composition belongs with `backend/src/app/`.
+`POST /api/assistant` is mounted on the laptop Express app at port 3001.
 
 ## Environment
 
@@ -81,5 +81,5 @@ A missing key is `not-configured`. The process still starts.
 ## Does NOT own
 
 - Directly editing the React DOM, generating JSX, or playing audio.
-- Calendar, maps, or planner logic. Those features will supply handlers.
+- Calendar, maps, or planner internals. Those features supply public handlers.
 - Deciding that a schedule fits. The planner computes that; Grok only explains the result.

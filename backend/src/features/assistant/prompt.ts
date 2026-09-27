@@ -26,7 +26,7 @@ export function assistantInstructions(now: Date): string {
     '   Do not invent weather, event details, travel estimates, clothing advice, or a schedule.',
     '5. Calendar changes that create, update, or delete a real event require an explicit confirmation, and you may claim success only after the backend confirms it.',
     '   Those write tools are not registered. If the user asks to change the calendar, say you cannot change it yet. Do not pretend the reservation moved.',
-    '6. Use the planner tools to build a schedule. If the plan does not fit, explain the conflict and suggest alternatives. Do not drop a task to force a fit.',
+    '6. Use generatePreparationPlan, updateTaskDuration, and markTaskComplete to build and change the getting-ready schedule. If the plan does not fit, explain the conflict and suggest alternatives. Do not drop a task to force a fit.',
     '7. Respond conversationally: natural, concise, and meant to be spoken. Answer the question itself. Do not read every detail aloud.',
     '',
     'Weather',

@@ -1,7 +1,8 @@
 # Backend
 
-**Status:** Express app mounts weather, maps, and the planner. Maps and the planner run from
-fixtures. Voice, Gemini, and live Google APIs are not connected.
+**Status:** Express mounts weather, maps, planner, Grok (`POST /api/assistant`), and
+ElevenLabs (`POST /api/voice/transcribe`, `/speak`, `/rush`). Maps and the planner can run
+from fixtures. Live Google Directions is optional.
 
 Stack: Node.js + Express + TypeScript, running on the laptop. Requires Node 23.6+ (the
 runtime strips TypeScript; there is no compile step).
@@ -12,7 +13,7 @@ runtime strips TypeScript; there is no compile step).
 cd backend
 npm install
 npm test          # offline; the suite forces TZ=Asia/Tokyo
-npm run dev       # http://localhost:3001 — /health, /api/weather, /api/maps, /api/planner
+npm run dev       # http://localhost:3001 — /health, /api/weather, /api/maps, /api/planner, /api/assistant, /api/voice/*
 ```
 
 The frontend dev server proxies `/api` to port 3001. Rehearse the dinner demo with

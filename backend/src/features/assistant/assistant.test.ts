@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { TOOL_NAMES } from '../../../../shared/contracts/assistant/types.ts';
 import { runAssistantTurn } from './assistantService.ts';
+import { resetPlannerSession } from './plannerHandlers.ts';
 import { GROK_TOOLS } from './tools.ts';
 
 const NOW = new Date('2026-09-26T18:30:00.000Z'); // 2:30 PM in New York
@@ -261,6 +262,34 @@ test('validated plan tasks are trimmed and forwarded', async () => {
   assert.deepEqual(received, { tasks: [{ name: 'shower', durationMinutes: 15 }], arrivalBufferMinutes: 10 });
   assert.ok(res.ok);
   assert.equal(res.data.spokenText, 'Start the shower at 4.');
+});
+
+test('the default planner handler schedules shower, hair, and dressed against leave-by', async () => {
+  resetPlannerSession();
+  const seen = scripted([
+    withCalls([
+      {
+        name: 'generatePreparationPlan',
+        arguments: {
+          tasks: [
+            { name: 'shower', durationMinutes: 15 },
+            { name: 'hair', durationMinutes: 20 },
+            { name: 'get dressed', durationMinutes: 10 },
+          ],
+        },
+      },
+    ]),
+    message('Leave by 6:15 for dinner.'),
+  ]);
+  const res = await turn({
+    utterance: 'Plan my time. I need to shower, do my hair, and get dressed.',
+    now: new Date('2026-09-26T20:00:00.000Z'),
+    fetchFn: seen.fetchFn,
+    handlers: {},
+  });
+  assert.ok(res.ok);
+  assert.match(JSON.stringify(seen.bodies[1].input), /2026-09-26T22:15:00.000Z/);
+  assert.equal(res.data.spokenText, 'Leave by 6:15 for dinner.');
 });
 
 test('the calendar tool returns the labeled demo dinner for Grok to speak from', async () => {

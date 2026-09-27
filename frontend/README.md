@@ -15,9 +15,12 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Weather and the getting-ready plan call `/api`, which Vite proxies to `http://localhost:3001`.
-Start the backend first (`npm run dev` from `backend/`). Without it, those two panels show an
-unavailable state; the calendar still renders from its fixture.
+Weather, the getting-ready plan, and **Hey Mirror** call `/api`, which Vite proxies to
+`http://localhost:3001`. Start the backend first (`npm run dev` from `backend/`). Put
+`XAI_API_KEY` and `ELEVENLABS_API_KEY` in `backend/.env` so Grok and ElevenLabs can run.
+Without the backend, weather and the planner show an unavailable state; the calendar still
+renders from its fixture. You can type a request under the voice button if the microphone
+is unavailable.
 
 | Command | What it does |
 |---|---|

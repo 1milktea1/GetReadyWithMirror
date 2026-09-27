@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './VoiceButton.css'
 import { commandAfterWake } from './wakePhrase'
+import { appendSpokenTurn, type ChatTurn } from './conversation'
 import { playAudioBlob, setVoiceBusy } from './voiceBusy'
 
 type Phase = 'idle' | 'listening' | 'thinking' | 'speaking'
@@ -15,41 +16,22 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
   const [status, setStatus] = useState('Say Hey Mirror')
   const [live, setLive] = useState('')
   const [scribe, setScribe] = useState('')
+  const [typed, setTyped] = useState('')
   const phaseRef = useRef<Phase>('idle')
   const recorder = useRef<MediaRecorder | null>(null)
   const chunks = useRef<Blob[]>([])
+  const historyRef = useRef<ChatTurn[]>([])
   const eventsRef = useRef(onEvents)
-  eventsRef.current = onEvents
+
+  useEffect(() => {
+    eventsRef.current = onEvents
+  }, [onEvents])
 
   useEffect(() => {
     const busy = phase !== 'idle'
     if (!busy) return
     setVoiceBusy(true)
     return () => setVoiceBusy(false)
-  }, [phase])
-
-  useEffect(() => {
-    if (phase === 'thinking' || phase === 'speaking') return
-    const recognition = startWakeListener({
-      onTranscript: (text) => {
-        if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
-        setLive(text)
-      },
-      onWake: (command) => {
-        if (phaseRef.current !== 'idle') return
-        setScribe('')
-        if (command) void answer(command)
-        else void recordCommand()
-      },
-      onDenied: () => {
-        if (phaseRef.current === 'idle') setStatus('Microphone access was denied')
-      },
-      onUnavailable: () => {
-        if (phaseRef.current === 'idle') setStatus('Tap to talk')
-      },
-    })
-    if (recognition) setStatus('Say Hey Mirror')
-    return () => recognition?.stop()
   }, [phase])
 
   function setPhaseNow(next: Phase) {
@@ -117,10 +99,11 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
     setPhaseNow('thinking')
     setStatus('Thinking')
     try {
-      const turn = await postJson('/api/assistant', { utterance })
+      const turn = await postJson('/api/assistant', { utterance, history: historyRef.current })
       const spoken = textOf(turn, 'spokenText')
       const events = Array.isArray(turn.data?.uiEvents) ? (turn.data.uiEvents as VoiceUiEvent[]) : []
       eventsRef.current(events)
+      historyRef.current = appendSpokenTurn(historyRef.current, utterance, spoken)
       setPhaseNow('speaking')
       setStatus(spoken)
       await play(spoken)
@@ -130,6 +113,30 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       setPhaseNow('idle')
     }
   }
+
+  useEffect(() => {
+    if (phase === 'thinking' || phase === 'speaking') return
+    const recognition = startWakeListener({
+      onTranscript: (text) => {
+        if (phaseRef.current === 'thinking' || phaseRef.current === 'speaking') return
+        setLive(text)
+      },
+      onWake: (command) => {
+        if (phaseRef.current !== 'idle') return
+        setScribe('')
+        if (command) void answer(command)
+        else void recordCommand()
+      },
+      onDenied: () => {
+        if (phaseRef.current === 'idle') setStatus('Microphone access was denied')
+      },
+      onUnavailable: () => {
+        if (phaseRef.current === 'idle') setStatus('Tap to talk')
+      },
+    })
+    if (recognition) setStatus('Say Hey Mirror')
+    return () => recognition?.stop()
+  }, [phase])
 
   return (
     <div className="voice-dock">
@@ -146,6 +153,34 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
         <span className="voice__status">{status}</span>
       </button>
+      <form
+        className="voice-type"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const utterance = typed.trim()
+          if (!utterance || phaseRef.current !== 'idle') return
+          setTyped('')
+          setScribe(utterance)
+          void answer(utterance)
+        }}
+      >
+        <label className="voice-type__label" htmlFor="voice-type-input">
+          Type instead
+        </label>
+        <input
+          id="voice-type-input"
+          className="voice-type__input"
+          type="text"
+          autoComplete="off"
+          placeholder="What’s the weather for dinner?"
+          value={typed}
+          disabled={phase !== 'idle'}
+          onChange={(event) => setTyped(event.target.value)}
+        />
+        <button className="voice-type__ask" type="submit" disabled={phase !== 'idle' || !typed.trim()}>
+          Ask
+        </button>
+      </form>
     </div>
   )
 }
