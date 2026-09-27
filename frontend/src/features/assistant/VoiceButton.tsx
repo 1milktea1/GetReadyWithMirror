@@ -142,6 +142,7 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
   return (
     <div className="voice-dock">
       <div className="voice-captions" aria-live="polite">
+        {status && <p className="voice-captions__line">{status}</p>}
         {live && <p className="voice-captions__line">{live}</p>}
         {scribe && (
           <p className="voice-captions__scribe">
@@ -152,7 +153,6 @@ export function VoiceButton({ onEvents }: { onEvents: (events: VoiceUiEvent[]) =
       </div>
       <button type="button" className={`voice voice--${phase}`} onClick={() => void toggle()}>
         <span className="voice__label">{phase === 'listening' ? 'Stop' : 'Hey Mirror'}</span>
-        {status ? <span className="voice__status">{status}</span> : null}
       </button>
     </div>
   )

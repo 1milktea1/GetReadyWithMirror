@@ -9,9 +9,9 @@ describe('VoiceButton', () => {
   })
 
   it('labels the idle button Hey Mirror without a say-this prompt', () => {
-    stubWakeRecognition()
     const { getByRole, queryByText } = render(<VoiceButton onEvents={() => {}} />)
     expect(getByRole('button', { name: 'Hey Mirror' })).toBeInTheDocument()
+    expect(getByRole('button', { name: 'Hey Mirror' }).textContent).toBe('Hey Mirror')
     expect(queryByText('Say Hey Mirror')).not.toBeInTheDocument()
   })
 
