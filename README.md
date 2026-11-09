@@ -1,6 +1,6 @@
 # GetReadyWithMirror
 agentic smart mirror that optimizes everyday life
-Demo: https://devpost.com/software/get-ready-with-mirror-grwm
+https://devpost.com/software/get-ready-with-mirror-grwm
 ---
 ## What this is
 
