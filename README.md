@@ -1,13 +1,7 @@
 # GetReadyWithMirror
 agentic smart mirror that optimizes everyday life
-
+Demo: https://devpost.com/software/get-ready-with-mirror-grwm
 ---
-
-**Status:** Weather (Open-Meteo) and the Grok assistant tool loop are implemented. Voice,
-calendar, maps, planner, and Express composition are not wired yet.
-
-Read [`AGENTS.md`](AGENTS.md) before changing anything.
-
 ## What this is
 
 A voice-controlled, AI-powered smart mirror for a hackathon's **Live Better (strictly personal
